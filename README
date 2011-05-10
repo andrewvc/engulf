@@ -1,0 +1,14 @@
+# parbench
+
+Visualization tool for webserver concurrency
+
+## Usage
+
+    lein deps
+    lein run 50 100 http://localhost:3000/
+
+## License
+
+Copyright (C) 2011 Andrew Cholakian
+
+Distributed under the Eclipse Public License, the same as Clojure.

@@ -1,7 +1,7 @@
 (ns parbench.core
   (:gen-class)
   (:use rosado.processing)
-  (:require [clj-http.client :as client])
+  (:require [clj-http.client :as http])
   (:import  [java.util.concurrent Executors]
             [javax.swing JFrame]
             [java.util TimerTask Timer]
@@ -23,7 +23,8 @@
 (defn run-request [request url]
   "Runs a single HTTP request"
   (set-request-state request :sent)
-  (let [result (client/get url)]
+  (let [result (try (http/get url)
+                    (catch Exception e {:status (Integer. (.getMessage e))}))]
       (set-request-state request (:status result))))
 
 (defn initialize-requests [requests concurrency]
@@ -47,10 +48,12 @@
   [dst]
   (doseq [[col row state] (map deref (deref req-map))]
           ((fn [[fc sc]] (apply fill-float fc) (apply stroke-float sc))
-            (cond (= state :sent)    [[210 210   0] [255 255   0]]
-                  (= state :untried) [[220 220 220] [235 235 235]]
-                  (= state 200)      [[105 105 105] [120 120 120]]
-                  :else              [[255 125 125] [255   0   0]] ))
+            (cond (= state :sent)                    [[210 210   0] [255 255   0]]
+                  (= state :untried)                 [[220 220 220] [235 235 235]] 
+                  (and (>= state 200) (< state 300)) [[105 105 105] [120 120 120]]
+                  (and (>= state 300) (< state 400)) [[200 200  70] [220 220 200]]
+                  (and (>= state 500) (< state 600)) [[255 105 105] [150 120 120]]
+                  :else                              [[  0   0   0] [255   0   0]] ))
           (rect (* gfx-scale col) (* gfx-scale row) gfx-scale gfx-scale) ) )
 
 (defn create-pb-applet [width height]
@@ -92,12 +95,11 @@
         (.pack)
         (.show))))
 
-(defn -main [mode concurrencyArg reqsArg url]
+(defn -main [concurrencyArg reqsArg url]
   (let [requests    (Integer. reqsArg)
         concurrency (Integer. concurrencyArg)
         width       (* gfx-scale requests)
         height      (* gfx-scale concurrency)]
     (initialize-console)
-    (cond (not= mode "console")
-      (initialize-graphics width height))
+    (initialize-graphics width height)
     (run-requests requests concurrency url)))

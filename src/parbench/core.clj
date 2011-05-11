@@ -36,9 +36,8 @@
   "Runs all HTTP Requests in a thread pool"
   (initialize-requests requests concurrency)
   (let [pool    (Executors/newFixedThreadPool concurrency)
-        tasks   (map-indexed (fn [idx request] 
-                                 #(run-request request url)) 
-                                 (deref req-map))]
+        tasks   (map (fn [request] #(run-request request url)) 
+                         (deref req-map))]
       (.get (future (.invokeAll pool tasks)))
       (.shutdown pool)))
 

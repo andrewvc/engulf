@@ -1,6 +1,8 @@
 (ns parbench.core
   (:gen-class)
-  (:use rosado.processing)
+  (:use [rosado.processing]
+        [clojure.contrib.command-line])
+
   (:require [com.twinql.clojure.http :as http])
   (:import  [java.util.concurrent Executors]
             [javax.swing JFrame]
@@ -47,8 +49,11 @@
   (reduce (fn [stats point] 
             (let [[x y state] (deref point)]
                (assoc stats
-                 :progress (inc (stats :progress 0))
-                 state     (inc (stats state     0)))))
+                 :total    (inc (stats :total 0))
+                 state     (inc (stats state  0))
+                 :progress (if (not= state :untried)
+                               (inc (stats :progress 0))
+                               (stats :progress 0)))))
           {}
           (deref req-map) ))
 
@@ -61,6 +66,7 @@
                   (= state :untried)                 [[220 220 220] [235 235 235]] 
                   (and (>= state 200) (< state 300)) [[105 105 105] [120 120 120]]
                   (and (>= state 300) (< state 400)) [[120 120 255] [150 150 255]]
+                  (and (>= state 400) (< state 500)) [[255 255 255] [240 240 240]]
                   (and (>= state 500) (< state 600)) [[255 105 105] [250 120 120]]
                   :else                              [[  0   0   0] [255   0   0]] ))
           (rect (* gfx-scale col) (* gfx-scale row) gfx-scale gfx-scale) ) )
@@ -94,11 +100,20 @@
                (run [] (println (req-map-counts))))]
     (. (new Timer) (scheduleAtFixedRate task (long 0) (long 1000)))))
 
-(defn -main [concurrencyArg reqsArg url]
-  (let [requests    (Integer. reqsArg)
-        concurrency (Integer. concurrencyArg)
-        width       (* gfx-scale requests)
-        height      (* gfx-scale concurrency)]
-    (initialize-console)
-    (initialize-graphics width height)
-    (run-requests requests concurrency url)))
+(defn -main [& args]
+  (with-command-line
+    args
+    "Usage: [-k,-c NUM_WORKERS,-r NUM_REQUESTS] http://example.net "
+    [[cli-only?   k? "Command Line Only" false]
+     [concurrency c  "Number of Workers" 50]
+     [requests    r  "Number of requests per worker" 100]]
+     
+    (let [url         (last args)
+          requests    (Integer. requests)
+          concurrency (Integer. concurrency)
+          width       (* gfx-scale requests)
+          height      (* gfx-scale concurrency)]
+       
+      (initialize-console)
+      (cond (not cli-only?) (initialize-graphics width height))
+      (run-requests requests concurrency url))))

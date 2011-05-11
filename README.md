@@ -2,7 +2,7 @@
 
 Visualization tool for webserver concurrency
 
-![Screenshot](https://github.com/downloads/andrewvc/parbench/parbench-snap.png)
+![Screenshot](https://github.com/downloads/andrewvc/parbench/parbench-ss.png)
 
 ## Usage
 

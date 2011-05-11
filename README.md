@@ -6,12 +6,12 @@ Visualization tool for webserver concurrency
 
 ## Usage
 
-  Download the [JAR](https://github.com/downloads/andrewvc/parbench/parbench-1.0.1-standalone.jar)
+  Download the JAR from the [downloads page](https://github.com/andrewvc/parbench/downloads).
   
   Then run:
     
     # Runs parbench with 50 workers given 100 requests each targeting localhost:9000
-    java -jar parbench-1.0.1-standalone.jar http://localhost:9000
+    java -jar parbench.jar http://localhost:9000
 
     # Full Usage: java -jar parbench.jar -h
     Usage: [-k,-c NUM_WORKERS,-r NUM_REQUESTS] http://example.net 

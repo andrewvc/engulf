@@ -15,7 +15,7 @@ Visualization tool for webserver concurrency
   
   Each horizontal line represents a worker thread. Each square represents an HTTP request.
 
-  #### Square colors: ####
+  Square colors:
 
   * Light-gray: pending/future requests
   * Dark-gray:  200/OK

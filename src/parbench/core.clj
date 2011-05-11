@@ -4,6 +4,7 @@
   (:require [clj-http.client :as client])
   (:import  [java.util.concurrent Executors]
             [javax.swing JFrame]
+            [java.util TimerTask Timer]
             [processing.core PApplet]))
 
 ; Size of Rectangles
@@ -63,9 +64,26 @@
        (binding [*applet* this]
        (on-draw this)))))
 
+(defn req-map-counts []
+  "Returns a mapping of req-map states to counts"
+  (reduce (fn [stats point] 
+            (let [[x y state] (deref point)]
+               (assoc stats
+                 :progress (inc (stats :progress 0))
+                 state     (inc (stats state     0)))))
+          {}
+          (deref req-map) ))
+
+(defn initialize-console []
+  "Sets up display loop for console output"
+  (let [task (proxy [TimerTask] []
+               (run [] (println (req-map-counts))))]
+    (. (new Timer) (scheduleAtFixedRate task (long 0) (long 1000)))))
+
 (defn initialize-graphics [width height]
+  "Sets up GUI output via Processing"
   (let [pb-applet   (create-pb-applet width height)
-        swing-frame (JFrame. "Graphical HTTP Tester")]
+        swing-frame (JFrame. "Parbench HTTP Tester")]
     (.init pb-applet)
       (doto swing-frame
         (.setDefaultCloseOperation JFrame/EXIT_ON_CLOSE)
@@ -74,10 +92,12 @@
         (.pack)
         (.show))))
 
-(defn -main [concurrencyArg reqsArg url]
+(defn -main [mode concurrencyArg reqsArg url]
   (let [requests    (Integer. reqsArg)
         concurrency (Integer. concurrencyArg)
         width       (* gfx-scale requests)
         height      (* gfx-scale concurrency)]
-    (initialize-graphics width height)
+    (initialize-console)
+    (cond (not= mode "console")
+      (initialize-graphics width height))
     (run-requests requests concurrency url)))

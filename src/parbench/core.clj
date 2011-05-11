@@ -43,6 +43,19 @@
       (.get (future (.invokeAll pool tasks)))
       (.shutdown pool)))
 
+(defn req-map-counts []
+  "Returns a mapping of req-map states to counts"
+  (reduce (fn [stats point] 
+            (let [[x y state] (deref point)]
+               (assoc stats
+                 :progress (inc (stats :progress 0))
+                 state     (inc (stats state     0)))))
+          {}
+          (deref req-map) ))
+
+
+
+
 (defn on-draw
   "Draws the canvas based on the data in req-map"
   [dst]
@@ -67,22 +80,6 @@
        (binding [*applet* this]
        (on-draw this)))))
 
-(defn req-map-counts []
-  "Returns a mapping of req-map states to counts"
-  (reduce (fn [stats point] 
-            (let [[x y state] (deref point)]
-               (assoc stats
-                 :progress (inc (stats :progress 0))
-                 state     (inc (stats state     0)))))
-          {}
-          (deref req-map) ))
-
-(defn initialize-console []
-  "Sets up display loop for console output"
-  (let [task (proxy [TimerTask] []
-               (run [] (println (req-map-counts))))]
-    (. (new Timer) (scheduleAtFixedRate task (long 0) (long 1000)))))
-
 (defn initialize-graphics [width height]
   "Sets up GUI output via Processing"
   (let [pb-applet   (create-pb-applet width height)
@@ -94,6 +91,12 @@
         (.add pb-applet)
         (.pack)
         (.show))))
+
+(defn initialize-console []
+  "Sets up display loop for console output"
+  (let [task (proxy [TimerTask] []
+               (run [] (println (req-map-counts))))]
+    (. (new Timer) (scheduleAtFixedRate task (long 0) (long 1000)))))
 
 (defn -main [concurrencyArg reqsArg url]
   (let [requests    (Integer. reqsArg)

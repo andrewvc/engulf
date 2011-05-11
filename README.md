@@ -34,4 +34,4 @@ Visualization tool for webserver concurrency
 
 Copyright (C) 2011 Andrew Cholakian
 
-Distributed under the Eclipse Public License, the same as Clojure.
+Distributed under the MIT Licensee, see LICENSE for details

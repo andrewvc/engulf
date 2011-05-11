@@ -11,7 +11,15 @@ Visualization tool for webserver concurrency
   Then run:
     
     # Runs parbench with 50 workers given 100 requests each targeting localhost:9000
-    java -jar parbench-1.0.0-SNAPSHOT-standalone.jar 50 100 http://localhost:9000
+    java -jar parbench-1.0.0-SNAPSHOT-standalone.jar http://localhost:9000
+
+    # Full Usage: java -jar parbench.jar -h
+    Usage: [-k,-c NUM_WORKERS,-r NUM_REQUESTS] http://example.net 
+    Options
+      --cli-only, -k           Command Line Only                           
+      --concurrency, -c <arg>  Number of Workers              [default 50] 
+      --requests, -r <arg>     Number of requests per worker  [default 100]
+
   
   Each horizontal line represents a worker thread. Each square represents an HTTP request.
 

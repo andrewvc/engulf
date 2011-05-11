@@ -1,7 +1,7 @@
 (ns parbench.core
   (:gen-class)
   (:use rosado.processing)
-  (:require [clj-http.client :as http])
+  (:require [com.twinql.clojure.http :as http])
   (:import  [java.util.concurrent Executors]
             [javax.swing JFrame]
             [java.util TimerTask Timer]
@@ -23,9 +23,8 @@
 (defn run-request [request url]
   "Runs a single HTTP request"
   (set-request-state request :sent)
-  (let [result (try (http/get url)
-                    (catch Exception e {:status (Integer. (.getMessage e))}))]
-      (set-request-state request (:status result))))
+  (let [result (http/get url :parameters (http/map->params {:handle-redirects false}))]
+      (set-request-state request (:code result))))
 
 (defn initialize-requests [requests concurrency]
   "Resets the req-map to a blank state"
@@ -61,8 +60,8 @@
             (cond (= state :sent)                    [[210 210   0] [255 255   0]]
                   (= state :untried)                 [[220 220 220] [235 235 235]] 
                   (and (>= state 200) (< state 300)) [[105 105 105] [120 120 120]]
-                  (and (>= state 300) (< state 400)) [[200 200  70] [220 220 200]]
-                  (and (>= state 500) (< state 600)) [[255 105 105] [150 120 120]]
+                  (and (>= state 300) (< state 400)) [[120 120 255] [150 150 255]]
+                  (and (>= state 500) (< state 600)) [[255 105 105] [250 120 120]]
                   :else                              [[  0   0   0] [255   0   0]] ))
           (rect (* gfx-scale col) (* gfx-scale row) gfx-scale gfx-scale) ) )
 

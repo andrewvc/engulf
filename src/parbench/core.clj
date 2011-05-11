@@ -2,7 +2,7 @@
   (:gen-class)
   (:use [rosado.processing]
         [clojure.contrib.command-line])
-
+  (:require clojure.contrib.profile)
   (:require [com.twinql.clojure.http :as http])
   (:import  [java.util.concurrent Executors]
             [javax.swing JFrame]
@@ -18,6 +18,9 @@
 ; Current state of all requests
 (def req-map (ref []))
 
+; Default HTTP Parameters
+(def default-http-parameters
+  (http/map->params {:handle-redirects false}))
 (defn set-request-state [request state]
   "Alters the state of an HTTP request"
   (dosync (alter request assoc 2 state)))
@@ -25,7 +28,7 @@
 (defn run-request [request url]
   "Runs a single HTTP request"
   (set-request-state request :sent)
-  (let [result (http/get url :parameters (http/map->params {:handle-redirects false}))]
+  (let [result (http/get url :parameters default-http-parameters)]
       (set-request-state request (:code result))))
 
 (defn initialize-requests [requests concurrency]

@@ -1,5 +1,5 @@
 (defproject parbench "1.0.0-SNAPSHOT"
-  :description "HTTP Parallelism Visualizer"
+  :description "Parallel HTTP Visualizer"
   :main parbench.core
   :dependencies [[org.clojure/clojure "1.2.1"]
                  [clj-http            "0.1.3"]

@@ -2,3 +2,4 @@ classes/*
 *.swp
 *.swo
 lib/*
+*.jar

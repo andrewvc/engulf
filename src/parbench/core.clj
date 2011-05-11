@@ -53,9 +53,6 @@
           {}
           (deref req-map) ))
 
-
-
-
 (defn on-draw
   "Draws the canvas based on the data in req-map"
   [dst]

@@ -3,3 +3,5 @@ classes/*
 *.swo
 lib/*
 *.jar
+.idea/**
+.idea/.*

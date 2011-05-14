@@ -60,18 +60,29 @@
           {}
           (deref req-map) ))
 
+(def colors {
+  :yellow      [[210 210   0] [255 255   0]]
+  :dark-gray   [[105 105 105] [120 120 120]]
+  :light-gray  [[220 220 220] [235 235 235]]
+  :blue        [[120 120 255] [150 150 255]]
+  :white       [[255 255 255] [240 240 240]]
+  :red         [[255 105 105] [250 120 120]]
+  :black       [[  0   0   0] [255   0   0]]
+  })
+
 (defn on-draw
   "Draws the canvas based on the data in req-map"
   [dst]
   (doseq [[col row state] (map deref (deref req-map))]
-          ((fn [[fc sc]] (apply fill-float fc) (apply stroke-float sc))
-            (cond (= state :sent)                    [[210 210   0] [255 255   0]]
-                  (= state :untried)                 [[220 220 220] [235 235 235]] 
-                  (and (>= state 200) (< state 300)) [[105 105 105] [120 120 120]]
-                  (and (>= state 300) (< state 400)) [[120 120 255] [150 150 255]]
-                  (and (>= state 400) (< state 500)) [[255 255 255] [240 240 240]]
-                  (and (>= state 500) (< state 600)) [[255 105 105] [250 120 120]]
-                  :else                              [[  0   0   0] [255   0   0]] ))
+          ((fn [[fc sc]]
+            (apply fill-float fc) (apply stroke-float sc))
+            (cond (= state :sent)                    (colors :yellow)
+                  (= state :untried)                 (colors :light-gray)
+                  (and (>= state 200) (< state 300)) (colors :dark-gray)
+                  (and (>= state 300) (< state 400)) (colors :blue)
+                  (and (>= state 400) (< state 500)) (colors :white)
+                  (and (>= state 500) (< state 600)) (colors :red)
+                  :else                              (colors :black) ))
           (rect (* gfx-scale col) (* gfx-scale row) gfx-scale gfx-scale) ) )
 
 (defn create-pb-applet [width height]

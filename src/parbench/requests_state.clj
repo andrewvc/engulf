@@ -2,12 +2,12 @@
 
 (defrecord RequestsState [requests concurrency grid])
 
-(defn create-blank [requests concurrency]
+(defn create-blank [requests concurrency url-generator]
   "Creates a blank representation of request state"
   (let [grid (for [row (range concurrency)]
                   (for [col (range requests)]
                        (ref {:y row :x col
-                             :url     "http://localhost:80/app/"
+                             :url     (url-generator)
                              :state   :untried
                              :status  nil
                              :runtime nil}) ))]()

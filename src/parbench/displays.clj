@@ -25,7 +25,7 @@
   :else                                (colors :black) ))
 
 (defn status-draw
-  "Draws squares based on HTTP response codes"
+  "draw-fn for processing: draws squares based on HTTP response codes"
   [dst reqs-state scale]
   (doseq [req-ref (flatten (:grid reqs-state))]
     (let [request @req-ref
@@ -42,18 +42,18 @@
           (rect (* scale col) (* scale row) scale scale))))
 
 (defn create-pb-applet [reqs-state width height scale draw-fn]
-  "Create the processing applet"
+  "Create an applet for processing, calling draw-fn on every draw cycle"
   (proxy [PApplet] []
     (setup []
       (binding [*applet* this]
         (size width height)
-        (framerate 15)))
+        (framerate 20)))
      (draw []
        (binding [*applet* this]
        (status-draw this reqs-state scale)))))
 
 (defn initialize-graphics [reqs-state width height scale draw-fn]
-  "Sets up GUI output via Processing"
+  "Sets up GUI output via Swing + Processing"
   (let [pb-applet   (create-pb-applet reqs-state width height scale draw-fn)
         swing-frame (JFrame. "Parbench")]
     (.init pb-applet)
@@ -72,7 +72,7 @@
     (initialize-graphics reqs-state width height scale status-draw)))
 
 (defn console-full [reqs-state ui-opts]
-  "Dumps the whole grid to the console"
+  "Dumps the whole grid to the console. Warning: Extremely Verbose."
     (let [task (proxy [TimerTask] []
          (run [] (println reqs-state)))]
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))

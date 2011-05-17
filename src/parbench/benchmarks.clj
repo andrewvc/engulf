@@ -25,5 +25,5 @@
 (defn user-agents [reqs-state opts]
   "Visualization showing each row as a user agent"
   (let [request-lists (for [row (:grid reqs-state)] (agent row))]
-    (for [request-list request-lists]
+    (doseq [request-list request-lists]
       (send-off request-list run-requests))))

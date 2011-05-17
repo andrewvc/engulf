@@ -1,4 +1,4 @@
-(defproject parbench "1.0.2"
+(defproject parbench "1.1.2"
   :description "Parallel HTTP Visualizer"
   :main parbench.core
   :jvm-opts ["-server"]

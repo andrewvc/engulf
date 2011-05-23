@@ -22,6 +22,7 @@
     (let [concurrency (Integer/valueOf concurrency)
           requests    (Integer/valueOf requests)
           reqs-state  (rstate/create-blank requests concurrency #(last args))
+          scale       (Integer/valueOf scale)
           opts {
             :url         (last args)
             :cli-only?   cli-only?

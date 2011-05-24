@@ -29,7 +29,7 @@
             :concurrency concurrency
             :requests    requests
             :scale        scale}]
+      (. Thread (sleep 2000)) ; Let the program warm up before running
       (run-state-displays reqs-state opts)
-      (. Thread (sleep 1500)) ; Let the program warm up before running
       (benchmarks/user-agents  reqs-state opts)
       "Starting")))

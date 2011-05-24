@@ -37,6 +37,7 @@
             (apply fill-float fc) (apply stroke-float sc))
             (cond (= state :requested) (colors :yellow)
                   (= state :untried)   (colors :light-gray)
+                  (= state :failed)    (colors :black)
                   (= state :responded) (status-color status)
                   :else                (colors :black)))
           (rect (* scale col) (* scale row) scale scale))))
@@ -47,7 +48,7 @@
     (setup []
       (binding [*applet* this]
         (size width height)
-        (framerate 20)))
+        (framerate 10)))
      (draw []
        (binding [*applet* this]
        (status-draw this reqs-state scale)))))

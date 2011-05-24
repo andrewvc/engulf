@@ -1,12 +1,8 @@
 (ns parbench.benchmarks
-  (:require [com.twinql.clojure.http :as http])
   (:import com.ning.http.client.AsyncHttpClient)
   (:import com.ning.http.client.AsyncCompletionHandler)
   (:import java.util.concurrent.Future)
   (:import java.util.Calendar))
-
-(def default-http-parameters
-  (http/map->params {:handle-redirects false}))
 
 (defn timestamp []
   (.getTimeInMillis (Calendar/getInstance)))

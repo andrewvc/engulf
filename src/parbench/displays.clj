@@ -24,6 +24,7 @@
   (and (>= status 500) (< status 600)) (colors :red)
   :else                                (colors :black) ))
 
+; TODO: This is a bad idea, we should only iterate of the squares that need it
 (defn status-draw
   "draw-fn for processing: draws squares based on HTTP response codes"
   [dst reqs-state scale]
@@ -52,7 +53,7 @@
     (setup []
       (binding [*applet* this]
         (size width height)
-        (framerate 10)))
+        (framerate 4)))
      (draw []
        (binding [*applet* this]
        (status-draw this reqs-state scale)))))

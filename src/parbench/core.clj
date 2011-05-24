@@ -15,9 +15,9 @@
     args
     "Usage: [OPTIONS] http://example.net "
     [[cli-only?   k? "Command Line Only" false]
-     [concurrency c "Number of Workers" 50]
-     [requests    r "Number of requests per worker" 100]
-     [scale       g "Pixel Size of GUI Squares" 7]]
+     [concurrency c "Number of Workers" 100]
+     [requests    r "Number of requests per worker" 200]
+     [scale       g "Pixel Size of GUI Squares" 2]]
 
     (let [concurrency (Integer/valueOf concurrency)
           requests    (Integer/valueOf requests)
@@ -29,7 +29,8 @@
             :concurrency concurrency
             :requests    requests
             :scale        scale}]
-      (. Thread (sleep 2000)) ; Let the program warm up before running
+      (println "Pre-warming")
+      (. Thread (sleep 2500)) ; Let the program warm up before running
       (run-state-displays reqs-state opts)
       (benchmarks/user-agents  reqs-state opts)
       "Starting")))

@@ -30,6 +30,7 @@
   (fn [response]
     (dosync
       (alter request assoc
+        :rendered      false
         :responded-at (timestamp)
         :state        :responded
         :status       (:status response)))
@@ -45,7 +46,7 @@
 
 (defn run-request [request callback]
   "Runs a single HTTP request"
-  (dosync (alter request assoc :state :requested :requested-at (timestamp)))
+  (dosync (alter request assoc :rendered false :state :requested :requested-at (timestamp)))
   (ning-get (:url @request) 
             (success-callback-for request callback)
             (failure-callback-for request callback)))

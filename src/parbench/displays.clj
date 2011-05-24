@@ -28,19 +28,23 @@
   "draw-fn for processing: draws squares based on HTTP response codes"
   [dst reqs-state scale]
   (doseq [req-ref (flatten (:grid reqs-state))]
-    (let [request @req-ref
-          col     (:x      request)
-          row     (:y      request)
-          state   (:state  request)
-          status  (:status request)]
-          ((fn [[fc sc]]
-            (apply fill-float fc) (apply stroke-float sc))
-            (cond (= state :requested) (colors :yellow)
-                  (= state :untried)   (colors :light-gray)
-                  (= state :failed)    (colors :black)
-                  (= state :responded) (status-color status)
-                  :else                (colors :black)))
-          (rect (* scale col) (* scale row) scale scale))))
+    (dosync 
+      (let [request @req-ref
+            col     (:x      request)
+            row     (:y      request)
+            state   (:state  request)
+            status  (:status request)]
+            (cond (not (:rendered request))
+              (do 
+              (alter req-ref assoc :rendered true)
+              ((fn [[fc sc]]
+                (apply fill-float fc) (apply stroke-float sc))
+                (cond (= state :requested) (colors :yellow)
+                      (= state :untried)   (colors :light-gray)
+                      (= state :failed)    (colors :black)
+                      (= state :responded) (status-color status)
+                      :else                (colors :black)))
+              (rect (* scale col) (* scale row) scale scale)))))))
 
 (defn create-pb-applet [reqs-state width height scale draw-fn]
   "Create an applet for processing, calling draw-fn on every draw cycle"

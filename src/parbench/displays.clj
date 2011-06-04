@@ -104,7 +104,7 @@
         minutes (int (/ (mod duration-secs 3600) 60))
         seconds (int (mod duration-secs 60))
         millis  (rem duration 1000)]
-       (format "%d:%d:%d.%d" hours minutes seconds millis)))
+       (format "%02d:%02d:%02d.%d" hours minutes seconds millis)))
 
 (defn display-final-stats [reqs-state]
   "Print out a final summary of the current state of all requests"

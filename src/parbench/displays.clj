@@ -1,5 +1,6 @@
 (ns parbench.displays
-  (:use [rosado.processing])
+  (:use [rosado.processing]
+        [clojure.contrib.seq-utils :only [find-first]])
   (:require [parbench.requests-state :as rstate])
   (:import  [java.util TimerTask Timer]
             [javax.swing JFrame]
@@ -7,13 +8,13 @@
             [processing.core PApplet]))
 
 (def colors {
-  :yellow      [[210 210   0] [255 255   0]]
-  :dark-gray   [[105 105 105] [120 120 120]]
-  :light-gray  [[220 220 220] [235 235 235]]
-  :blue        [[120 120 255] [150 150 255]]
-  :white       [[255 255 255] [240 240 240]]
-  :red         [[255 105 105] [250 120 120]]
-  :black       [[  0   0   0] [255   0   0]]})
+  :yellow      [(into-array [210 210   0]) (into-array [255 255   0])]
+  :dark-gray   [(into-array [105 105 105]) (into-array [120 120 120])]
+  :light-gray  [(into-array [220 220 220]) (into-array [235 235 235])]
+  :blue        [(into-array [120 120 255]) (into-array [150 150 255])]
+  :white       [(into-array [255 255 255]) (into-array [240 240 240])]
+  :red         [(into-array [255 105 105]) (into-array [250 120 120])]
+  :black       [(into-array [  0   0   0]) (into-array [255   0   0])]})
 
 (defn- status-color [status]
   "Color tuple (fill, outline) based on HTTP status codes"
@@ -43,7 +44,7 @@
     (let [request @req-ref
       col     (:x      request)
       row     (:y      request)]
-      (cond (not (:erendered request))
+      (cond (not (:rendered request))
         (do
           (render-square col row scale request)
           (alter req-ref assoc :rendered true))))))
@@ -65,6 +66,12 @@
        (binding [*applet* this]
        (status-draw this reqs-state scale)))))
 
+(defn block-till-all-rendered [reqs-state]
+  "Intentionally block until all requests are rendered, useful for prewarming"
+  (let [unfinished? (find-first #(not (:rendered (deref %1))) (flatten (:grid reqs-state)))]
+    (cond unfinished?
+      (do (Thread/sleep 100) (recur reqs-state)))))
+
 (defn initialize-graphics [reqs-state width height scale draw-fn]
   "Sets up GUI output via Swing + Processing"
   (let [pb-applet   (create-pb-applet reqs-state width height scale draw-fn)
@@ -75,7 +82,9 @@
         (.setSize width height)
         (.add pb-applet)
         (.pack)
-        (.show))))
+        (.show)))
+  ; block till GUI loaded
+  (block-till-all-rendered reqs-state))
 
 (defn status-code-gui [reqs-state ui-opts]
   "Displays a grid colored by request status code"

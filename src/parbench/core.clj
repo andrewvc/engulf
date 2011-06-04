@@ -30,8 +30,9 @@
             :concurrency concurrency
             :requests    requests
             :scale        scale}]
+      (println "Initializing displays")
       (run-state-displays reqs-state opts)
-      (benchmark/user-agents  reqs-state opts)
       (str "Starting run against " url
-              " with concurrency: " concurrency
-              " and requests: " requests))))
+        " with concurrency: " concurrency
+        " and requests: " requests)
+      (benchmark/user-agents  reqs-state opts))))

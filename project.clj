@@ -1,4 +1,4 @@
-(defproject parbench "1.3.1"
+(defproject parbench "1.3.2"
   :description "Parallel HTTP Benchmarker/Visualizer"
   :main parbench.core
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}

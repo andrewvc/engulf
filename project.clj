@@ -1,7 +1,7 @@
-(defproject parbench "1.2.0"
+(defproject parbench "1.3.0"
   :description "Parallel HTTP Visualizer"
   :main parbench.core
-  :jvm-opts ["-Xss256k"]
+  :jvm-opts ["-server"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure "1.2.0"]
                  [org.clojure/clojure-contrib "1.2.0"]

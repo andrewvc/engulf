@@ -19,7 +19,6 @@
      [requests    r "Number of requests per worker" 200]
      [scale       g "Pixel Size of GUI Squares" 2]
      [url         u "URL to benchmark"]]
-
     (let [concurrency (Integer/valueOf concurrency)
           requests    (Integer/valueOf requests)
           reqs-state  (rstate/create-blank requests concurrency (fn [col row] url) )

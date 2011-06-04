@@ -35,8 +35,8 @@
           (System/exit 1)))
       (println "Initializing displays")
       (run-state-displays reqs-state opts)
-      (str "Starting run against " url
-        " with concurrency: " concurrency
-        " and requests: " requests)
+      (println (str "Starting run against " url
+                " with concurrency: " concurrency
+                " and requests: " requests))
       (benchmark/run  reqs-state opts)
       "Run Complete")))

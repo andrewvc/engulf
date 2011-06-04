@@ -43,7 +43,7 @@
     (let [request @req-ref
       col     (:x      request)
       row     (:y      request)]
-      (cond (not (:rendered request))
+      (cond (not (:erendered request))
         (do
           (render-square col row scale request)
           (alter req-ref assoc :rendered true))))))

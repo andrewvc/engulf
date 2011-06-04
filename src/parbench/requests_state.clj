@@ -7,7 +7,7 @@
   (let [grid (for [row (range concurrency)]
                   (for [col (range requests)]
                        (ref {:y row :x col
-                             :url     (url-generator)
+                             :url     (url-generator col row)
                              :state   :untried
                              :status  nil
                              :runtime nil}) ))]()

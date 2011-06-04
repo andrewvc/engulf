@@ -17,18 +17,21 @@
     [[cli-only?   k? "Command Line Only" false]
      [concurrency c "Number of Workers" 100]
      [requests    r "Number of requests per worker" 200]
-     [scale       g "Pixel Size of GUI Squares" 2]]
+     [scale       g "Pixel Size of GUI Squares" 2]
+     [url         u "URL to benchmark"]]
 
     (let [concurrency (Integer/valueOf concurrency)
           requests    (Integer/valueOf requests)
-          reqs-state  (rstate/create-blank requests concurrency #(last args))
+          reqs-state  (rstate/create-blank requests concurrency (fn [col row] url) )
           scale       (Integer/valueOf scale)
           opts {
-            :url         (last args)
+            :url         url
             :cli-only?   cli-only?
             :concurrency concurrency
             :requests    requests
             :scale        scale}]
       (run-state-displays reqs-state opts)
       (benchmark/user-agents  reqs-state opts)
-      "Starting")))
+      (str "Starting run against " url
+              " with concurrency: " concurrency
+              " and requests: " requests))))

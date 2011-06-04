@@ -35,4 +35,4 @@
       (str "Starting run against " url
         " with concurrency: " concurrency
         " and requests: " requests)
-      (benchmark/user-agents  reqs-state opts))))
+      (benchmark/run  reqs-state opts))))

@@ -57,8 +57,8 @@
         (cond (nth request-list n)
           (send (agent request-list) run-nth-request next-n))))))
 
-(defn user-agents [reqs-state opts]
+(defn run [reqs-state opts]
   "Visualization showing each row as a user agent"
-  (let [request-lists (for [row (:grid reqs-state)] row)]
+  (let [request-lists (for [row (:grid @reqs-state)] row)]
     (doseq [request-list request-lists]
       (send (agent request-list) run-nth-request 0))))

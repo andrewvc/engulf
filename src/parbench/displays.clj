@@ -52,7 +52,7 @@
 (defn status-draw
   "Called on each render, renders each request"
   [dst reqs-state scale]
-  (doseq [req-ref (flatten (:grid reqs-state))]
+  (doseq [req-ref (flatten (:grid @reqs-state))]
     (render-request req-ref scale)))
 
 (defn create-pb-applet [reqs-state width height scale draw-fn]
@@ -68,7 +68,7 @@
 
 (defn block-till-all-rendered [reqs-state]
   "Intentionally block until all requests are rendered, useful for prewarming"
-  (let [unfinished? (find-first #(not (:rendered (deref %1))) (flatten (:grid reqs-state)))]
+  (let [unfinished? (find-first #(not (:rendered (deref %1))) (flatten (:grid @reqs-state)))]
     (cond unfinished?
       (do (Thread/sleep 100) (recur reqs-state)))))
 
@@ -89,14 +89,14 @@
 (defn status-code-gui [reqs-state ui-opts]
   "Displays a grid colored by request status code"
   (let [scale  (:scale ui-opts)
-        width  (* scale (:requests    reqs-state))
-        height (* scale (:concurrency reqs-state))]
+        width  (* scale (:requests    @reqs-state))
+        height (* scale (:concurrency @reqs-state))]
     (initialize-graphics reqs-state width height scale status-draw)))
 
 (defn console-full [reqs-state ui-opts]
   "Dumps the whole grid to the console. Warning: Extremely Verbose."
     (let [task (proxy [TimerTask] []
-         (run [] (println reqs-state)))]
+         (run [] (println @reqs-state)))]
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))
 
 (defn console [reqs-state ui-opts]

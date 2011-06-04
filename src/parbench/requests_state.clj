@@ -9,8 +9,11 @@
                              :state   :untried
                              :status  nil
                              :runtime nil}) ))]()
-        {:requests requests :concurrency concurrency
-         :grid grid}))
+        (ref {:requests requests
+              :concurrency concurrency
+              :grid grid
+              :bench-started-at nil
+              :bench-ended-at nil})))
 
 (defn stats [requests-state]
   "Returns a mapping of RequestsState http states states to counts"
@@ -28,4 +31,4 @@
                                (inc  (stats :progress 0))
                                (stats :progress 0)))))
           {:statuses {}}
-          (flatten (:grid requests-state))))
+          (flatten (:grid @requests-state))))

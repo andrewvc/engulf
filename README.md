@@ -14,21 +14,25 @@ Visualization tool for webserver concurrency
     java -jar parbench.jar http://localhost:9000
 
     # Full Usage: java -jar parbench.jar -h
-    Usage: [-k,-c NUM_WORKERS,-r NUM_REQUESTS] http://example.net 
+    Usage: [OPTIONS] -u http://example.net
     Options
-      --cli-only, -k           Command Line Only                           
-      --concurrency, -c <arg>  Number of Workers              [default 50] 
-      --requests, -r <arg>     Number of requests per worker  [default 100]
+      --cli-only, -k           Command Line Only
+      --concurrency, -c <arg>  Number of Workers              [default 100]
+      --requests, -r <arg>     Number of requests per worker  [default 200]
+      --scale, -s <arg>        Pixel Size of GUI Squares      [default 2]
+      --url, -u <arg>          URL to benchmark
 
-  
   Each horizontal line represents a worker thread. Each square represents an HTTP request.
 
   Square colors:
 
-  * Light-gray: pending/future requests
-  * Dark-gray:  200/OK
-  * Yellow:     Incomplete requests
-  * Red:        Complete, but not 200/OK requests
+  * Light-gray: Scheduled, Not yet sent
+  * Yellow:     Sent, Waiting for response
+  * Dark-gray:  Complete, HTTP Status 200 - 299
+  * Blue:       Complete, HTTP Status 300 - 399
+  * White:      Complete, HTTP Status 400 - 499
+  * Red:        Complete, HTTP Status 500 - 599
+  * Black:      Internal Error, could not complete request
 
 ## License
 

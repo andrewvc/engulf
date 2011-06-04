@@ -1,8 +1,8 @@
 (ns parbench.benchmark
   (:import com.ning.http.client.AsyncHttpClient
-           com.ning.http.client.AsyncCompletionHandler)
-  (:import java.util.concurrent.Future)
-  (:import java.util.Calendar))
+           com.ning.http.client.AsyncCompletionHandler
+           java.util.concurrent.Future
+           java.util.Calendar))
 
 (defn timestamp []
   (.getTimeInMillis (Calendar/getInstance)))

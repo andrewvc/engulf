@@ -24,28 +24,35 @@
   (and (>= status 500) (< status 600)) (colors :red)
   :else                                (colors :black) ))
 
-; TODO: This is a bad idea, we should only iterate of the squares that need it
+(defn render-square [col row scale request]
+  "Render an individual square in the papplet"
+  (let [state  (:state request)
+        [fill-color stroke-color]
+        (cond (= state :requested) (colors :yellow)
+              (= state :untried)   (colors :light-gray)
+              (= state :failed)    (colors :black)
+              (= state :responded) (status-color (:status request))
+              :else                (colors :black))]
+        (apply fill-float   fill-color)
+        (apply stroke-float stroke-color)
+        (rect (* scale col) (* scale row) scale scale)))
+
+(defn render-request [req-ref scale]
+  "Render an individual request if it needs to be rendered"
+  (dosync
+    (let [request @req-ref
+      col     (:x      request)
+      row     (:y      request)]
+      (cond (not (:rendered request))
+        (do
+          (render-square col row scale request)
+          (alter req-ref assoc :rendered true))))))
+
 (defn status-draw
-  "draw-fn for processing: draws squares based on HTTP response codes"
+  "Called on each render, renders each request"
   [dst reqs-state scale]
   (doseq [req-ref (flatten (:grid reqs-state))]
-    (dosync 
-      (let [request @req-ref
-            col     (:x      request)
-            row     (:y      request)
-            state   (:state  request)
-            status  (:status request)]
-            (cond (not (:rendered request))
-              (do 
-              (alter req-ref assoc :rendered true)
-              ((fn [[fc sc]]
-                (apply fill-float fc) (apply stroke-float sc))
-                (cond (= state :requested) (colors :yellow)
-                      (= state :untried)   (colors :light-gray)
-                      (= state :failed)    (colors :black)
-                      (= state :responded) (status-color status)
-                      :else                (colors :black)))
-              (rect (* scale col) (* scale row) scale scale)))))))
+    (render-request req-ref scale)))
 
 (defn create-pb-applet [reqs-state width height scale draw-fn]
   "Create an applet for processing, calling draw-fn on every draw cycle"

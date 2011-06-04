@@ -4,7 +4,6 @@
   (:require [parbench.requests-state :as rstate])
   (:import  [java.util TimerTask Timer]
             [javax.swing JFrame]
-            [java.util TimerTask Timer]
             [processing.core PApplet]))
 
 (def colors {
@@ -99,8 +98,16 @@
          (run [] (println @reqs-state)))]
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))
 
+(def console-timer (Timer.))
+
+(defn display-console-stats [reqs-state]
+  "Continuously prints out console stats till run is done"
+  (println (rstate/stats reqs-state))
+  (cond (rstate/complete? reqs-state)
+        (.cancel console-timer)))
+
 (defn console [reqs-state ui-opts]
   "Dumps a summary of stats to the console"
   (let [task (proxy [TimerTask] []
-         (run [] (println (rstate/stats reqs-state))))]
-    (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))
+         (run [] (display-console-stats reqs-state)))]
+    (.scheduleAtFixedRate console-timer task (long 0) (long 1000))))

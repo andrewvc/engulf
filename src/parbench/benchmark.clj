@@ -1,4 +1,5 @@
 (ns parbench.benchmark
+  (:require [parbench.requests-state :as rstate])
   (:import com.ning.http.client.AsyncHttpClient
            com.ning.http.client.AsyncCompletionHandler
            java.util.concurrent.Future
@@ -57,8 +58,19 @@
         (cond (nth request-list n)
           (send (agent request-list) run-nth-request next-n))))))
 
+(defn block-till-done [reqs-state]
+  (let [stats (rstate/stats reqs-state)]
+       (cond (not (= (:total stats)  (:progress stats)))
+         (do (Thread/sleep 100)
+             (recur reqs-state)))))
+
+
 (defn run [reqs-state opts]
   "Visualization showing each row as a user agent"
+  (dosync (alter reqs-state assoc :bench-started-at (timestamp)))
   (let [request-lists (for [row (:grid @reqs-state)] row)]
     (doseq [request-list request-lists]
-      (send (agent request-list) run-nth-request 0))))
+      (send (agent request-list) run-nth-request 0)))
+  (block-till-done reqs-state)
+  (dosync (alter reqs-state assoc :bench-ended-at (timestamp)))
+  )

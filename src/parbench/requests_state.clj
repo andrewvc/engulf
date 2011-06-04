@@ -32,3 +32,7 @@
                                (stats :progress 0)))))
           {:statuses {}}
           (flatten (:grid @requests-state))))
+
+(defn complete? [requests-state]
+  "Returns true if the requests are done running"
+  (if (:bench-ended-at @requests-state) true false))

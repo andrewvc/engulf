@@ -98,8 +98,6 @@
          (run [] (println @reqs-state)))]
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))
 
-(def console-timer (Timer.))
-
 (defn format-time-duration [^Integer duration]
   (let [duration-secs (int (/ duration 1000))
         hours   (int (/ duration-secs 3600))
@@ -109,6 +107,7 @@
        (format "%d:%d:%d.%d" hours minutes seconds millis)))
 
 (defn display-final-stats [reqs-state]
+  "Print out a final summary of the current state of all requests"
   (let [state    @reqs-state
         stats    (rstate/stats reqs-state)
         started  (:bench-started-at state)
@@ -118,16 +117,17 @@
     (println "Total Runtime: " (format-time-duration duration))
     (println "Reqs/sec:"       (format "%f/sec" reqs-sec))))
 
-(defn display-console-stats [reqs-state]
-  "Continuously prints out console stats till run is done"
-  (println (rstate/stats reqs-state))
-  (cond (rstate/complete? reqs-state)
-        (do
-          (display-final-stats reqs-state)
-          (.cancel console-timer))))
+(defn display-live-console-stats [reqs-state]
+  "Print out a live console display of the current state of all requests"
+  (println (rstate/stats reqs-state)))
 
 (defn console [reqs-state ui-opts]
   "Dumps a summary of stats to the console"
   (let [task (proxy [TimerTask] []
-         (run [] (display-console-stats reqs-state)))]
-    (.scheduleAtFixedRate console-timer task (long 0) (long 1000))))
+         (run []
+           (display-live-console-stats reqs-state)
+           (cond (rstate/complete? reqs-state)
+             (do
+               (display-final-stats reqs-state)
+               (.cancel this)))))]
+    (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))

@@ -29,6 +29,10 @@
             :concurrency concurrency
             :requests    requests
             :scale        scale}]
+      (cond (not url)
+        (do
+          (println "You must specify a URL! See -h for options")
+          (System/exit 1)))
       (println "Initializing displays")
       (run-state-displays reqs-state opts)
       (str "Starting run against " url

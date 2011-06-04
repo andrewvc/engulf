@@ -72,5 +72,4 @@
     (doseq [request-list request-lists]
       (send (agent request-list) run-nth-request 0)))
   (block-till-done reqs-state)
-  (dosync (alter reqs-state assoc :bench-ended-at (timestamp)))
-  )
+  (dosync (alter reqs-state assoc :bench-ended-at (timestamp))))

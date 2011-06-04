@@ -7,13 +7,13 @@
             [processing.core PApplet]))
 
 (def colors {
-  :yellow      [(into-array [210 210   0]) (into-array [255 255   0])]
-  :dark-gray   [(into-array [105 105 105]) (into-array [120 120 120])]
-  :light-gray  [(into-array [220 220 220]) (into-array [235 235 235])]
-  :blue        [(into-array [120 120 255]) (into-array [150 150 255])]
-  :white       [(into-array [255 255 255]) (into-array [240 240 240])]
-  :red         [(into-array [255 105 105]) (into-array [250 120 120])]
-  :black       [(into-array [  0   0   0]) (into-array [255   0   0])]})
+  :yellow      [[210 210   0] [255 255   0]]
+  :dark-gray   [[105 105 105] [120 120 120]]
+  :light-gray  [[220 220 220] [235 235 235]]
+  :blue        [[120 120 255] [150 150 255]]
+  :white       [[255 255 255] [240 240 240]]
+  :red         [[255 105 105] [250 120 120]]
+  :black       [[  0   0   0] [255   0   0]]})
 
 (defn- status-color [status]
   "Color tuple (fill, outline) based on HTTP status codes"
@@ -28,8 +28,8 @@
   "Render an individual square in the papplet"
   (let [state  (:state request)
         [fill-color stroke-color]
-        (cond (= state :requested) (colors :yellow)
-              (= state :untried)   (colors :light-gray)
+        (cond (= state :untried)   (colors :light-gray)
+              (= state :requested) (colors :yellow)
               (= state :failed)    (colors :black)
               (= state :responded) (status-color (:status request))
               :else                (colors :black))]
@@ -49,7 +49,7 @@
           (alter req-ref assoc :rendered true))))))
 
 (defn status-draw
-  "Called on each render, renders each request"
+  "Called on each render, renders all requests"
   [dst reqs-state scale]
   (doseq [req-ref (flatten (:grid @reqs-state))]
     (render-request req-ref scale)))
@@ -67,9 +67,13 @@
 
 (defn block-till-all-rendered [reqs-state]
   "Intentionally block until all requests are rendered, useful for prewarming"
-  (let [unfinished? (find-first #(not (:rendered (deref %1))) (flatten (:grid @reqs-state)))]
+  (let [unfinished? (find-first
+                      #(not (:rendered (deref %1)))
+                      (flatten (:grid @reqs-state)))]
     (cond unfinished?
-      (do (Thread/sleep 100) (recur reqs-state)))))
+      (do
+        (Thread/sleep 100)
+        (recur reqs-state)))))
 
 (defn initialize-graphics [reqs-state width height scale draw-fn]
   "Sets up GUI output via Swing + Processing"
@@ -99,12 +103,13 @@
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))
 
 (defn format-time-duration [^Integer duration]
+  "Formats a time duration as HH:MM:SS.Millis"
   (let [duration-secs (int (/ duration 1000))
         hours   (int (/ duration-secs 3600))
         minutes (int (/ (mod duration-secs 3600) 60))
         seconds (int (mod duration-secs 60))
         millis  (rem duration 1000)]
-       (format "%02d:%02d:%02d.%d" hours minutes seconds millis)))
+       (format "%02d:%02d:%02d.%04d" hours minutes seconds millis)))
 
 (defn display-final-stats [reqs-state]
   "Print out a final summary of the current state of all requests"

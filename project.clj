@@ -1,5 +1,5 @@
-(defproject parbench "1.3.0"
-  :description "Parallel HTTP Visualizer"
+(defproject parbench "1.3.1"
+  :description "Parallel HTTP Benchmarker/Visualizer"
   :main parbench.core
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure "1.2.0"]

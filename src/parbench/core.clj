@@ -36,4 +36,4 @@
         " with concurrency: " concurrency
         " and requests: " requests)
       (benchmark/run  reqs-state opts)
-      "Done")))
+      "Run Complete")))

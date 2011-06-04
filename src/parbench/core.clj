@@ -17,7 +17,7 @@
     [[cli-only?   k? "Command Line Only" false]
      [concurrency c "Number of Workers" 100]
      [requests    r "Number of requests per worker" 200]
-     [scale       g "Pixel Size of GUI Squares" 2]
+     [scale       s "Pixel Size of GUI Squares" 2]
      [url         u "URL to benchmark"]]
     (let [concurrency (Integer/valueOf concurrency)
           requests    (Integer/valueOf requests)

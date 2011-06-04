@@ -1,7 +1,11 @@
 (ns parbench.requests-state)
 
 (defn create-blank [requests concurrency url-generator]
-  "Creates a blank representation of request state"
+  "Creates a blank representation of request state.
+   This returns a hash with a few important attributes concerning
+   metadata and options, but of cheif importance is the :grid
+   item, this is a 2d vector of refs to indvidual request hashes
+   this represents the state of all open requests"
   (let [grid (for [row (range concurrency)]
                   (for [col (range requests)]
                        (ref {:y row :x col

@@ -13,7 +13,7 @@
 (defn -main [& args]
   (with-command-line
     args
-    "Usage: [OPTIONS] http://example.net "
+    "Usage: [OPTIONS] -u http://example.net "
     [[cli-only?   k? "Command Line Only" false]
      [concurrency c "Number of Workers" 100]
      [requests    r "Number of requests per worker" 200]

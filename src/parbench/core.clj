@@ -2,7 +2,7 @@
   (:gen-class)
   (:require [parbench.requests-state :as rstate]
             [parbench.displays       :as displays]
-            [parbench.benchmarks     :as benchmarks])
+            [parbench.benchmark     :as benchmark])
   (:use [clojure.contrib.command-line]))
 
 (defn- run-state-displays [reqs-state opts]
@@ -29,8 +29,6 @@
             :concurrency concurrency
             :requests    requests
             :scale        scale}]
-      (println "Pre-warming")
-      (. Thread (sleep 2500)) ; Let the program warm up before running
       (run-state-displays reqs-state opts)
-      (benchmarks/user-agents  reqs-state opts)
+      (benchmark/user-agents  reqs-state opts)
       "Starting")))

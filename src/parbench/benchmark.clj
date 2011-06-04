@@ -1,26 +1,13 @@
-(ns parbench.benchmarks
-  (:import com.ning.http.client.AsyncHttpClient)
-  (:import com.ning.http.client.AsyncCompletionHandler)
+(ns parbench.benchmark
+  (:import com.ning.http.client.AsyncHttpClient
+           com.ning.http.client.AsyncCompletionHandler)
   (:import java.util.concurrent.Future)
   (:import java.util.Calendar))
 
 (defn timestamp []
   (.getTimeInMillis (Calendar/getInstance)))
 
-(def ning-client (AsyncHttpClient.))
-
-(defn ning-handler [on-success on-error]
-  (proxy [com.ning.http.client.AsyncCompletionHandler] [] 
-          (onCompleted [ning-response]
-            (let [content-type   (.getContentType ning-response)
-                  status         (.getStatusCode  ning-response)]
-                 (on-success {:status status :content-type content-type})))
-          (onThrowable [throwable]
-            (on-error [throwable] )) ))
-
-(defn ning-get [url on-success on-error]
-  (let [handler (ning-handler on-success on-error)]
-    (.execute (.prepareGet ning-client url) handler)))
+(def client (AsyncHttpClient.))
 
 (defn success-callback-for [request callback]
   (fn [response]
@@ -40,15 +27,30 @@
         :state        :failed)
     (callback)))
 
+(defn client-handler [on-success on-error]
+  (proxy [com.ning.http.client.AsyncCompletionHandler] []
+          (onCompleted [response]
+            (let [content-type   (.getContentType response)
+                  status         (.getStatusCode  response)]
+                 (on-success {:status status :content-type content-type})))
+          (onThrowable [throwable]
+            (on-error [throwable] )) ))
+
+(defn http-get [url on-success on-error]
+  "Convenience method to execute a GET request with the client"
+  (let [handler (client-handler on-success on-error)]
+    (.execute (.prepareGet client url) handler)))
+
 (defn run-request [request callback]
   "Runs a single HTTP request"
   (dosync (alter request assoc :rendered false :state :requested :requested-at (timestamp)))
-  (ning-get (:url @request) 
+  (http-get (:url @request)
             (success-callback-for request callback)
             (failure-callback-for request callback)))
 
 
 (defn run-nth-request [request-list n]
+  "Run a specific request in the current 'row' of requests"
   (run-request (nth request-list n) 
     (fn []
       (let [next-n (inc n)]

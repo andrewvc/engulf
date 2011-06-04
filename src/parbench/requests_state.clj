@@ -1,7 +1,5 @@
 (ns parbench.requests-state)
 
-(defrecord RequestsState [requests concurrency grid])
-
 (defn create-blank [requests concurrency url-generator]
   "Creates a blank representation of request state"
   (let [grid (for [row (range concurrency)]
@@ -11,7 +9,8 @@
                              :state   :untried
                              :status  nil
                              :runtime nil}) ))]()
-        (RequestsState. requests concurrency grid )))
+        {:requests requests :concurrency concurrency
+         :grid grid}))
 
 (defn stats [requests-state]
   "Returns a mapping of RequestsState http states states to counts"

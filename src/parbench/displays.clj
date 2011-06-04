@@ -130,9 +130,10 @@
   "Dumps a summary of stats to the console"
   (let [task (proxy [TimerTask] []
          (run []
-           (display-live-console-stats reqs-state)
-           (cond (rstate/complete? reqs-state)
+           (if (rstate/complete? reqs-state)
              (do
+               (display-live-console-stats reqs-state)
                (display-final-stats reqs-state)
-               (.cancel this)))))]
+               (.cancel this))
+             (display-live-console-stats reqs-state))))]
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))

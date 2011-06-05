@@ -3,7 +3,7 @@
 (defn create-blank [requests concurrency url-generator]
   "Creates a blank representation of request state.
    This returns a hash with a few important attributes concerning
-   metadata and options, but of cheif importance is the :grid
+   metadata and options, but of chief importance is the :grid
    item, this is a 2d vector of refs to indvidual request hashes
    this represents the state of all open requests"
   (let [grid (for [row (range concurrency)]

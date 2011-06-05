@@ -22,9 +22,9 @@
     (<= 300 status 399) (colors :blue)
     (<= 400 status 499) (colors :white)
     (<= 500 status 599) (colors :red)
-    :else                                (colors :black) ))
+    :else               (colors :black) ))
 
-(defn render-square [col row scale request]
+(defn- render-square [col row scale request]
   "Render an individual square in the papplet"
   (let [state  (:state request)
         [fill-color stroke-color]
@@ -37,7 +37,7 @@
         (apply stroke-float stroke-color)
         (rect (* scale col) (* scale row) scale scale)))
 
-(defn render-request [req-ref scale]
+(defn- render-request [req-ref scale]
   "Render an individual request if it needs to be rendered"
   (dosync
     (let [request @req-ref
@@ -48,13 +48,13 @@
           (render-square col row scale request)
           (alter req-ref assoc :rendered true))))))
 
-(defn status-draw
+(defn- status-draw
   "Called on each render, renders all requests"
   [dst reqs-state scale]
   (doseq [req-ref (flatten (:grid @reqs-state))]
     (render-request req-ref scale)))
 
-(defn create-pb-applet [reqs-state width height scale draw-fn]
+(defn- create-pb-applet [reqs-state width height scale draw-fn]
   "Create an applet for processing, calling draw-fn on every draw cycle"
   (proxy [PApplet] []
     (setup []
@@ -65,7 +65,7 @@
        (binding [*applet* this]
        (status-draw this reqs-state scale)))))
 
-(defn block-till-all-rendered [reqs-state]
+(defn- block-till-all-rendered [reqs-state]
   "Intentionally block until all requests are rendered, useful for prewarming"
   (let [unfinished? (find-first
                       #(not (:rendered (deref %1)))
@@ -102,7 +102,7 @@
          (run [] (println @reqs-state)))]
     (.scheduleAtFixedRate (Timer.) task (long 0) (long 1000))))
 
-(defn format-time-duration [^Integer duration]
+(defn- format-time-duration [^Integer duration]
   "Formats a time duration as HH:MM:SS.Millis"
   (let [duration-secs (int (/ duration 1000))
         hours   (int (/ duration-secs 3600))

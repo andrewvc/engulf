@@ -18,11 +18,11 @@
 (defn- status-color [status]
   "Color tuple (fill, outline) based on HTTP status codes"
   (cond
-  (and (>= status 200) (< status 300)) (colors :dark-gray)
-  (and (>= status 300) (< status 400)) (colors :blue)
-  (and (>= status 400) (< status 500)) (colors :white)
-  (and (>= status 500) (< status 600)) (colors :red)
-  :else                                (colors :black) ))
+    (<= 200 status 299) (colors :dark-gray)
+    (<= 300 status 399) (colors :blue)
+    (<= 400 status 499) (colors :white)
+    (<= 500 status 599) (colors :red)
+    :else                                (colors :black) ))
 
 (defn render-square [col row scale request]
   "Render an individual square in the papplet"

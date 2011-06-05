@@ -22,8 +22,9 @@
 (defn stats [requests-state]
   "Returns a mapping of RequestsState http states states to counts"
   (reduce
-    (fn [{statuses :statuses total :total :as stats} request]
-      (let [{state :state status :status} @request]
+    (fn [stats request]
+      (let [{:keys [statuses total]} stats
+            {:keys [state status]}   @request]
         (assoc stats
                :total     (inc (stats :total 0))
                state      (inc (stats state  0))

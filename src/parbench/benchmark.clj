@@ -35,30 +35,35 @@
           (onThrowable [throwable]
             (on-error [throwable] )) ))
 
-(defn http-get [url on-success on-error]
+(defn http-get
   "Convenience method to execute a GET request with the client"
+  [url on-success on-error]
   (let [handler (client-handler on-success on-error)]
     (.get (.execute (.prepareGet client url) handler))))
 
-(defn run-request [request]
+(defn run-request
   "Runs a single HTTP request"
+  [request]
   (dosync (alter request assoc :rendered false :state :requested :requested-at (timestamp)))
   (http-get (:url @request)
             (success-callback-for request)
             (failure-callback-for request)))
 
-(defn run-requests [request-list]
+(defn run-requests
+  [request-list]
   (doseq [request request-list]
     (run-request request)))
 
-(defn block-till-done [reqs-state]
+(defn block-till-done
+  [reqs-state]
   (let [stats (rstate/stats reqs-state)]
        (cond (not (= (:total stats)  (:progress stats)))
          (do (Thread/sleep 50)
              (recur reqs-state)))))
 
-(defn run [reqs-state opts]
+(defn run
   "Visualization showing each row as a user agent"
+  [reqs-state opts]
   (dosync (alter reqs-state assoc :bench-started-at (timestamp)))
   (let [request-lists (for [row (:grid @reqs-state)] row)]
     (doseq [request-list request-lists]

@@ -5,7 +5,9 @@
             [parbench.benchmark     :as benchmark])
   (:use [clojure.contrib.command-line]))
 
-(defn- run-state-displays [reqs-state opts]
+(defn- run-state-displays
+  "Initializes displays, this is where things like GUI warmup can happen"
+  [reqs-state opts]
   (if (not (:cli-only? opts))
     (displays/status-code-gui reqs-state opts))
   (displays/console reqs-state opts))

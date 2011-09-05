@@ -1,11 +1,12 @@
 (ns parbench.requests-state)
 
-(defn create-blank [requests concurrency url-generator]
+(defn create-blank
   "Creates a blank representation of request state.
    This returns a hash with a few important attributes concerning
    metadata and options, but of chief importance is the :grid
    item, this is a 2d vector of refs to indvidual request hashes
    this represents the state of all open requests"
+  [requests concurrency url-generator]
   (let [grid (for [row (range concurrency)]
                   (for [col (range requests)]
                        (ref {:y row :x col
@@ -19,8 +20,9 @@
               :bench-started-at nil
               :bench-ended-at nil})))
 
-(defn stats [requests-state]
+(defn stats
   "Returns a mapping of RequestsState http states states to counts"
+  [requests-state]
   (reduce
     (fn [stats request]
       (let [{:keys [statuses total]} stats
@@ -35,6 +37,7 @@
           {:statuses {}}
           (flatten (:grid @requests-state))))
 
-(defn complete? [requests-state]
+(defn complete?
   "Returns true if the requests are done running"
+  [requests-state]
   (if (:bench-ended-at @requests-state) true false))

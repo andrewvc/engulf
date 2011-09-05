@@ -58,7 +58,7 @@
   [reqs-state]
   (let [stats (rstate/stats reqs-state)]
        (cond (not (= (:total stats)  (:progress stats)))
-         (do (Thread/sleep 50)
+         (do (Thread/sleep 500)
              (recur reqs-state)))))
 
 (defn run

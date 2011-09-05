@@ -37,46 +37,46 @@
               :else                (colors :black))]
         (apply fill-float   fill-color)
         (apply stroke-float stroke-color)
-        (io!
-          (rect (* scale col) (* scale row) scale scale))))
+            (io!
+              (rect (* scale col) (* scale row) scale scale))))
 
-(defn- render-request
-  "Render an individual request if it needs to be rendered"
-  [req-ref scale]
-  (let [{col :x row :y} @req-ref]
-    (dosync
-      (cond (not (:rendered @req-ref))
-        (alter req-ref assoc :rendered true)))
-  (render-square col row scale @req-ref)))
+    (defn- render-request
+      "Render an individual request if it needs to be rendered"
+      [req-ref scale]
+      (let [{col :x row :y} @req-ref]
+        (dosync
+          (cond (not (:rendered @req-ref))
+            (alter req-ref assoc :rendered true)))
+      (render-square col row scale @req-ref)))
 
-(defn- status-draw
-  "Called on each render, renders all requests"
-  [dst reqs-state scale]
-  (doseq [req-ref (flatten (:grid @reqs-state))]
-    (render-request req-ref scale)))
+    (defn- status-draw
+      "Called on each render, renders all requests"
+      [dst reqs-state scale]
+      (doseq [req-ref (flatten (:grid @reqs-state))]
+        (render-request req-ref scale)))
 
-(defn- create-pb-applet
-  "Create an applet for processing, calling draw-fn on every draw cycle"
-  [reqs-state width height scale draw-fn]
-  (proxy [PApplet] []
-    (setup []
-      (binding [*applet* this]
-        (size width height)
-        (framerate 10)))
-     (draw []
-       (binding [*applet* this]
-       (status-draw this reqs-state scale)))))
+    (defn- create-pb-applet
+      "Create an applet for processing, calling draw-fn on every draw cycle"
+      [reqs-state width height scale draw-fn]
+      (proxy [PApplet] []
+        (setup []
+          (binding [*applet* this]
+            (size width height)
+            (framerate 10)))
+         (draw []
+           (binding [*applet* this]
+           (status-draw this reqs-state scale)))))
 
-(defn- block-till-all-rendered
-  "Intentionally block until all requests are rendered, useful for prewarming"
-  [reqs-state]
-  (let [unfinished? (find-first
-                      #(not (:rendered (deref %1)))
-                      (flatten (:grid @reqs-state)))]
-    (cond unfinished?
-      (do
-        (Thread/sleep 100)
-        (recur reqs-state)))))
+    (defn- block-till-all-rendered
+      "Intentionally block until all requests are rendered, useful for prewarming"
+      [reqs-state]
+      (let [unfinished? (find-first
+                          #(not (:rendered (deref %1)))
+                          (flatten (:grid @reqs-state)))]
+        (cond unfinished?
+          (do
+            (Thread/sleep 100)
+            (recur reqs-state)))))
 
 (defn initialize-graphics
   "Sets up GUI output via Swing + Processing"

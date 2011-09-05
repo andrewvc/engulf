@@ -41,4 +41,4 @@
                     " with concurrency: " concurrency
                     " and requests: " requests))
       (benchmark/run  reqs-state opts)
-      "Run Complete")))
+      (System/exit 0))))

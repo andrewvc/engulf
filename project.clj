@@ -2,7 +2,7 @@
   :description "Parallel HTTP Benchmarker/Visualizer"
   :main parbench.core
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
-  :dependencies [[org.clojure/clojure "1.2.0"]
+  :dependencies [[org.clojure/clojure "1.2.1"]
                  [org.clojure/clojure-contrib "1.2.0"]
                  [com.ning/async-http-client "1.6.2"]
                  [org.slf4j/slf4j-api "1.6.1"]

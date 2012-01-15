@@ -1,72 +1,55 @@
 (ns parbench.benchmark
   (:require [parbench.requests-state :as rstate])
-  (:import com.ning.http.client.AsyncHttpClient
-           com.ning.http.client.AsyncCompletionHandler
-           java.util.concurrent.Future
-           java.util.Calendar))
+  (:use clojure.tools.logging))
 
-(defn timestamp []
-  (.getTimeInMillis (Calendar/getInstance)))
+(def state (ref :stopped))
 
-(def client (AsyncHttpClient.))
 
-(defn success-callback-for [request]
-  (fn [response]
-    (dosync
-      (alter request assoc
-        :rendered      false
-        :responded-at (timestamp)
-        :state        :responded
-        :status       (:status response)))))
+(defprotocol JobRecorder
+  (record-job [this data]))
 
-(defn failure-callback-for [request]
-  (fn [throwable]
-    (println "Error: " throwable)
-    (alter request assoc
-        :responded-at (timestamp)
-        :state        :failed)))
+(defrecord StandardRecorder [responses]
+  JobRecorder
+  (record-job [this data]
+    (println "Recording data")))
 
-(defn client-handler [on-success on-error]
-  (proxy [com.ning.http.client.AsyncCompletionHandler] []
-          (onCompleted [response]
-            (let [content-type   (.getContentType response)
-                  status         (.getStatusCode  response)]
-                 (on-success {:status status :content-type content-type})))
-          (onThrowable [throwable]
-            (on-error [throwable] )) ))
+(defn create-standard-recorder []
+  (StandardRecorder. []))
+ 
+(defprotocol BenchJob
+  (record-result [this data])
+  (perform [this]))
 
-(defn http-get
-  "Convenience method to execute a GET request with the client"
-  [url on-success on-error]
-  (let [handler (client-handler on-success on-error)]
-    (.get (.execute (.prepareGet client url) handler))))
+(defrecord SingleUrlJob [url job-recorder]
+  BenchJob
+  (record-result [this data]
+    (println (str "Received result: " data)))
+  (perform [this] (println "empty")))
 
-(defn run-request
-  "Runs a single HTTP request"
-  [request]
-  (dosync (alter request assoc :rendered false :state :requested :requested-at (timestamp)))
-  (http-get (:url @request)
-            (success-callback-for request)
-            (failure-callback-for request)))
+(defn create-single-url-jobs [url]
+  (cons (SingleUrlJob. url (create-standard-recorder)) (lazy-seq create-single-url-jobs)))
+ 
+(defn run-worker [worker-id jobs]
+  (let [job (first jobs)]
+    (println (str "Running job: " job))
+    (perform job)))
+ 
+(defn run-workers [jobs worker-count]
+  (dotimes [worker-id worker-count]
+    (run-worker worker-id jobs)))
 
-(defn run-requests
-  [request-list]
-  (doseq [request request-list]
-    (run-request request)))
+(defn start [jobs worker-count]
+  (if (dosync
+        (when (= :stopped @state)
+              (ref-set state :started)
+              true)
+              (do (run-workers jobs worker-count)
+                  (ref-set state :started)))
+      (run-workers jobs worker-count)))
 
-(defn block-till-done
-  [reqs-state]
-  (let [stats (rstate/stats reqs-state)]
-       (cond (not (= (:total stats)  (:progress stats)))
-         (do (Thread/sleep 500)
-             (recur reqs-state)))))
+(defn start-single-url [url worker-count]
+  (start (create-single-url-jobs url) worker-count))
 
-(defn run
-  "Visualization showing each row as a user agent"
-  [reqs-state opts]
-  (dosync (alter reqs-state assoc :bench-started-at (timestamp)))
-  (let [request-lists (for [row (:grid @reqs-state)] row)]
-    (doseq [request-list request-lists]
-        (future (run-requests request-list))))
-  (block-till-done reqs-state)
-  (dosync (alter reqs-state assoc :bench-ended-at (timestamp))))
+(defn stop []
+  (dosync
+    (ref-set state :stopped)))

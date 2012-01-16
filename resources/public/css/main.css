@@ -1,0 +1,77 @@
+body {
+  /*background: url('/images/rockywall.png');*/
+  background-color: #fff;
+  font-size: 12px;
+  margin-bottom: 50px;
+}
+
+#container {
+  width: 760px;
+  margin: 0px auto;
+}
+
+h1, header, p {
+  padding: 0px;
+  margin:  0px;
+}
+
+h2 {
+  font-size: 14px;
+  font-weight: bold;
+}
+
+h1 {
+  font-size: 18px;
+  font-variant: small-caps;
+}
+
+ul { list-style-type: diamond;}
+
+a {
+  color: black;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+header {
+  margin: 20px 0px;
+}
+
+#controls input {
+  margin: 10px;
+}
+
+
+#controls input[type=button] {
+  padding: 0px 10px;
+}
+
+#controls .short-num {
+  width: 30px;
+}
+
+#console {
+  border: 1px solid #666;
+  width: 100%;
+  resize: true;
+  overflow: scroll;
+  min-height: 50px;
+  max-height: 300px;
+}
+
+td, th {
+  text-align: center;
+}
+
+td {
+  border: 1px dotted #666;
+  border-left: 0px;
+  border-top: 0px;
+}
+
+th {
+  padding: 5px 10px;
+  border: 1px solid #666;
+  border-left: 0px;
+  border-top: 0px;
+}

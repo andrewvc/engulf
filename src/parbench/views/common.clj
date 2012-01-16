@@ -23,7 +23,7 @@
     [:body [:div {:id "container"}
              [:header
                [:h1
-                 (link-to "/" "Rocks &#9648; Sand")]]
+                "(parbench)"]]
              [:div {:id "main" :role "main"}
                content]
 
@@ -31,7 +31,7 @@
      (include-js "//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js")
      (javascript-tag "window.jQuery || document.write('<script src=\"/js/libs/jquery-1.6.2.min.js\"><\\/script>');")
      (javascript-tag "
-       $script(['/js/libs/jquery-ui.min.js','/js/libs/underscore.min.js'], function () {
+       $script(['/js/libs/jquery-ui.min.js','/js/libs/underscore.min.js', '/js/libs/backbone.min.js'], function () {
          $script(['/js/main.js']);
        });
      ")

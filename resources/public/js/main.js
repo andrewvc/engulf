@@ -1,3 +1,25 @@
+
+BenchmarkStream = Backbone.Model.extend({
+  initialize: function () {
+    var self = this;
+    self.socket = new WebSocket(this.get('addr'));
+    self.socket.onopen = function (e) {
+      self.trigger('open', e);
+    };
+    self.socket.onmessage = function (e) {
+      self.trigger('message', e);
+      self.trigger('data', e.data);
+    };
+    self.socket.onclose = function (e) {
+      self.trigger('close', e);
+    };
+    self.socket.onerror = function (e) {
+      self.trigger('error', e);
+    };
+  } 
+});
+
+
 ConsoleView = Backbone.View.extend({
   initialize: function () {
     this.$el = $(this.el);
@@ -11,6 +33,12 @@ ConsoleView = Backbone.View.extend({
     
     var lastTop = $(consoleView.$el.children().last()).offset().top;
     this.$el.scrollTop(lastTop);
+  },
+  logEvents: function (obj, eventType) {
+    var self = this;
+    obj.bind(eventType, function (e) {
+      self.append(e);
+    });
   }
 });
 
@@ -92,11 +120,17 @@ ControlsView = Backbone.View.extend({
 });
 
 $(function () {
+  var benchmarkStream = window.benchmarkStream = new BenchmarkStream(
+    {addr: 'ws://localhost:3000/benchmarker/stream'}
+  );
+   
   var consoleView  = window.consoleView = new ConsoleView(
     {
       el: $('#console')
     }
   );
+
+  consoleView.logEvents(benchmarkStream, 'data');
    
   var benchmarker  = window.benchmarker = new Benchmarker();
   

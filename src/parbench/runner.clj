@@ -16,7 +16,6 @@
   "Issue a request for a URL"
   [method url]
   (force (async
-    (println (str cname "*"))
     (let [request (http-request {:method method :url url})]
       (record-result request)))))
 

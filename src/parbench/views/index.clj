@@ -26,15 +26,17 @@
       [:h2 "Stats: "]
       [:table {:id "stats"}
         [:thead
-          [:th "Remaining"]
+          [:th "Total"]
           [:th "Completed"]
-          [:th "Processing"]
+          [:th "Failed"]
+          [:th "Median Runtime(ms)"]
         ]
         [:tbody
           [:tr
-           [:td {:id "jobs-remaining"} "N/A"]
-           [:td {:id "jobs-completed"} "N/A"]
-           [:td {:id "jobs-processing"} "N/A"]
+           [:td {:id "runs-total"} 0]
+           [:td {:id "runs-succeeded"} 0]
+           [:td {:id "runs-failed"} 0]
+           [:td {:id "median-runtime"} "N/A"]
           ]
         ]
       ]

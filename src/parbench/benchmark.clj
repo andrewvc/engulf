@@ -1,7 +1,10 @@
 (ns parbench.benchmark
   (:require [parbench.requests-state :as rstate]
-            [parbench.runner :as runner])
+            [parbench.runner :as runner]
+            [clojure.tools.logging :as log])
   (:use clojure.tools.logging
+        noir-async.utils
+        [clojure.data.finger-tree :only [counted-sorted-set]]
         lamina.core))
 
 (defn increment-keys
@@ -29,74 +32,119 @@
 
 (def stopped? (comp not started?))
 
+(defn broadcast-data [data-type data]
+  (io! (enqueue output-ch {:dtype data-type :data data})))
+
 (defprotocol Recordable
   "Recording protocol"
   (check-recordable [this] "Check if this result should should be recorded")
   (record-work-success [this worker-id data] "record a successful work run")
   (record-work-failure [this worker-id err] "record a failed work run")
-  (start-stats-broadcast [this] "Starts broadcasting stats on this recorders output-ch")
-  (stop-stats-broadcast [this] "Stops broadcasting on the stats channel"))
+  (record-runtime [this worker-id run-id runtime])
+  (processed-agg-stats [this])
+  (runtime-agg-stats [this statsd])
+  (broadcast-agg-stats [this]))
+
+(defrecord ComparableRuntime [worker-id run-id runtime]
+  Comparable
+  (compareTo [this that]
+    (compare runtime (:runtime that))))
 
 (defrecord StandardRecorder [max-runs stats]
   Recordable
-  (start-stats-broadcast [this] )
-  (stop-stats-broadcast [this] )
+  (broadcast-agg-stats [this]
+    (let [pstats (processed-agg-stats this)]
+      (broadcast-data :agg pstats)
+      (log/info pstats)))
+  (processed-agg-stats [this]
+    (let [statsd @stats]
+      (println  (runtime-agg-stats this statsd))
+      (merge
+        (runtime-agg-stats this statsd)
+        (select-keys statsd
+          [:runs-total :runs-succeeded :runs-failed]))))
+  (runtime-agg-stats [this statsd]
+    (let [runtimes (:runtimes statsd)
+          rt-count (count runtimes)]
+      {:median-runtime
+         (:runtime (nth runtimes (/ rt-count 2)))
+       :runtime-percentiles
+         (let [partn (let [n (int (/ rt-count 10))] (if (> n 1) n 1))]
+           (map
+             (fn [group]
+               {:min (:runtime (first group))
+                :max (:runtime (last group))
+                :count (count group)})
+             (partition-all partn runtimes)))
+       }))
   (check-recordable [this]
     (dosync 
-      (cond
-        (>= (and (started?) (:runs-total (ensure stats))) (- max-runs 1))
-          (do
-            (ref-set state :stopped)
-            true)
-        (started?)
-          true
-        (stopped?)
-          false)))
+      (if (stopped?)
+            false
+            (do (when (>= (:runs-total (ensure stats)) (- max-runs 1))
+                  (ref-set state :stopped))
+                true))))
+  (record-runtime [this worker-id run-id runtime]
+    (alter stats update-in [:runtimes]
+        (fn [runtimes]
+          (conj runtimes
+                (ComparableRuntime. worker-id run-id runtime)))))
   (record-work-success [this worker-id data]
-    (println "recw" @stats)
     (dosync
       (when (check-recordable this)
-        (alter stats increment-keys :runs-succeeded :runs-total)))
-    (enqueue output-ch @stats))
+        (record-runtime this worker-id (:run-id data) (:runtime data))
+        (alter stats increment-keys :runs-succeeded :runs-total))))
   (record-work-failure [this worker-id err]
-    (println "Encountered err: " err)
+    (broadcast-data :err err)
     (dosync
       (when (check-recordable this)
-              (alter stats increment-keys :runs-failed :runs-total)))
-    (enqueue output-ch @stats)))
+              (alter stats increment-keys :runs-failed :runs-total)))))
 
 (defn create-standard-recorder [max-runs]
   (StandardRecorder. max-runs
                      (ref {:runs-total 0
                            :runs-succeeded 0
-                           :runs-failed 0})))
+                           :runs-failed 0
+                           :runtimes (counted-sorted-set)})))
 
+(set-interval 200 #(if-let [r @recorder]
+                     (try 
+                       (broadcast-agg-stats r)
+                       (catch Exception e
+                         (log/error e)))))
+ 
 (defprotocol Workable
   "A worker aware of global job state"
-  (work [this] "Execute the job")
+  (work [this] [this run-id] "Execute the job")
   (set-stopped [this] "Mark this worker as stopped")
-  (exec-runner [this] "Execute the runner associated with this worker"))
+  (exec-runner [this run-id] "Execute the runner associated with this worker"))
 
 (defrecord UrlWorker [state url worker-id]
   Workable
   (set-stopped [this]
-    (println "STOPPING WORKER")
     (swap! state #(when (not= :stopped %1) :stopped)))
-  (exec-runner [this]
+  (exec-runner [this run-id]
     (compare-and-set! state :initialized :running)
-    (let [ch (runner/benchmark (runner/req :get url))]
+    (let [req-start (System/currentTimeMillis)
+          ch        (runner/benchmark (runner/req :get url))]
       (on-success ch
-        (fn [res]
-          (record-work-success @recorder worker-id res)
-          (work this)))
+        (fn [req-res]
+          (let [req-end (System/currentTimeMillis)]
+            (record-work-success @recorder worker-id
+                                 {:run-id   run-id
+                                  :runtime  (- req-end req-start)
+                                  :response req-res}))
+          (work this (inc run-id))))
       (on-error ch
         (fn [err]
           (swap! state :ran)
           (record-work-failure @recorder worker-id err)))))
-  (work [this] 
+  (work [this]
+    (work this 0))
+  (work [this run-id]
     (if (stopped?)
       (set-stopped this)
-      (exec-runner this))))
+      (exec-runner this run-id))))
 
 (defn create-single-url-worker [url worker-id]
   (UrlWorker. (atom :initialized) url worker-id ))
@@ -119,7 +167,7 @@
 (defn start [init-worker-fn worker-count max-runs]
   (if (set-started worker-count max-runs)
         (run-workers init-worker-fn worker-count)
-        (println "Could not start, already started")))
+        (io! (log/warn "Could not start, already started"))))
  
 (defn stop []
   (dosync (ref-set state :stopped)))

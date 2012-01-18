@@ -9,6 +9,10 @@ BenchmarkStream = Backbone.Model.extend({
     self.socket.onmessage = function (e) {
       self.trigger('message', e);
       self.trigger('data', e.data);
+
+      var parsed = JSON.parse(e.data);
+      self.trigger('jsonData', parsed);
+      self.trigger('dtype-' + parsed.dtype, parsed.data);
     };
     self.socket.onclose = function (e) {
       self.trigger('close', e);
@@ -23,9 +27,17 @@ BenchmarkStream = Backbone.Model.extend({
 ConsoleView = Backbone.View.extend({
   initialize: function () {
     this.$el = $(this.el);
+    this.maxMessages = 1000;
   },
   append: function(msg) {
     this.$el.append('<div>' + msg + '</div>');
+
+    var children = this.$el.children();
+    if (children.length > this.maxMessages) {
+      var garbage = children.slice(0, children.length - this.maxMessages);
+      $(garbage).remove();
+    }
+
     this.scrollBottom();
   },
   scrollBottom: function () {
@@ -56,6 +68,16 @@ Benchmarker = Backbone.Model.extend({
       },
       function (data) {
         console.log(data);
+    });
+  },
+  bindToStream: function (stream) {
+    var self = this;
+    stream.bind('dtype-agg', function (data) {
+      self.set({'runs-succeeded': data['runs-succeeded'],
+                'runs-failed':    data['runs-failed'],
+                'runs-total':     data['runs-total'],
+                'median-runtime': data['median-runtime']
+      });
     });
   }
 });
@@ -119,6 +141,29 @@ ControlsView = Backbone.View.extend({
   }
 });
 
+AggregateStatsView = Backbone.View.extend({
+   initialize: function () {
+    this.$el = $(this.el);
+     
+    _.bindAll(this, "render");
+    this.model.bind('change', this.render);
+
+    this.renderElements = {
+      completed: this.$el.find('#runs-total'),
+      succeeded: this.$el.find('#runs-succeeded'),
+      failed: this.$el.find('#runs-failed'),
+      medianRuntime: this.$el.find('#median-runtime'),
+    }
+  },
+  render: function () {
+    var res = this.renderElements;
+    res.completed.text(this.model.get('runs-total'));
+    res.succeeded.text(this.model.get('runs-succeeded'));
+    res.failed.text(this.model.get('runs-failed'));
+    res.medianRuntime.text(this.model.get('median-runtime'));
+  }
+});
+
 $(function () {
   var benchmarkStream = window.benchmarkStream = new BenchmarkStream(
     {addr: 'ws://localhost:3000/benchmarker/stream'}
@@ -129,10 +174,10 @@ $(function () {
       el: $('#console')
     }
   );
-
   consoleView.logEvents(benchmarkStream, 'data');
    
   var benchmarker  = window.benchmarker = new Benchmarker();
+  benchmarker.bindToStream(benchmarkStream);
   
   var controlsView = window.controlsView = new ControlsView(
     {
@@ -140,4 +185,12 @@ $(function () {
       model: benchmarker,
     }
   );
+
+  var controlsView = window.controlsView = new AggregateStatsView(
+    {
+      el: $('#stats')[0],
+      model: benchmarker,
+    }
+  );
+
 });

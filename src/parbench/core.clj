@@ -17,5 +17,4 @@
         {:port port :websocket true})))
  
 (defn -main [& args]
-  (println "OHAI!")
   (start-webserver args))

@@ -6,3 +6,4 @@ lib/*
 .idea/**
 .idea/.*
 .lein-deps-sum
+.DS_Store

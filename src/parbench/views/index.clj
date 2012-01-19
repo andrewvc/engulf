@@ -40,7 +40,14 @@
           ]
         ]
       ]
+      [:h2 "Charts: "]
+      [:div {:id "charts"}]
       [:h2 "Console: "]
+      [:form
+        [:input {:id "console-enabled", :type "checkbox"
+                 :name="console-enabled"}]
+        [:label {:for "console-enabled"} "Enable"]
+      ]
       [:div {:id "console"}]
     ]
   ))

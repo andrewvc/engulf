@@ -18,6 +18,9 @@
      (include-js
        "/js/libs/modernizr-2.0.min.js"
        "/js/libs/respond.min.js"
+       "/js/libs/d3/d3.js"
+       "/js/libs/d3/d3.chart.js"
+       "/js/libs/respond.min.js"
        "/js/libs/script.js")
      (javascript-tag "try{Typekit.load();}catch(e){};")]
     [:body [:div {:id "container"}

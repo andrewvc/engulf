@@ -45,36 +45,33 @@
   (runtime-agg-stats [this statsd])
   (broadcast-agg-stats [this]))
 
-(defrecord ComparableRuntime [worker-id run-id runtime]
-  Comparable
-  (compareTo [this that]
-    (compare runtime (:runtime that))))
-
 (defrecord StandardRecorder [max-runs stats]
   Recordable
   (broadcast-agg-stats [this]
     (let [pstats (processed-agg-stats this)]
       (broadcast-data :agg pstats)
-      (log/info pstats)))
+      ))
   (processed-agg-stats [this]
     (let [statsd @stats]
-      (println  (runtime-agg-stats this statsd))
+      ;(println  (runtime-agg-stats this statsd))
       (merge
         (runtime-agg-stats this statsd)
         (select-keys statsd
           [:runs-total :runs-succeeded :runs-failed]))))
   (runtime-agg-stats [this statsd]
-    (let [runtimes (:runtimes statsd)
+    (let [runtimes (sort (:runtimes statsd))
           rt-count (count runtimes)]
       {:median-runtime
-         (:runtime (nth runtimes (/ rt-count 2)))
+         (nth runtimes (/ rt-count 2))
        :runtime-percentiles
-         (let [partn (let [n (int (/ rt-count 10))] (if (> n 1) n 1))]
+         (let [partn (let [n (int (/ rt-count 100))] (if (> n 1) n 1))]
            (map
              (fn [group]
-               {:min (:runtime (first group))
-                :max (:runtime (last group))
-                :count (count group)})
+               (let [min (first group)
+                     max (last group)
+                     avg (int (/ (+ min max) 2))]
+                 {:min min :max max :avg avg
+                  :count (count group)}))
              (partition-all partn runtimes)))
        }))
   (check-recordable [this]
@@ -87,8 +84,7 @@
   (record-runtime [this worker-id run-id runtime]
     (alter stats update-in [:runtimes]
         (fn [runtimes]
-          (conj runtimes
-                (ComparableRuntime. worker-id run-id runtime)))))
+          (conj runtimes runtime))))
   (record-work-success [this worker-id data]
     (dosync
       (when (check-recordable this)
@@ -105,12 +101,13 @@
                      (ref {:runs-total 0
                            :runs-succeeded 0
                            :runs-failed 0
-                           :runtimes (counted-sorted-set)})))
+                           :runtimes []})))
 
 (set-interval 200 #(if-let [r @recorder]
                      (try 
                        (broadcast-agg-stats r)
                        (catch Exception e
+                         (println "BAD ERROR")
                          (log/error e)))))
  
 (defprotocol Workable

@@ -28,8 +28,13 @@ ConsoleView = Backbone.View.extend({
   initialize: function () {
     this.$el = $(this.el);
     this.maxMessages = 1000;
+    this.consoleEnabledBox = $('#console-enabled');
   },
   append: function(msg) {
+    if (!this.consoleEnabledBox.attr('checked')) {
+      return;
+    }
+     
     this.$el.append('<div>' + msg + '</div>');
 
     var children = this.$el.children();
@@ -73,11 +78,7 @@ Benchmarker = Backbone.Model.extend({
   bindToStream: function (stream) {
     var self = this;
     stream.bind('dtype-agg', function (data) {
-      self.set({'runs-succeeded': data['runs-succeeded'],
-                'runs-failed':    data['runs-failed'],
-                'runs-total':     data['runs-total'],
-                'median-runtime': data['median-runtime']
-      });
+      self.set(data)
     });
   }
 });
@@ -164,6 +165,80 @@ AggregateStatsView = Backbone.View.extend({
   }
 });
 
+ChartsView = Backbone.View.extend({
+  initialize: function () {
+    var self = this;
+     
+    this.$el = $(this.el);
+     
+    _.bindAll(this, "render");
+    this.model.bind('change', this.render);
+
+    var chartW = 760;
+    var w = this.w = (parseInt(760/100));
+    var h = this.h = 100;
+
+    // Which field in the results to use as data
+    this.yField = "avg";
+
+    var data = _.range(100).map(function (i) { return {avg: 0} });
+ 
+    this.x = d3.scale.linear().
+               domain([0, 1]).
+               range([0, w]);
+ 
+    this.setYMax = function(upper) {
+      self.y = d3.scale.linear().
+                  domain([0, upper]).
+                  rangeRound([0, h]);
+    };
+     
+    this.setYMax(100);
+    
+    this.rtPercentiles = d3.select("#charts").
+         append("svg").
+         attr("class", "chart").
+         attr("width", w * 100).
+         attr("height", h);
+
+    this.rtPercentiles.selectAll("rect").
+         data(data).
+         enter().append("rect").
+         attr("x", function(d, i) { return self.x(i) - .5; }).
+         attr("y", function(d) { return h - self.y(d[self.yField]) - .5; }).
+         attr("width", w).
+         attr("height", function(d) { return self.y(d[self.yField]); });
+
+    this.rtPercentiles.append("line")
+         .attr("x1", 0)
+         .attr("x2", w * data.length)
+         .attr("y1", h - .5)
+         .attr("y2", h - .5)
+         .style("stroke", "#000");
+
+    window.rtp = this.rtPercentiles;
+
+  },
+  render: function () {
+   var self = this;
+   var rtpData = this.model.get('runtime-percentiles');
+
+   if (!rtpData) {
+    return 
+   }
+    
+   self.setYMax(rtpData[rtpData.length-1]["avg"]);
+
+   self.rtPercentiles.selectAll("rect").
+       data(rtpData).
+       transition().
+       duration(1).
+       attr("y", function(d) { return self.h - self.y(d[self.yField]) - .5; }).
+       attr("height", function(d) { return self.y(d[self.yField]); });
+  }
+});
+
+
 $(function () {
   var benchmarkStream = window.benchmarkStream = new BenchmarkStream(
     {addr: 'ws://localhost:3000/benchmarker/stream'}
@@ -186,11 +261,17 @@ $(function () {
     }
   );
 
-  var controlsView = window.controlsView = new AggregateStatsView(
+  var statsView = window.statsView = new AggregateStatsView(
     {
       el: $('#stats')[0],
       model: benchmarker,
     }
   );
-
+   
+  var chartsView = window.chartsView = new ChartsView(
+    {
+      el: $('#charts')[0],
+      model: benchmarker,
+    }
+  );
 });

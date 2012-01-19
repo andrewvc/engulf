@@ -153,7 +153,8 @@ AggregateStatsView = Backbone.View.extend({
       completed: this.$el.find('#runs-total'),
       succeeded: this.$el.find('#runs-succeeded'),
       failed: this.$el.find('#runs-failed'),
-      medianRuntime: this.$el.find('#median-runtime'),
+      runtime: this.$el.find('#runtime'),
+      responseCodes: this.$el.find('#response-code-stats tbody')
     }
   },
   render: function () {
@@ -161,7 +162,36 @@ AggregateStatsView = Backbone.View.extend({
     res.completed.text(this.model.get('runs-total'));
     res.succeeded.text(this.model.get('runs-succeeded'));
     res.failed.text(this.model.get('runs-failed'));
-    res.medianRuntime.text(this.model.get('median-runtime'));
+    res.runtime.text(this.formatMillis(this.model.get('runtime')));
+
+    this.renderResponseCodes(this.model.get('response-code-counts'));
+  },
+  renderResponseCodes: function (codeCounts) {
+    var self = this;
+     
+    var tbody = self.renderElements.responseCodes;
+    tbody.html('');
+
+    if (!codeCounts) { return };
+
+    if (!self.tmpl) {
+      self.tmpl = _.template("<tr><td class='code'><%= code %></td><td class='count'><%= count %></tr>");
+    }
+    
+    for (code in codeCounts) {
+      var count = codeCounts[code];
+      tbody.append(self.tmpl({code: code, count: count}));
+    }
+  },
+  formatMillis: function(millis) {
+    totalSec = parseInt(millis / 1000);
+    hours = parseInt( totalSec / 3600 ) % 24;
+    minutes = parseInt( totalSec / 60 ) % 60;
+    seconds = totalSec % 60;
+
+    return (hours < 10 ? "0" + hours : hours) +
+            ":" + (minutes < 10 ? "0" + minutes : minutes) +
+            ":" + (seconds  < 10 ? "0" + seconds : seconds);
   }
 });
 
@@ -231,7 +261,7 @@ ChartsView = Backbone.View.extend({
 
    self.rtPercentiles.selectAll("rect").
        data(rtpData).
-       transition().
+      transition().
        duration(1).
        attr("y", function(d) { return self.h - self.y(d[self.yField]) - .5; }).
        attr("height", function(d) { return self.y(d[self.yField]); });

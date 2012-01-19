@@ -32,6 +32,8 @@
 
 (def stopped? (comp not started?))
 
+(declare stop start)
+
 (defn broadcast-data [data-type data]
   (io! (enqueue output-ch {:dtype data-type :data data})))
 
@@ -45,7 +47,7 @@
   (runtime-agg-stats [this statsd])
   (broadcast-agg-stats [this]))
 
-(defrecord StandardRecorder [max-runs stats]
+(defrecord StandardRecorder [started-at ended-at max-runs stats]
   Recordable
   (broadcast-agg-stats [this]
     (let [pstats (processed-agg-stats this)]
@@ -56,8 +58,10 @@
       ;(println  (runtime-agg-stats this statsd))
       (merge
         (runtime-agg-stats this statsd)
+        {:runtime (- (or @ended-at (System/currentTimeMillis)) @started-at)}
         (select-keys statsd
-          [:runs-total :runs-succeeded :runs-failed]))))
+          [:runs-total :runs-succeeded :runs-failed
+           :response-code-counts]))))
   (runtime-agg-stats [this statsd]
     (let [runtimes (sort (:runtimes statsd))
           rt-count (count runtimes)]
@@ -79,16 +83,16 @@
       (if (stopped?)
             false
             (do (when (>= (:runs-total (ensure stats)) (- max-runs 1))
-                  (ref-set state :stopped))
+                  (stop))
                 true))))
   (record-runtime [this worker-id run-id runtime]
-    (alter stats update-in [:runtimes]
-        (fn [runtimes]
-          (conj runtimes runtime))))
+    (alter stats update-in [:runtimes] #(conj %1 runtime)))
   (record-work-success [this worker-id data]
     (dosync
       (when (check-recordable this)
         (record-runtime this worker-id (:run-id data) (:runtime data))
+        (alter stats update-in [:response-code-counts]
+               increment-keys (:status (:response data)))
         (alter stats increment-keys :runs-succeeded :runs-total))))
   (record-work-failure [this worker-id err]
     (broadcast-data :err err)
@@ -97,10 +101,13 @@
               (alter stats increment-keys :runs-failed :runs-total)))))
 
 (defn create-standard-recorder [max-runs]
-  (StandardRecorder. max-runs
+  (StandardRecorder. (ref (System/currentTimeMillis))
+                     (ref nil)
+                     max-runs
                      (ref {:runs-total 0
                            :runs-succeeded 0
                            :runs-failed 0
+                           :response-code-counts {}
                            :runtimes []})))
 
 (set-interval 200 #(if-let [r @recorder]
@@ -108,7 +115,8 @@
                        (broadcast-agg-stats r)
                        (catch Exception e
                          (println "BAD ERROR")
-                         (log/error e)))))
+                         (println e)
+                         (log/fatal e)))))
  
 (defprotocol Workable
   "A worker aware of global job state"
@@ -167,7 +175,8 @@
         (io! (log/warn "Could not start, already started"))))
  
 (defn stop []
-  (dosync (ref-set state :stopped)))
+  (dosync (ref-set state :stopped)
+          (ref-set (:ended-at @recorder) (System/currentTimeMillis))))
  
 (defn start-single-url [url concurrency requests target]
   (start (partial create-single-url-worker url) concurrency requests))

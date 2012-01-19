@@ -24,20 +24,32 @@
       
     [:div {:id "output"}
       [:h2 "Stats: "]
-      [:table {:id "stats"}
-        [:thead
-          [:th "Total"]
-          [:th "Completed"]
-          [:th "Failed"]
-          [:th "Median Runtime(ms)"]
-        ]
-        [:tbody
-          [:tr
-           [:td {:id "runs-total"} 0]
-           [:td {:id "runs-succeeded"} 0]
-           [:td {:id "runs-failed"} 0]
-           [:td {:id "median-runtime"} "N/A"]
+      [:div {:id "stats"}
+        "Benchmark Totals"
+        [:table {:id "benchmark-stats"}
+          [:thead
+            [:th "Total"]
+            [:th "Completed"]
+            [:th "Failed"]
+            [:th "Runtime"]
           ]
+          [:tbody
+            [:tr
+             [:td {:id "runs-total"} 0]
+             [:td {:id "runs-succeeded"} 0]
+             [:td {:id "runs-failed"} 0]
+             [:td {:id "runtime"} "N/A"]
+            ]
+          ]
+        ]
+
+        "Response Codes:"
+        [:table {:id "response-code-stats"}
+          [:thead
+            [:th "Code"]
+            [:th "Responses"]
+          ]
+          [:tbody]
         ]
       ]
       [:h2 "Charts: "]

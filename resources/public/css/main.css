@@ -64,6 +64,10 @@ header {
   margin: 10px 0px;
 }
 
+table {
+  margin: 10px 0px;
+}
+
 td, th {
   text-align: center;
 }

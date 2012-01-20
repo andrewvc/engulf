@@ -16,7 +16,7 @@ h1, header, p {
 }
 
 h2 {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: bold;
 }
 
@@ -54,6 +54,10 @@ header {
   margin-right: 5px;
 }
 
+#console-cont {
+  clear: both;
+}
+
 #console {
   border: 1px solid #666;
   width: 100%;
@@ -64,8 +68,16 @@ header {
   margin: 10px 0px;
 }
 
+#scalars {
+  float:left;
+  width: 190px;
+  padding-right: 20px;
+  min-height: 280px;
+}
+
 table {
   margin: 10px 0px;
+  width: 100%;
 }
 
 td, th {
@@ -79,7 +91,8 @@ td {
   padding: 5px;
 }
 
-th {
+.v {
+  font-weight: bold;
   padding: 5px 10px;
   border: 1px solid #666;
   border-left: 0px;
@@ -97,7 +110,4 @@ th {
 
 .non-decile {
   display: none;
-}
-
-text {
 }

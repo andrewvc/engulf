@@ -24,35 +24,33 @@
       
     [:div {:id "output"}
       [:h2 "Overview "]
-      [:div {:id "stats"}
-        [:table {:id "benchmark-stats"}
-          [:thead
-            [:th "Total"]
-            [:th "Completed"]
-            [:th "Failed"]
-            [:th "Median Runtime"]
-            [:th "Runs"]
-            [:th "Runtime"]
-          ]
-          [:tbody
-            [:tr
-             [:td {:id "runs-total"} "&#8734;"]
-             [:td {:id "runs-succeeded"} "&#8734;"]
-             [:td {:id "runs-failed"} "&#8734;"]
-             [:td {:id "median-runtime"} "&#8734;"]
-             [:td {:id "runs-sec"} "&#8734;"]
-             [:td {:id "runtime"} "&#8734;"]
+
+      [:div {:id "scalars"}
+        [:div {:id "stats"}
+          [:table {:id "benchmark-stats"}
+            [:tbody
+              [:tr
+                [:td {:class "k"} "Total"]
+                [:td {:class "v" :id "runs-total"} "&#8734;"]]
+              [:tr
+                [:td {:class "k"} "Runs/Sec"]
+                [:td {:class "v" :id "runs-sec"} "&#8734;"]]
+              [:tr
+                [:td {:class "k"} "Runtime"]
+                [:td {:class "v" :id "runtime"} "&#8734;"]]
+              [:tr
+                [:td {:class "k"} "Median Rt."]
+                [:td {:class "v" :id "median-runtime"} "&#8734;"]]
+              [:tr
+                [:td {:class "k"} "Failed"]
+                [:td {:class "v" :id "runs-failed"} "&#8734;"]]
             ]
           ]
-        ]
 
-        [:h2 "Response Codes:"]
-        [:table {:id "response-code-stats"}
-          [:thead
-            [:th "Code"]
-            [:th "Responses"]
+          [:h2 "Response Codes:"]
+          [:table {:id "response-code-stats"}
+            [:tbody]
           ]
-          [:tbody]
         ]
       ]
        
@@ -62,11 +60,13 @@
       [:h2 "Response Time vs. Time: "]
       [:div {:id "resp-time-series"}]
 
-      [:h2 "Console: "]
-      [:form
-        [:input {:id "console-enabled", :type "checkbox"
-                 :name="console-enabled"}]
-        [:label {:for "console-enabled"} "Enable"]
+      [:div {:id "console-cont"}
+        [:h2 "Console: "]
+        [:form
+          [:input {:id "console-enabled", :type "checkbox"
+                   :name="console-enabled"}]
+          [:label {:for "console-enabled"} "Enable"]
+        ]
       ]
        
       [:div {:id "console"}]

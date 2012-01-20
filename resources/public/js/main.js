@@ -187,7 +187,7 @@ AggregateStatsView = Backbone.View.extend({
     if (!codeCounts) { return };
 
     if (!self.tmpl) {
-      self.tmpl = _.template("<tr><td class='code'><%= code %></td><td class='count'><%= count %></tr>");
+      self.tmpl = _.template("<tr><td class='code k'><%= code %></td><td class='count v'><%= count %></tr>");
     }
     
     for (code in codeCounts) {
@@ -218,8 +218,8 @@ ChartsView = Backbone.View.extend({
     _.bindAll(this, "render");
     this.model.bind('change', this.render);
 
-    var chartW = 760;
-    var w = this.w = (parseInt(760/100));
+    var chartW = 595;
+    var w = this.w = (parseInt(chartW/100));
     var h = this.h = 100;
 
     // Which field in the results to use as data
@@ -301,7 +301,7 @@ ChartsView = Backbone.View.extend({
     self.rtPercentiles.selectAll(".decile")
          .data(decileData)
          .transition().duration(100)
-         .attr("x", function (d, i) { return self.x((i+1) * self.w * 1.35) - 35 ; })
+         .attr("x", function (d, i) { return self.x((i+1) * self.w * 1.83) - 8 ; })
          .attr("y", function(d, i) { return 20; })
          .attr("dx", -3) // padding-right
          .attr("dy", ".35em") // vertical-align: middle
@@ -319,12 +319,12 @@ ResponseTimeSeriesView = Backbone.View.extend({
     _.bindAll(this, "render");
     this.model.bind('change', this.render);
 
-    var chartW = 760;
+    var chartW = self.chartW = 500;
     var data = _.range(100).map(function (i) { return {value: 0, count: 0}});
     var data = [];
 
     var w = this.w = 1;
-    var h = this.h = 100;
+    var h = this.h = 80;
 
     self.setYMax = function(upper) {
       self.y = d3.scale.linear().
@@ -338,33 +338,23 @@ ResponseTimeSeriesView = Backbone.View.extend({
               .domain([0, upper])
               .range([0, w]);
     }
+
+
+    this.lastTotal = 0;
   },
   render: function () {
     var self = this;
 
-    $('#resp-time-series').html('');
-    
-     var chart = d3.select("#resp-time-series").append("svg")
-      .attr("class", "chart")
-      .attr("width", 760)
-      .attr("height", self.h);
-
-    chart.append("line")
-      .attr("x1", 0)
-      .attr("x2", 760)
-      .attr("y1", self.h - .5)
-      .attr("y2", self.h - .5)
-      .style("stroke", "#000");
-
-
-      this.chart = chart;
      
     var data = [];
     var raw = this.model.get('avg-runtime-by-start-time');
 
     var valMax = 0;
+    var rawTotal = 0;
     for (time in raw) {
       var d = raw[time];
+       
+      rawTotal += d.total;
        
       if (d.avg > valMax) {
         valMax = d.avg;
@@ -374,6 +364,30 @@ ResponseTimeSeriesView = Backbone.View.extend({
       d.value = d.avg;
       data.push(d);
     }
+
+    if (rawTotal != self.lastTotal) {
+      self.lastTotal = rawTotal;
+    } else {
+      return;
+    }
+
+    $('#resp-time-series').html('');
+     
+     var chart = d3.select("#resp-time-series").append("svg")
+      .attr("class", "chart")
+      .attr("width", self.chartW)
+      .attr("height", self.h);
+
+    chart.append("line")
+      .attr("x1", 0)
+      .attr("x2", self.chartW)
+      .attr("y1", self.h - .5)
+      .attr("y2", self.h - .5)
+      .style("stroke", "#000");
+
+
+      this.chart = chart;
+    
 
     this.setYMax(valMax);
     this.setXMax(data.length);

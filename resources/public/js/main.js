@@ -231,7 +231,9 @@ ChartsView = Backbone.View.extend({
                domain([0, 1]).
                range([0, w]);
  
+
     this.setYMax = function(upper) {
+      prevMaxUpper = upper;
       self.y = d3.scale.linear().
                   domain([0, upper]).
                   rangeRound([0, h-40]);
@@ -269,7 +271,7 @@ ChartsView = Backbone.View.extend({
          .attr("dy", ".35em") // vertical-align: middle
          .attr("text-anchor", "end") // text-align: right
          .attr("class", function (d,i) { return (i === 0 || ((i+1) % 10 === 0)) ? "decile" : "non-decile" })
-         .text(String);
+         .text("");
     
 
     window.rtp = this.rtPercentiles;
@@ -292,23 +294,20 @@ ChartsView = Backbone.View.extend({
    self.rtPercentiles.selectAll("rect").
        data(rtpData).
       transition().
-       duration(1).
+       duration(150).
        attr("y", function(d) { return self.h - self.y(d) - .5; }).
        attr("height", function(d) { return self.y(d); });
 
 
     self.rtPercentiles.selectAll(".decile")
          .data(decileData)
-         .transition().duration(1)
+         .transition().duration(100)
          .attr("x", function (d, i) { return self.x((i+1) * self.w * 1.35) - 35 ; })
          .attr("y", function(d, i) { return 20; })
          .attr("dx", -3) // padding-right
          .attr("dy", ".35em") // vertical-align: middle
          .attr("text-anchor", "end") // text-align: right
          .text(function (d, i) { return d + 'ms' } );
-    
-
-
   }
 });
 

@@ -98,6 +98,7 @@
                increment-keys (:status (:response data)))
         (alter stats increment-keys :runs-succeeded :runs-total))))
   (record-work-failure [this worker-id err]
+    (.printStackTrace err)
     (broadcast-data :err err)
     (dosync
       (when (check-recordable this)

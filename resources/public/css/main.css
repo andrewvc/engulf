@@ -76,6 +76,7 @@ td {
   border: 1px dotted #666;
   border-left: 0px;
   border-top: 0px;
+  padding: 5px;
 }
 
 th {

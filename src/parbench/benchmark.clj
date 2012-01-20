@@ -71,12 +71,13 @@
          (when (> rt-count 5) (nth runtimes (/ rt-count 2)))
        :runtime-percentiles
          (let [partn (let [n (int (/ rt-count 100))] (if (> n 1) n 1))]
-           (map
-             (fn [group]
+           (map-indexed
+             (fn [idx group]
                (let [min (first group)
                      max (last group)
                      avg (int (/ (+ min max) 2))]
                  {:min min :max max :avg avg
+                  :idx idx
                   :count (count group)}))
              (partition-all partn runtimes)))
        }))

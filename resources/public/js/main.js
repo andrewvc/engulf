@@ -225,7 +225,7 @@ ChartsView = Backbone.View.extend({
     // Which field in the results to use as data
     this.yField = "avg";
 
-    var data = _.range(100).map(function (i) { return {avg: 0} });
+    var data = _.range(100).map(function (i) { return {avg: 0, idx: i} });
  
     this.x = d3.scale.linear().
                domain([0, 1]).
@@ -234,7 +234,7 @@ ChartsView = Backbone.View.extend({
     this.setYMax = function(upper) {
       self.y = d3.scale.linear().
                   domain([0, upper]).
-                  rangeRound([0, h]);
+                  rangeRound([0, h-40]);
     };
      
     this.setYMax(100);
@@ -260,25 +260,55 @@ ChartsView = Backbone.View.extend({
          .attr("y2", h - .5)
          .style("stroke", "#000");
 
+    this.rtPercentiles.selectAll("text")
+         .data(data)
+       .enter().append("text")
+         .attr("x", function (d, i) { return self.x(i); })
+         .attr("y", function(d, i) { return 1; })
+         .attr("dx", -3) // padding-right
+         .attr("dy", ".35em") // vertical-align: middle
+         .attr("text-anchor", "end") // text-align: right
+         .attr("class", function (d,i) { return (i === 0 || ((i+1) % 10 === 0)) ? "decile" : "non-decile" })
+         .text(String);
+    
+
     window.rtp = this.rtPercentiles;
 
   },
   render: function () {
    var self = this;
-   var rtpData = this.model.get('runtime-percentiles');
+   var rtpData = _.map(this.model.get('runtime-percentiles'), function (d) { return d.avg})
+   var decileData = _.filter(this.model.get('runtime-percentiles'),
+                           function(d) { return (d.idx === 0 || ((d.idx+1) % 10 === 0)) }).
+                           map(function (d) { return d.avg});
+
 
    if (!rtpData) {
     return 
    }
     
-   self.setYMax(rtpData[rtpData.length-1]["avg"]);
+   self.setYMax(rtpData[rtpData.length-1]);
 
    self.rtPercentiles.selectAll("rect").
        data(rtpData).
       transition().
        duration(1).
-       attr("y", function(d) { return self.h - self.y(d[self.yField]) - .5; }).
-       attr("height", function(d) { return self.y(d[self.yField]); });
+       attr("y", function(d) { return self.h - self.y(d) - .5; }).
+       attr("height", function(d) { return self.y(d); });
+
+
+    self.rtPercentiles.selectAll(".decile")
+         .data(decileData)
+         .transition().duration(1)
+         .attr("x", function (d, i) { return self.x((i+1) * self.w * 1.35) - 35 ; })
+         .attr("y", function(d, i) { return 20; })
+         .attr("dx", -3) // padding-right
+         .attr("dy", ".35em") // vertical-align: middle
+         .attr("text-anchor", "end") // text-align: right
+         .text(function (d, i) { return d + 'ms' } );
+    
+
+
   }
 });
 

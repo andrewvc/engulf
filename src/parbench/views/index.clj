@@ -64,15 +64,6 @@
                  :name="console-enabled"}]
         [:label {:for "console-enabled"} "Enable"]
       ]
-         
-      [:h2 "Response Time Percentiles: "]
-      [:div {:id "resp-time-percentiles"}]
-      [:h2 "Console: "]
-      [:form
-        [:input {:id "console-enabled", :type "checkbox"
-                 :name="console-enabled"}]
-        [:label {:for "console-enabled"} "Enable"]
-      ]
        
       [:div {:id "console"}]
     ]

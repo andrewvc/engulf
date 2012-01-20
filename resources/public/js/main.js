@@ -154,6 +154,8 @@ AggregateStatsView = Backbone.View.extend({
       succeeded: this.$el.find('#runs-succeeded'),
       failed: this.$el.find('#runs-failed'),
       runtime: this.$el.find('#runtime'),
+      medianRuntime: this.$el.find('#median-runtime'),
+      runsSec: this.$el.find('#runs-sec'),
       responseCodes: this.$el.find('#response-code-stats tbody')
     }
   },
@@ -163,6 +165,16 @@ AggregateStatsView = Backbone.View.extend({
     res.succeeded.text(this.model.get('runs-succeeded'));
     res.failed.text(this.model.get('runs-failed'));
     res.runtime.text(this.formatMillis(this.model.get('runtime')));
+
+    var medianRuntime = this.model.get('median-runtime');
+    if (medianRuntime) {
+      res.medianRuntime.text(medianRuntime + " ms");
+    }
+
+    var runsSec = this.model.get('runs-sec');
+    if (runsSec) {
+      res.runsSec.text(parseInt(runsSec) + ' / sec');
+    }
 
     this.renderResponseCodes(this.model.get('response-code-counts'));
   },
@@ -188,10 +200,12 @@ AggregateStatsView = Backbone.View.extend({
     hours = parseInt( totalSec / 3600 ) % 24;
     minutes = parseInt( totalSec / 60 ) % 60;
     seconds = totalSec % 60;
+    millis = millis % 1000;
 
     return (hours < 10 ? "0" + hours : hours) +
             ":" + (minutes < 10 ? "0" + minutes : minutes) +
-            ":" + (seconds  < 10 ? "0" + seconds : seconds);
+            ":" + (seconds  < 10 ? "0" + seconds : seconds) +
+            "." + millis;
   }
 });
 
@@ -225,7 +239,7 @@ ChartsView = Backbone.View.extend({
      
     this.setYMax(100);
     
-    this.rtPercentiles = d3.select("#charts").
+    this.rtPercentiles = d3.select("#resp-time-percentiles").
          append("svg").
          attr("class", "chart").
          attr("width", w * 100).

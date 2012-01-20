@@ -58,7 +58,9 @@
       ;(println  (runtime-agg-stats this statsd))
       (merge
         (runtime-agg-stats this statsd)
-        {:runtime (- (or @ended-at (System/currentTimeMillis)) @started-at)}
+        (let [runtime (- (or @ended-at (System/currentTimeMillis)) @started-at)]
+          {:runtime runtime
+           :runs-sec (/ (:runs-total statsd) (/ runtime 1000))})
         (select-keys statsd
           [:runs-total :runs-succeeded :runs-failed
            :response-code-counts]))))
@@ -66,7 +68,7 @@
     (let [runtimes (sort (:runtimes statsd))
           rt-count (count runtimes)]
       {:median-runtime
-         (nth runtimes (/ rt-count 2))
+         (when (> rt-count 5) (nth runtimes (/ rt-count 2)))
        :runtime-percentiles
          (let [partn (let [n (int (/ rt-count 100))] (if (> n 1) n 1))]
            (map
@@ -114,7 +116,7 @@
                      (try 
                        (broadcast-agg-stats r)
                        (catch Exception e
-                         (println "BAD ERROR")
+                         (.printStackTrace e)
                          (println e)
                          (log/fatal e)))))
  

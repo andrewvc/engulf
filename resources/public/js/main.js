@@ -321,33 +321,43 @@ ResponseTimeSeriesView = Backbone.View.extend({
 
     var chartW = 760;
     var data = _.range(100).map(function (i) { return {value: 0, count: 0}});
+    var data = [];
 
-    var w = this.w = (parseInt(chartW/100));
+    var w = this.w = 1;
     var h = this.h = 100;
 
     self.setYMax = function(upper) {
       self.y = d3.scale.linear().
                   domain([0, upper]).
-                  rangeRound([0, h-40]);
+                  rangeRound([0, h]);
     };
      
-    var chart = d3.select("#resp-time-series").append("svg")
-      .attr("class", "chart")
-      .attr("width", w * data.length - 1)
-      .attr("height", h);
-
-    chart.append("line")
-      .attr("x1", 0)
-      .attr("x2", w * data.length)
-      .attr("y1", h - .5)
-      .attr("y2", h - .5)
-      .style("stroke", "#000");
-
-    this.chart = chart;
+    self.setXMax = function(upper) {
+      this.w = upper;
+      self.x = d3.scale.linear()
+              .domain([0, upper])
+              .range([0, w]);
+    }
   },
   render: function () {
     var self = this;
-    var chart = self.chart;
+
+    $('#resp-time-series').html('');
+    
+     var chart = d3.select("#resp-time-series").append("svg")
+      .attr("class", "chart")
+      .attr("width", 760)
+      .attr("height", self.h);
+
+    chart.append("line")
+      .attr("x1", 0)
+      .attr("x2", 760)
+      .attr("y1", self.h - .5)
+      .attr("y2", self.h - .5)
+      .style("stroke", "#000");
+
+
+      this.chart = chart;
      
     var data = [];
     var raw = this.model.get('avg-runtime-by-start-time');
@@ -366,6 +376,7 @@ ResponseTimeSeriesView = Backbone.View.extend({
     }
 
     this.setYMax(valMax);
+    this.setXMax(data.length);
 
     if (!data) {
       return 
@@ -374,24 +385,23 @@ ResponseTimeSeriesView = Backbone.View.extend({
     var w = this.w;
     var h = this.h;
 
-    var x = d3.scale.linear()
-        .domain([0, 1])
-        .range([0, w]);
 
+    var x = this.y;
     var y = this.y;
 
     var rect = chart.selectAll("rect")
       .data(data, function(d) { return d.time; });
 
-    rect.enter().insert("rect", "line")
+    rect.enter().append("rect", "line")
       .attr("x", function(d, i) { return x(i + 1) - .5; })
       .attr("y", function(d) { return h - y(d.value) - .5; })
-      .attr("width", w)
+      .attr("width", 2)
       .attr("height", function(d) { return y(d.value); })
     .transition()
       .duration(1)
       .attr("x", function(d, i) { return x(i) - .5; });
 
+    /*
     rect.transition()
         .duration(1)
         .attr("x", function(d, i) { return x(i) - .5; });
@@ -399,7 +409,9 @@ ResponseTimeSeriesView = Backbone.View.extend({
     rect.exit().transition()
         .duration(1)
         .attr("x", function(d, i) { return x(i - 1) - .5; })
-        .remove();
+        .emove();
+        */
+
   }
 });
 

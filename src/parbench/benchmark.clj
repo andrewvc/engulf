@@ -63,6 +63,7 @@
            :runs-sec (/ (:runs-total statsd) (/ runtime 1000))})
         (select-keys statsd
           [:runs-total :runs-succeeded :runs-failed
+           :avg-runtime-by-start-time
            :response-code-counts]))))
   (runtime-agg-stats [this statsd]
     (let [runtimes (sort (:runtimes statsd))
@@ -93,6 +94,15 @@
   (record-work-success [this worker-id data]
     (dosync
       (when (check-recordable this)
+        (let [rstart (:req-start data)]
+          (alter stats update-in [:avg-runtime-by-start-time (int (/ rstart 1000))]
+                 (fn [bucket]
+                   (let [rcount (+ 1 (get bucket :count 0))
+                         total  (+ (:runtime data) (get bucket :total 0))]
+                     (merge bucket
+                            {:count rcount
+                             :total total
+                             :avg   (int (/ total rcount))})))))
         (record-runtime this worker-id (:run-id data) (:runtime data))
         (alter stats update-in [:response-code-counts]
                increment-keys (:status (:response data)))
@@ -112,6 +122,7 @@
                            :runs-succeeded 0
                            :runs-failed 0
                            :response-code-counts {}
+                           :avg-runtime-by-start-time {}
                            :runtimes []})))
 
 (set-interval 200 #(if-let [r @recorder]
@@ -141,6 +152,8 @@
           (let [req-end (System/currentTimeMillis)]
             (record-work-success @recorder worker-id
                                  {:run-id   run-id
+                                  :req-start req-start
+                                  :req-end   req-end
                                   :runtime  (- req-end req-start)
                                   :response req-res}))
           (work this (inc run-id))))

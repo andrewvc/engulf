@@ -58,6 +58,10 @@
        
       [:h2 "Response Time Percentiles: "]
       [:div {:id "resp-time-percentiles"}]
+       
+      [:h2 "Response Time vs. Time: "]
+      [:div {:id "resp-time-series"}]
+
       [:h2 "Console: "]
       [:form
         [:input {:id "console-enabled", :type "checkbox"

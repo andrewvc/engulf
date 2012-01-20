@@ -233,7 +233,6 @@ ChartsView = Backbone.View.extend({
  
 
     this.setYMax = function(upper) {
-      prevMaxUpper = upper;
       self.y = d3.scale.linear().
                   domain([0, upper]).
                   rangeRound([0, h-40]);
@@ -294,7 +293,7 @@ ChartsView = Backbone.View.extend({
    self.rtPercentiles.selectAll("rect").
        data(rtpData).
       transition().
-       duration(150).
+       duration(50).
        attr("y", function(d) { return self.h - self.y(d) - .5; }).
        attr("height", function(d) { return self.y(d); });
 
@@ -310,6 +309,100 @@ ChartsView = Backbone.View.extend({
          .text(function (d, i) { return d + 'ms' } );
   }
 });
+
+ResponseTimeSeriesView = Backbone.View.extend({
+  initialize: function () {
+    var self = this;
+     
+    this.$el = $(this.el);
+     
+    _.bindAll(this, "render");
+    this.model.bind('change', this.render);
+
+    var chartW = 760;
+    var data = _.range(100).map(function (i) { return {value: 0, count: 0}});
+
+    var w = this.w = (parseInt(chartW/100));
+    var h = this.h = 100;
+
+    self.setYMax = function(upper) {
+      self.y = d3.scale.linear().
+                  domain([0, upper]).
+                  rangeRound([0, h-40]);
+    };
+     
+    var chart = d3.select("#resp-time-series").append("svg")
+      .attr("class", "chart")
+      .attr("width", w * data.length - 1)
+      .attr("height", h);
+
+    chart.append("line")
+      .attr("x1", 0)
+      .attr("x2", w * data.length)
+      .attr("y1", h - .5)
+      .attr("y2", h - .5)
+      .style("stroke", "#000");
+
+    this.chart = chart;
+  },
+  render: function () {
+    var self = this;
+    var chart = self.chart;
+     
+    var data = [];
+    var raw = this.model.get('avg-runtime-by-start-time');
+
+    var valMax = 0;
+    for (time in raw) {
+      var d = raw[time];
+       
+      if (d.avg > valMax) {
+        valMax = d.avg;
+      }
+
+      d.time = time;
+      d.value = d.avg;
+      data.push(d);
+    }
+
+    this.setYMax(valMax);
+
+    if (!data) {
+      return 
+    }
+
+    var w = this.w;
+    var h = this.h;
+
+    var x = d3.scale.linear()
+        .domain([0, 1])
+        .range([0, w]);
+
+    var y = this.y;
+
+    var rect = chart.selectAll("rect")
+      .data(data, function(d) { return d.time; });
+
+    rect.enter().insert("rect", "line")
+      .attr("x", function(d, i) { return x(i + 1) - .5; })
+      .attr("y", function(d) { return h - y(d.value) - .5; })
+      .attr("width", w)
+      .attr("height", function(d) { return y(d.value); })
+    .transition()
+      .duration(1)
+      .attr("x", function(d, i) { return x(i) - .5; });
+
+    rect.transition()
+        .duration(1)
+        .attr("x", function(d, i) { return x(i) - .5; });
+
+    rect.exit().transition()
+        .duration(1)
+        .attr("x", function(d, i) { return x(i - 1) - .5; })
+        .remove();
+  }
+});
+
 
 
 $(function () {
@@ -343,7 +436,15 @@ $(function () {
    
   var chartsView = window.chartsView = new ChartsView(
     {
-      el: $('#charts')[0],
+      el: $('#resp-time-percentiles')[0],
+      model: benchmarker,
+    }
+  );
+
+
+  var responseTimeSeriesView = window.responseTimeSeriesView = new ResponseTimeSeriesView(
+    {
+      el: $('#resp-time-series')[0],
       model: benchmarker,
     }
   );

@@ -65,6 +65,7 @@ Benchmarker = Backbone.Model.extend({
     this.fetch();
   },
   start: function (url, concurrency, requests) {
+    var self = this;
     $.post("/benchmarker/state",
       {state: "started",
        concurrency: concurrency,
@@ -72,13 +73,24 @@ Benchmarker = Backbone.Model.extend({
        url: url
       },
       function (data) {
+        self.set({state: "started"});
         console.log(data);
+    });
+  },
+  stop: function () {
+    var self = this;
+    $.post("/benchmarker/state", {state: "stopped"}, function () {
+      self.set({state: "stopped"});
     });
   },
   bindToStream: function (stream) {
     var self = this;
     stream.bind('dtype-agg', function (data) {
       self.set(data)
+    });
+
+    stream.bind('dtype-state', function (data) {
+      self.set({state: data});
     });
   }
 });
@@ -107,7 +119,7 @@ ControlsView = Backbone.View.extend({
     self.model.start(url, concurrency, requests);
   },
   stop: function (e) {
-    console.log("Stopping");
+    this.model.stop();
   },
   render: function () {
     if (this.model.get('state') === 'stopped') {
@@ -323,7 +335,7 @@ ResponseTimeSeriesView = Backbone.View.extend({
     var data = _.range(100).map(function (i) { return {value: 0, count: 0}});
     var data = [];
 
-    var w = this.w = 1;
+    var w = this.w = chartW;
     var h = this.h = 80;
 
     self.setYMax = function(upper) {
@@ -333,7 +345,6 @@ ResponseTimeSeriesView = Backbone.View.extend({
     };
      
     self.setXMax = function(upper) {
-      this.w = upper;
       self.x = d3.scale.linear()
               .domain([0, upper])
               .range([0, w]);
@@ -400,7 +411,7 @@ ResponseTimeSeriesView = Backbone.View.extend({
     var h = this.h;
 
 
-    var x = this.y;
+    var x = this.x;
     var y = this.y;
 
     var rect = chart.selectAll("rect")

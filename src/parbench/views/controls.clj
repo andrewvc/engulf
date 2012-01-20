@@ -15,18 +15,32 @@
 (defpage [:get "/benchmarker/state"] {}
   (respond-state))
 
+(defpage "/sleepy" {}
+  (Thread/sleep 2000)
+  "Done sleeping!")
+
+(def blocker (agent 0))
+ 
+(defpage-async "/blocking-sleepy" {} conn
+  (send-off blocker (fn [i]
+                      (Thread/sleep 2000)
+                      (respond conn (str "Done sleeping!" @blocker))
+                      (inc i))))
+
 (defpage [:post "/benchmarker/state"]
   {:keys [state url concurrency requests]}
   (println (format "Running: s:%s u:%s c:%s r:%s" state url concurrency requests))
-  (if
-    (not (and state url concurrency requests))
+  (if (not state)
       (json/generate-string {:status 409 :body "Could not start, missing info"})
-      (let
-        [concurrency (Integer/valueOf concurrency)
-         requests    (Integer/valueOf requests)]
-        (when (= "started" state)
+      (if (= "started" state)
+        (let
+          [concurrency (Integer/valueOf concurrency)
+           requests    (Integer/valueOf requests)]
           (benchmark/start-single-url url concurrency requests url))
-        (respond-state))))
+        (do
+            (println "STOPPING")
+            (benchmark/stop))))
+  (respond-state))
 
 (defwebsocket "/benchmarker/stream" {} conn
   (receive-all benchmark/output-ch

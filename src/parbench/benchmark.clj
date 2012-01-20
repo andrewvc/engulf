@@ -27,6 +27,9 @@
 
 (defn current-state [] @state)
 
+(defn median [s]
+  (nth s (int (/ (count s) 2))))
+
 (defn started? []
   (= :started (current-state)))
 
@@ -67,7 +70,7 @@
            :response-code-counts]))))
   (runtime-agg-stats [this statsd]
     (let [runtimes (sort (:runtimes statsd))
-          rt-count (count runtimes)]
+          rt-count (count (vec runtimes))]
       {:median-runtime
          (when (> rt-count 5) (nth runtimes (/ rt-count 2)))
        :runtime-percentiles
@@ -76,7 +79,7 @@
              (fn [idx group]
                (let [min (first group)
                      max (last group)
-                     avg (int (/ (+ min max) 2))]
+                     avg (median group)]
                  {:min min :max max :avg avg
                   :idx idx
                   :count (count group)}))
@@ -125,13 +128,15 @@
                            :avg-runtime-by-start-time {}
                            :runtimes []})))
 
-(set-interval 200 #(if-let [r @recorder]
+(set-interval 200 (fn []
+                    (enqueue output-ch {:dtype "state" :data @state})
+                    (if-let [r @recorder]
                      (try 
                        (broadcast-agg-stats r)
                        (catch Exception e
                          (.printStackTrace e)
                          (println e)
-                         (log/fatal e)))))
+                         (log/fatal e))))))
  
 (defprotocol Workable
   "A worker aware of global job state"
@@ -193,7 +198,8 @@
  
 (defn stop []
   (dosync (ref-set state :stopped)
-          (ref-set (:ended-at @recorder) (System/currentTimeMillis))))
+          (ref-set (:ended-at @recorder) (System/currentTimeMillis)))
+  )
  
 (defn start-single-url [url concurrency requests target]
   (start (partial create-single-url-worker url) concurrency requests))

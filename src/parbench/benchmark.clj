@@ -4,7 +4,7 @@
             [clojure.tools.logging :as log])
   (:use clojure.tools.logging
         noir-async.utils
-        [clojure.data.finger-tree :only [counted-sorted-set]]
+        aleph.http
         lamina.core))
 
 (defn increment-keys
@@ -126,14 +126,14 @@
   (set-stopped [this] "Mark this worker as stopped")
   (exec-runner [this run-id] "Execute the runner associated with this worker"))
 
-(defrecord UrlWorker [state url worker-id]
+(defrecord UrlWorker [state url worker-id client]
   Workable
   (set-stopped [this]
     (swap! state #(when (not= :stopped %1) :stopped)))
   (exec-runner [this run-id]
     (compare-and-set! state :initialized :running)
     (let [req-start (System/currentTimeMillis)
-          ch        (runner/benchmark (runner/req :get url))]
+          ch        (client {:method :get :url url})]
       (on-success ch
         (fn [req-res]
           (let [req-end (System/currentTimeMillis)]
@@ -154,7 +154,7 @@
       (exec-runner this run-id))))
 
 (defn create-single-url-worker [url worker-id]
-  (UrlWorker. (atom :initialized) url worker-id ))
+  (UrlWorker. (atom :initialized) url worker-id (http-client {:url url})))
 
 (defn run-workers [init-worker-fn worker-count]
   (let [new-workers (vec (map #(init-worker-fn %1) (range worker-count)))]

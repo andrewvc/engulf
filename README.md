@@ -1,5 +1,8 @@
 # parbench
 
+# NOTE: There's a full-rewrite underway in the 'web_interface' branch. This will likely be split off into a separate repo soon (hopefully within the next day or two).
+
+
 Visualization tool for webserver concurrency
 
 ![Screenshot](https://github.com/downloads/andrewvc/parbench/parbench-ss.png)

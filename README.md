@@ -11,7 +11,7 @@ Visualization tool for webserver concurrency
   Then run:
     
     # Runs parbench with 50 workers given 100 requests each targeting localhost:9000
-    java -jar parbench.jar http://localhost:9000
+    java -jar parbench.jar -u http://localhost:9000
 
     # Full Usage: java -jar parbench.jar -h
     Usage: [OPTIONS] -u http://example.net

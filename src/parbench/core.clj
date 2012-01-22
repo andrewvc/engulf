@@ -1,6 +1,5 @@
 (ns parbench.core
-  (:require [parbench.requests-state :as rstate]
-            [parbench.benchmark :as benchmark]
+  (:require [parbench.benchmark :as benchmark]
             [noir.server :as nr-server])
   (:use aleph.http
         noir.core

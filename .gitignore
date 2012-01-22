@@ -7,3 +7,7 @@ lib/*
 .idea/.*
 .lein-deps-sum
 .DS_Store
+*~
+\#*#
+.\#*#
+.#*

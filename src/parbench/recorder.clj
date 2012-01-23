@@ -35,9 +35,12 @@
 (defprotocol Recordable
   "Recording protocol"
   (processed-stats [this])
-  (record-work [this worker-id data]))
+  (record-start [this])
+  (record-end [this])
+  (record-result [this worker-id data])
+  (record-error [this worker-id err]))
 
-(defrecord StandardRecorder [started-at ended-at max-runs stats]
+(defrecord StandardRecorder [started-at ended-at stats]
   Recordable
 
   (processed-stats [this]
@@ -51,16 +54,29 @@
           [:runs-total :runs-succeeded :runs-failed
            :avg-runtime-by-start-time
            :response-code-counts]))))
+  (record-end [this]
+    (dosync (ref-set ended-at (System/currentTimeMillis))))
 
-  (record-work
+  (record-start [this]
+    (dosync
+      (when (not @started-at)
+            (ref-set started-at (System/currentTimeMillis)))))
+  
+  (record-result
    [this worker-id data]
+   ;There should probably be a separate start method...
    (dosync
-    (let [statsd @stats]
-      (map #(%1 stats data)
-           [record-avg-runtime-by-start-time
-            record-runtime
-            record-response-code-count
-            record-run-succeeded])))))
+     (let [statsd @stats]
+       (map #(%1 stats data)
+            [record-avg-runtime-by-start-time
+             record-runtime
+             record-response-code-count
+             record-run-succeeded]))))
+  
+  (record-error [this worker-id err]
+    (dosync
+      (alter stats increment-keys :runs-failed))))                              
+                 
                   
 (defn- empty-stats []
   {:started-at nil
@@ -74,8 +90,7 @@
    :avg-runtime-by-start-time {}
    :runtimes []})
 
-(defn create-standard-recorder [max-runs]
-  (StandardRecorder. (ref (System/currentTimeMillis))
+(defn create-recorder []
+  (StandardRecorder. (ref nil)
                      (ref nil)
-                     max-runs
                      (ref (empty-stats))))

@@ -34,7 +34,7 @@
           (work this (inc run-id))))
       (on-error ch
         (fn [err]
-          (send-bench-msg output-ch :worker-err err)
+          (send-bench-msg output-ch :worker-error err)
           (work this (inc run-id))))))
    
   (work [this]

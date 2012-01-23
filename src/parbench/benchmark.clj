@@ -29,9 +29,18 @@
 (defrecord Benchmark [state max-runs run-count workers recorder output-ch]
   Benchmarkable
   (start [this]
-         (if (init-run this)
-           (doseq [worker workers] (work workers))
-           (io! (log/warn "Could not start, already started"))))
+    (broadcast-at-interval this 200)
+    (if (not (init-run this))
+        (io! (log/warn "Could not start, already started"))
+        (doseq [worker workers]
+          (let [{worker-ch :output-ch worker-id :worker-id} worker]
+            (receive-all (:output-ch worker)
+              (fn [{:keys [dtype data]}]
+                (cond (= :worker-result dtype)
+                        (receive-result this worker-id data)
+                      (= :worker-error dtype)
+                        (receive-error this worker-id data)))))
+             (work worker))))
 
   (stop [this]
     (dosync (ref-set state :stopped)
@@ -43,10 +52,10 @@
   (init-run [this]
     (dosync
       (if (not= :stopped @state)
-
 	false
 	(do (ref-set state :started)
             (record-start recorder)
+
 	    true))))
 
   (increment-and-check-run-count [this]
@@ -70,7 +79,7 @@
   (receive-error [this worker-id err] (.printStackTrace err))
            
   (broadcast-at-interval [this millis]
-    (set-interval 200
+    (set-interval millis
       (fn []
         (enqueue output-ch {:dtype "state" :data @state})
         (try
@@ -87,14 +96,12 @@
        recorder (create-recorder)
        workers (vec (map (fn [worker-id] (worker-fn worker-id recorder))
                          (range worker-count)))]
-   (receive-all output-ch (fn [_])) ; keep the channel empty if no listeners
-   (Benchmark. (ref :started)
-             worker-count worker-fn workers
-             max-runs (ref 0) recorder output-ch)))
+   (receive-all output-ch (fn [_] (println "OCH: " _))) ; keep the channel empty if no listeners
+   (Benchmark. (ref :stopped)
+               max-runs (ref 0) workers
+               recorder output-ch)))
              
 (defn create-single-url-benchmark [url concurrency requests]
-  (start
-   (create-benchmark concurrency requests
-                     (partial create-single-url-worker url))))
-
-;(def cub (create-single-url-benchmark))
+  (let [worker-fn (partial create-single-url-worker url)
+        benchmark (create-benchmark concurrency requests worker-fn)]
+    benchmark))

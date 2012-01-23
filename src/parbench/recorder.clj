@@ -62,22 +62,19 @@
       (when (not @started-at)
             (ref-set started-at (System/currentTimeMillis)))))
   
-  (record-result
-   [this worker-id data]
+  (record-result [this worker-id data]
    ;There should probably be a separate start method...
    (dosync
      (let [statsd @stats]
-       (map #(%1 stats data)
+       (dorun (map #(%1 stats data)
             [record-avg-runtime-by-start-time
              record-runtime
              record-response-code-count
-             record-run-succeeded]))))
+             record-run-succeeded])))))
   
   (record-error [this worker-id err]
     (dosync
-      (alter stats increment-keys :runs-failed))))                              
-                 
-                  
+      (alter stats increment-keys :runs-failed))))                                                
 (defn- empty-stats []
   {:started-at nil
    :ended-at nil

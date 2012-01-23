@@ -17,18 +17,18 @@
   (broadcast-at-interval this millis))
   
 (defrecord Benchmark [state worker-count worker-fn workers
-		      recorder output-ch]
+		      max-runs run-count recorder output-ch]
   (start [this]
 	  (if (init-run worker-count max-runs)
 	    (run-workers init-worker-fn worker-count)
 	    (io! (log/warn "Could not start, already started"))))
 
   (stop [this]
-	(dosync (ref-set state :stopped)
-		(ref-set (:ended-at @recorder) (System/currentTimeMillis))))
+    (dosync (ref-set state :stopped)
+            (record-end recorder)))
 
-  (started? [this] (= :started @state))
-  (stopped? [this] (= :stopped @state))
+  (running? [this] (dosync (= :started (ensure state)))
+  (stopped? [this] (not (running? this)))
   
   (init-run [this]
     (dosync
@@ -43,8 +43,28 @@
 	    true))))
 
   (execute [this]
-	   (doseq [worker @workers] (work
+    (doseq [worker @workers]
+      (record-work this (work worker))))
 
+  (increment-and-check-run-count
+   [this]
+   (dosync
+     (if (>= (ensure run-count) max-runs)
+          :over
+        (if (= max-runs (alter run-count inc))
+          :thresh
+          :under))))                        
+  
+  (receive-results
+    [this results]
+   ; If we haven't already stopped, increment the run-count. If we do increment it record the actual work
+    (dosync
+      (when (running? this)
+        (let [thresh-status (increment-and-check-run-count)]
+          (record-results recorder results)
+          (when (= :thresh thresh-status)
+            (stop this))))))
+           
   (broadcast-at-interval [this millis]
     (set-interval 200
       (fn []
@@ -58,12 +78,14 @@
   
 (create-benchmark
  "Create a new Benchmark record. This encapsulates the full benchmark state"
- [worker-count worker-fn]
+ [worker-count max-runs worker-fn]
  (let [output-ch (channel)]
    (receive-all output-ch (fn [_])) ; keep the channel empty if no listeners
    (Benchmark. (ref :started)
              worker-count worker-fn []
-             recorder output-ch)))
+             max-runs (ref 0) recorder output-ch)))
              
-(defn start-single-url [url concurrency requests]
+(defn create-single-url-benchmark [url concurrency requests]
   (start (partial create-single-url-worker url) concurrency requests))
+
+;(def cub (create-single-url-benchmark))

@@ -6,7 +6,8 @@
         noir-async.utils
         lamina.core
         [parbench.url-worker :only [work create-single-url-worker]]
-        [parbench.recorder :only [create-standard-recorder]]))
+        [parbench.recorder :only [create-standard-recorder
+                                  record-work]]))
 
 (defprotocol Benchmarkable
   (start [this])
@@ -16,7 +17,7 @@
   (set-started [this])
   (broadcast-at-interval this millis))
   
-(defrecord Benchmark [state worker-count worker-fn workers
+(defrecord Benchmark [state work
 		      max-runs run-count recorder output-ch]
   (start [this]
 	  (if (init-run worker-count max-runs)
@@ -40,7 +41,7 @@
             (ref-set workers
 		     (vec (map (fn [worker-id] (worker-fn worker-id recorder))
 			       (range worker-count))))
-	    true))))
+	    true)))))
 
   (execute [this]
     (doseq [worker @workers]
@@ -64,6 +65,10 @@
           (record-results recorder results)
           (when (= :thresh thresh-status)
             (stop this))))))
+
+  (receive-error
+   [this err]
+   (.printStackTrace err))
            
   (broadcast-at-interval [this millis]
     (set-interval 200

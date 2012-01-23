@@ -1,8 +1,7 @@
 (ns parbench.url-worker
   (:require [parbench.runner :as runner]
             [clojure.tools.logging :as log])
-  (:use [parbench.recorder :only [record-work-success
-                                  record-work-failure]]
+  (:use [parbench.utils :only [send-bench-msg]]
         aleph.http
         lamina.core))
 
@@ -12,49 +11,43 @@
   (set-stopped [this] "Mark this worker as stopped")
   (exec-runner [this run-id] "Execute the runner associated with this worker"))
 
-(defn- record-result [recorder req-res]
-  (fn [req-res]
-    (let [req-end (System/currentTimeMillis)]
-      (record-work-success
-        recorder
-        worker-id
-        {:run-id    run-id
-         :req-start req-start
-         :req-end   req-end
-         :runtime   (- req-end req-start)
-         :response  req-res}))
-    (work this (inc run-id))))
-
-(defrecord UrlWorker [state url worker-id client recorder]
+(defrecord UrlWorker [state url worker-id client output-ch]
   Workable
    
   (set-stopped [this]
     (swap! state #(when (not= :stopped %1) :stopped)))
    
-  (exec-runn [this run-id]
+  (exec-runner [this run-id]
     (compare-and-set! state :initialized :running)
     (let [req-start (System/currentTimeMillis)
           ch        (client {:method :get :url url})]
       (on-success ch
         (fn [res]
-          (record-result recorder res)
+          (send-bench-msg output-ch :worker-result
+            (let [req-end (System/currentTimeMillis)]
+              {:worker-id worker-id
+               :run-id    run-id
+               :req-start req-start
+               :req-end   req-end
+               :runtime   (- req-end req-start)
+               :response  res}))
           (work this (inc run-id))))
       (on-error ch
         (fn [err]
-          (swap! state :ran)
-          (record-work-failure @recorder worker-id err)))))
+          (send-bench-msg output-ch :worker-err err)
+          (work this (inc run-id))))))
    
   (work [this]
     (work this 0))
    
   (work [this run-id]
-    (if (stopped?)
+    (if (= @state :stopped)
       (set-stopped this)
-      (exec-run this run-id))))
+      (exec-runner this run-id))))
 
 (defn create-single-url-worker [url worker-id recorder]
   (UrlWorker. (atom :initialized)
               url
               worker-id
               (http-client {:url url})
-              recorder))
+              (channel)))

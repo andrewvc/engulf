@@ -26,12 +26,14 @@
   (receive-error [this worker-id err])
   (broadcast-at-interval [this millis]))
   
-(defrecord Benchmark [state max-runs run-count workers recorder output-ch]
+(defrecord Benchmark [state max-runs run-count workers recorder output-ch broadcast-task]
   Benchmarkable
   (start [this]
-    (broadcast-at-interval this 200)
     (if (not (init-run this))
-        (io! (log/warn "Could not start, already started"))
+      (io! (log/warn "Could not start, already started"))
+      (do
+        (compare-and-set! broadcast-task nil
+                          (broadcast-at-interval this 200))
         (doseq [worker workers]
           (let [{worker-ch :output-ch worker-id :worker-id} worker]
             (receive-all (:output-ch worker)
@@ -40,9 +42,10 @@
                         (receive-result this worker-id data)
                       (= :worker-error dtype)
                         (receive-error this worker-id data)))))
-             (work worker))))
+             (work worker)))))
 
   (stop [this]
+    (println "STOPPING! " run-count)
     (dosync (ref-set state :stopped)
             (record-end recorder)))
 
@@ -55,7 +58,6 @@
 	false
 	(do (ref-set state :started)
             (record-start recorder)
-
 	    true))))
 
   (increment-and-check-run-count [this]
@@ -96,10 +98,10 @@
        recorder (create-recorder)
        workers (vec (map (fn [worker-id] (worker-fn worker-id recorder))
                          (range worker-count)))]
-   (receive-all output-ch (fn [_] (println "OCH: " _))) ; keep the channel empty if no listeners
+   (receive-all output-ch (fn [_] )) ; keep the channel empty if no listeners
    (Benchmark. (ref :stopped)
                max-runs (ref 0) workers
-               recorder output-ch)))
+               recorder output-ch (atom nil))))
              
 (defn create-single-url-benchmark [url concurrency requests]
   (let [worker-fn (partial create-single-url-worker url)

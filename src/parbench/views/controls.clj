@@ -6,7 +6,7 @@
            [parbench.benchmark :as benchmark]))
 
 (def bench (ref nil))
-(def bench-ch (ref nil))
+(def socket-ch (channel))
 
 (defn respond-state []
   (json/generate-string
@@ -20,13 +20,21 @@
   {:keys [state url concurrency requests]}
   (println (format "Running: s:%s u:%s c:%s r:%s" state url concurrency requests))
   (if (= "started" state)
-    (let [concurrency (Integer/valueOf concurrency)
+      (let [concurrency (Integer/valueOf concurrency)
           requests    (Integer/valueOf requests)
           benchmarker (benchmark/create-single-url-benchmark url concurrency requests)]
-      (dosync (ref-set bench benchmarker)
-              (benchmark/start benchmarker))
-    (respond-state))))
+      (dosync
+        (if-let [b (ensure bench)]
+          (if-let [bt @(:broadcast-task b)]
+            (.cancel bt)))
+        (ref-set bench benchmarker))
+      (benchmark/start benchmarker)
+      (siphon (:output-ch benchmarker) socket-ch))
+    (benchmark/stop bench))
+  (respond-state))
 
 (defwebsocket "/benchmarker/stream" {} conn
-  (receive-all (:output-ch  @bench)
-               (fn [msg] (send-message conn (json/generate-string msg)))))
+  (receive-all socket-ch
+               (fn [msg]
+;                 (println msg)
+                 (send-message conn (json/generate-string msg)))))

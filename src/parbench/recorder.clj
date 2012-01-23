@@ -48,8 +48,8 @@
       ;(println  (runtime-agg-stats this statsd))
       (merge
        (runtime-agg-stats statsd
-                          (or @ended-at (System/currentTimeMillis))
-                          @started-at)
+                          @started-at
+                          (or @ended-at (System/currentTimeMillis)))
         (select-keys statsd
           [:runs-total :runs-succeeded :runs-failed
            :avg-runtime-by-start-time

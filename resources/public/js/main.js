@@ -85,7 +85,7 @@ Benchmarker = Backbone.Model.extend({
   },
   bindToStream: function (stream) {
     var self = this;
-    stream.bind('dtype-agg', function (data) {
+    stream.bind('dtype-stats', function (data) {
       self.set(data)
     });
 

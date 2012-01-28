@@ -39,8 +39,7 @@
   (work [this run-id]
     (compare-and-set! state :initialized :started)
     (when (= @state :started)
-       (println "*")
-       (exec-runner this run-id))))
+         (exec-runner this run-id))))
 
 (defn create-single-url-worker [url worker-id recorder]
   (UrlWorker. (atom :initialized)

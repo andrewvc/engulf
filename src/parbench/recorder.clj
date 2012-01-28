@@ -2,10 +2,9 @@
   (:require [clojure.tools.logging :as log])
   (:use [parbench.utils :only [median percentiles increment-keys]]
         lamina.core))
- 
+
 (defn record-avg-runtime-by-start-time [stats {:keys [req-start runtime]}]
-  (alter stats
-         update-in
+  (update-in stats
          [:avg-runtime-by-start-time (int (/ req-start 1000))]
          (fn [bucket]
              (let [rcount (+ 1 (get bucket :count 0))
@@ -15,14 +14,14 @@
                            :total total
                            :avg   (int (/ total rcount))})))))
 
-(defn record-runtime [stats {rt :runtime}]
-  (alter stats update-in [:runtimes] #(conj %1 rt)))
+(defn record-runtime [stats {:keys [runtime]}]
+  (update-in stats [:runtimes] #(conj %1 runtime)))
 
 (defn record-response-code-count [stats {{resp-code :status} :response}]
-  (alter stats update-in [:response-code-counts] increment-keys resp-code))
+  (update-in stats [:response-code-counts] increment-keys resp-code))
 
 (defn record-run-succeeded [stats data]
-  (alter stats increment-keys :runs-succeeded :runs-total))
+  (increment-keys stats :runs-succeeded :runs-total))
 
 (defn runtime-agg-stats [{:keys [runtimes runs-total]} started-at ended-at]
   (let [runtime (- ended-at started-at)
@@ -59,21 +58,22 @@
     (compare-and-set! started-at nil (System/currentTimeMillis)))
 
   (record-end [this]
-    (compare-and-set! ended-at nil (System/currentTimeMillis)))
+    (compare-and-set! ended-at nil (System/currentTimeMillis)))  
   
   (record-result [this worker-id data]
-   ;There should probably be a separate start method...
-   (dosync
-     (let [statsd @stats]
-       (dorun (map #(%1 stats data)
-            [record-avg-runtime-by-start-time
-             record-runtime
-             record-response-code-count
-             record-run-succeeded])))))
+    (send stats
+      (fn [statsd]
+        (reduce
+          (fn [v stat-fn] (stat-fn v data))
+          statsd
+          [record-avg-runtime-by-start-time
+           record-runtime
+           record-response-code-count
+           record-run-succeeded]))))
   
   (record-error [this worker-id err]
-    (dosync
-      (alter stats increment-keys :runs-failed))))                                                
+    (send stats increment-keys :runs-failed)))
+
 (defn- empty-stats []
   {:started-at nil
    :ended-at nil
@@ -89,4 +89,4 @@
 (defn create-recorder []
   (StandardRecorder. (atom nil)
                      (atom nil)
-                     (ref (empty-stats))))
+                     (agent (empty-stats))))

@@ -14,10 +14,8 @@
                                   processed-stats
                                   record-end]]))
 
-
 (defprotocol Benchmarkable
   (start [this])
-  (stop [this])
   (started? [this])
   (stopped? [this])
   (init-run [this])
@@ -46,8 +44,12 @@
 
   (stop [this]
     (println "STOPPING! " run-count)
-    (dosync (ref-set state :stopped)
-            (record-end recorder)))
+    ; When this invocation actually stops it.    
+    (when (dosync (let [ostate @state]
+              (ref-set state :stopped)
+              (record-end recorder)
+              (not= ostate state)))
+          (doseq [worker workers] (worke
 
   (started? [this] (dosync (= :started (ensure state))))
   (stopped? [this] (not (started? this)))

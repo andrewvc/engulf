@@ -13,6 +13,10 @@
    (let [state (if @bench @(:state @bench) :stopped)]
      {:state state})))
 
+(def test-page-count (atom 0))
+(defpage-async "/test" {} conn
+  (respond conn (str "Test Response #" (swap! test-page-count inc))))
+
 (defpage [:get "/benchmarker/state"] {}
   (respond-state))
 

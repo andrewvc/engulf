@@ -16,50 +16,44 @@
 
 (defprotocol Benchmarkable
   (start [this])
-  (started? [this])
-  (stopped? [this])
+  (start [this])
+  (stop [this])
   (init-run [this])
   (increment-and-check-run-count [this])
-  (receive-result [thi worker-id data])
+  (receive-result [this worker-id data])
   (receive-error [this worker-id err])
+  (hookup-workers [this])
   (broadcast-at-interval [this millis]))
   
 (defrecord Benchmark [state max-runs run-count workers recorder output-ch broadcast-task]
   Benchmarkable
+  
   (start [this]
-    (if (not (init-run this))
+    (if (not (init-run this)) ; Guard against dupe runs
       (io! (log/warn "Could not start, already started"))
       (do
+        (hookup-workers this)
+        (record-start recorder)
+        (doseq [worker workers]
+          (log/info (str "Starting worker: " worker))
+          (work worker))
         (compare-and-set! broadcast-task nil
                           (broadcast-at-interval this 200))
-        (doseq [worker workers]
-          (let [{worker-ch :output-ch worker-id :worker-id} worker]
-            (receive-all (:output-ch worker)
-              (fn [{:keys [dtype data]}]
-                (cond (= :worker-result dtype)
-                        (receive-result this worker-id data)
-                      (= :worker-error dtype)
-                        (receive-error this worker-id data)))))
-             (work worker)))))
+        )))
 
   (stop [this]
     (println "STOPPING! " run-count)
     ; When this invocation actually stops it.    
-    (when (dosync (let [ostate @state]
-              (ref-set state :stopped)
-              (record-end recorder)
-              (not= ostate state)))
-          (doseq [worker workers] (worke
+    (dosync (when (= @state :started) (ref-set state :stopped)))
+    (record-end recorder)
+    (doseq [worker workers]
+      (compare-and-set! (:state worker) :started :stopped)))
 
-  (started? [this] (dosync (= :started (ensure state))))
-  (stopped? [this] (not (started? this)))
-  
   (init-run [this]
     (dosync
       (if (not= :stopped @state)
 	false
 	(do (ref-set state :started)
-            (record-start recorder)
 	    true))))
 
   (increment-and-check-run-count [this]
@@ -69,12 +63,22 @@
          (if (= max-runs (alter run-count inc))
            :thresh
            :under))))
+
+  (hookup-workers [this]
+    (doseq [worker workers]
+      (let [{worker-ch :output-ch worker-id :worker-id} worker]
+        (receive-all (:output-ch worker)
+                     (fn [{:keys [dtype data]}]
+                       (cond (= :worker-result dtype)
+                             (receive-result this worker-id data)
+                             (= :worker-error dtype)
+                             (receive-error this worker-id data)))))))
   
   (receive-result
     [this worker-id result]
    ; If we haven't already stopped, increment the run-count. If we do increment it record the actual work
     (dosync
-      (when (started? this)
+      (when (= @state :started)
         (let [thresh-status (increment-and-check-run-count this)]
           (record-result recorder worker-id result)
           (when (= :thresh thresh-status)

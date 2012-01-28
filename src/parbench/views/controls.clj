@@ -34,7 +34,7 @@
         (ref-set bench benchmarker))
       (benchmark/start benchmarker)
       (siphon (:output-ch benchmarker) socket-ch))
-    (benchmark/stop bench))
+    (benchmark/stop @bench))
   (respond-state))
 
 (defwebsocket "/benchmarker/stream" {} conn

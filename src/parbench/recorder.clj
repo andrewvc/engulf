@@ -54,13 +54,12 @@
           [:runs-total :runs-succeeded :runs-failed
            :avg-runtime-by-start-time
            :response-code-counts]))))
-  (record-end [this]
-    (dosync (ref-set ended-at (System/currentTimeMillis))))
-
+  
   (record-start [this]
-    (dosync
-      (when (not @started-at)
-            (ref-set started-at (System/currentTimeMillis)))))
+    (compare-and-set! started-at nil (System/currentTimeMillis)))
+
+  (record-end [this]
+    (compare-and-set! ended-at nil (System/currentTimeMillis)))
   
   (record-result [this worker-id data]
    ;There should probably be a separate start method...
@@ -88,6 +87,6 @@
    :runtimes []})
 
 (defn create-recorder []
-  (StandardRecorder. (ref nil)
-                     (ref nil)
+  (StandardRecorder. (atom nil)
+                     (atom nil)
                      (ref (empty-stats))))

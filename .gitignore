@@ -11,3 +11,4 @@ lib/*
 \#*#
 .\#*#
 .#*
+vendor/bundle

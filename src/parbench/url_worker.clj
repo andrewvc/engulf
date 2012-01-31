@@ -1,5 +1,6 @@
 (ns parbench.url-worker
   (:require [parbench.runner :as runner]
+            [parbench.ning-client :as ning-client]
             [clojure.tools.logging :as log])
 
   (:use [parbench.utils :only [send-bench-msg]]
@@ -16,7 +17,8 @@
    
   (exec-runner [this run-id]
     (let [req-start (System/currentTimeMillis)
-          ch        (client {:method :get :url url})]
+          ch (ning-client/http-get url)]
+          ;          ch        (client {:method :get :url url})]
       (on-success ch
         (fn [res]
           (send-bench-msg output-ch :worker-result

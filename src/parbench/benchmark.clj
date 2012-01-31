@@ -108,8 +108,15 @@
    (Benchmark. (ref :stopped)
                max-runs (ref 0) workers
                recorder output-ch (atom nil))))
-             
+
+(def client-type
+     (if (= "aleph" (System/getenv "PARBENCH_CLIENT"))
+       :aleph
+       :ning))
+
+(println "Using " client-type " client")
+
 (defn create-single-url-benchmark [url concurrency requests]
-  (let [worker-fn (partial create-single-url-worker url)
+  (let [worker-fn (partial create-single-url-worker client-type url)
         benchmark (create-benchmark concurrency requests worker-fn)]
     benchmark))

@@ -17,20 +17,17 @@
               (enqueue (.success res-ch)
                        {:status status :content-type content-type})))
           (onThrowable [e]
-            (.printStackTrace e)
-            (log/error e "bad error for ning!")
+            (log/error e "We hit a throwable in Ning")
             (enqueue res-ch e))))
 
 (defn http-get
   "Convenience method to execute a GET request with the client"
   [url]
-  (let [requestConfig (doto (PerRequestConfig.)
-                      (.setRequestTimeoutInMs (int 2000)))
-        handler-res-ch (result-channel)
-        handler (client-handler handler-res-ch)]
-    (.execute
-      (.setPerRequestConfig
-        (.prepareGet client url)
-        requestConfig)
-      handler)
+  (let [handler-res-ch (result-channel)
+        handler (client-handler handler-res-ch)
+        requestConfig (doto (PerRequestConfig.)
+                            (.setRequestTimeoutInMs (int 2000)))]
+    (-> (.prepareGet client url)
+        (.setPerRequestConfig requestConfig)
+        (.execute handler))
     handler-res-ch))

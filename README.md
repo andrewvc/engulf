@@ -1,41 +1,27 @@
 # parbench
 
-Visualization tool for webserver concurrency
+Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
-![Screenshot](https://github.com/downloads/andrewvc/parbench/parbench-ss.png)
+![Screenshot](https://img.skitch.com/20120131-ri4ru1rqkhtdpgwne4ps47mmis.jpg)
 
 ## Usage
 
-  Download the JAR from the [downloads page](https://github.com/andrewvc/parbench/downloads).
-  
-  Then run:
-    
-    # Runs parbench with 50 workers given 100 requests each targeting localhost:9000
-    java -jar parbench.jar http://localhost:9000
+1. Download the JAR from the [downloads page](https://github.com/andrewvc/parbench/downloads).
+1. Run: `java -jar parbench.jar`
+1. Open [http://localhost:3000](http://localhost:3000) in your borwser
 
-    # Full Usage: java -jar parbench.jar -h
-    Usage: [OPTIONS] -u http://example.net
-    Options
-      --cli-only, -k           Command Line Only
-      --concurrency, -c <arg>  Number of Workers              [default 100]
-      --requests, -r <arg>     Number of requests per worker  [default 200]
-      --scale, -s <arg>        Pixel Size of GUI Squares      [default 2]
-      --url, -u <arg>          URL to benchmark
+## Hacking
 
-  Each horizontal line represents a worker thread. Each square represents an HTTP request.
+Parbench is a work in progresss and is rough around the edges in a number of places. Contributions are greatly appreciated, if you have any questions about contributing, just hit the message button on my github profile.
 
-  Square colors:
+## Legacy
 
-  * Light-gray: Scheduled, Not yet sent
-  * Yellow:     Sent, Waiting for response
-  * Dark-gray:  Complete, HTTP Status 200 - 299
-  * Blue:       Complete, HTTP Status 300 - 399
-  * White:      Complete, HTTP Status 400 - 499
-  * Red:        Complete, HTTP Status 500 - 599
-  * Black:      Internal Error, could not complete request
+There is a legacy version of parbench available on the downloads page and the `legacy` branch that runs quite differently, and looks like this:
+
+![Screenshot](https://github.com/downloads/andrewvc/parbench/parbench-ss.png)
 
 ## License
 
-Copyright (C) 2011 Andrew Cholakian
+Copyright (C) 2011 and 2012 Andrew Cholakian
 
 Distributed under the MIT Licensee, see LICENSE for details

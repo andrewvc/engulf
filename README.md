@@ -10,6 +10,13 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 1. Run: `java -jar parbench.jar`
 1. Open [http://localhost:3000](http://localhost:3000) in your borwser
 
+# Todo:
+
+* RESTful interface
+* Cleaned up javascript
+* Distributed workers
+* Extraction of HTTP task distribution to a separate jar
+
 ## Hacking
 
 Parbench is a work in progresss and is rough around the edges in a number of places. Contributions are greatly appreciated, if you have any questions about contributing, just hit the message button on my github profile.

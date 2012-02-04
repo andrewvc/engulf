@@ -1,4 +1,4 @@
-3(ns parbench.ning-client
+(ns parbench.ning-client
    (:use lamina.core)
    (:require [clojure.tools.logging :as log])
    (:import com.ning.http.client.AsyncHttpClient

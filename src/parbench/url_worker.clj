@@ -4,23 +4,36 @@
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [parbench.utils :only [send-bench-msg]]
-        
-        lamina.core))
+        noir-async.utils
+         lamina.core))
 
 (defprotocol Workable
   "A worker aware of global job state"
   (work [this] [this run-id] "Execute the job")
   (exec-runner [this run-id] "Execute the runner associated with this worker"))
 
+(def tot-requests (atom 0))
+(def open-requests (atom 0))
+(def failures (atom 0))
+
+(set-interval 1000
+             (fn []
+               (println
+                 " T: " tot-requests
+                 " O: " open-requests
+                 " F: " failures)))
+
 (defrecord UrlWorker [state url worker-id client output-ch]
   Workable
    
   (exec-runner [this run-id]
+    (swap! tot-requests inc)
+    (swap! open-requests inc)
     (let [req-start (System/currentTimeMillis)
-         ; ch (ning-client/http-get url)]
           ch (client {:method :get :url url} 2000)]
       (on-success ch
         (fn [res]
+          (swap! open-requests dec)
           (send-bench-msg output-ch :worker-result
             (let [req-end (System/currentTimeMillis)]
               {:worker-id worker-id
@@ -32,6 +45,9 @@
           (work this (inc run-id))))
       (on-error ch
         (fn [err]
+          (swap! failures inc)
+          (println "STACK!")
+          (.printStackTrace err)
           (send-bench-msg output-ch :worker-error err)
           (work this (inc run-id))))))
 

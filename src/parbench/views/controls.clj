@@ -1,5 +1,6 @@
 (ns parbench.views.controls
   (use noir-async.core
+       noir-async.utils
        noir.core
        lamina.core)
   (require [cheshire.core :as json]
@@ -15,7 +16,9 @@
 
 (def test-page-count (atom 0))
 (defpage-async "/test" {} conn
-  (respond conn (str "Test Response #" (swap! test-page-count inc))))
+  (set-timeout 500
+               (fn []
+                 (respond conn (str "Test Response #" (swap! test-page-count inc))))))
 
 (defpage [:get "/benchmarker/state"] {}
   (respond-state))

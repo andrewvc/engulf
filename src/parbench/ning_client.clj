@@ -22,6 +22,8 @@
       :post (memfn preparePost url)
       :delete (memfn prepareDelete url)})
 
+(def id (atom 0))
+
 (defn http-client [options]
   "Currently ignores all options"
   (let [client (AsyncHttpClient.)]
@@ -29,7 +31,8 @@
       ([request]
          (this request -1))
       ([{:keys [method url]} timeout]
-        (let [result (result-channel)
+        (let [req-id (swap! id inc)
+              result (result-channel)
               handler (client-handler result)
               requestConfig (doto (PerRequestConfig.)
                                   (.setRequestTimeoutInMs (int timeout)))]

@@ -30,8 +30,8 @@
   Benchmarkable
   
   (start [this]
-    (if (not (init-run this)) ; Guard against dupe runs
-      (io! (log/warn "Could not start, already started"))
+    (if (not (compare-and-set! state :initialized :started))
+      (io! (log/warn (str "Could not start from: @state")))
       (do
         (record-start recorder)
         (doseq [worker @workers]
@@ -41,35 +41,28 @@
         )))
 
   (stop [this]
-   (println "STOPPING! " run-count)
-   ; When this invocation actually stops it.    
-   (dosync (when (= @state :started) (ref-set state :stopped)))
-   (record-end recorder)
-   (doseq [worker @workers]
-     (compare-and-set! (:state worker) :started :stopped)))
-
-  (init-run [this]
-   (dosync
-    (if (not= :stopped @state)
-      false
-      (do (ref-set state :started)
-          true))))
+    (println "Stopping run. " run-count)
+    (if (not (compare-and-set! state :started :stopped))
+      (log/warn "Could not stop run, not yet started")
+      (do
+        (record-end recorder)
+        (doseq [worker @workers]
+          (compare-and-set! (:state worker) :started :stopped)))))
 
   (increment-and-check-run-count [this]
     (dosync
-      (if (>= (ensure run-count) max-runs)
+      (if (>= @run-count max-runs)
         :over
         (if (= max-runs (alter run-count inc))
           :thresh
           :under))))                    
   
   (check-result-recordability? [this]
-   (dosync
     (when (= @state :started)
       (let [thresh-status (increment-and-check-run-count this)]
         (cond (= :thresh thresh-status) (do (stop this) true)
               (= :under  thresh-status) true
-              :else                     false)))))
+              :else                     false))))
   
   (receive-result [this worker-id result]
     (when (check-result-recordability? this)
@@ -105,7 +98,7 @@
  "Create a new Benchmark record. This encapsulates the full benchmark state"
  [worker-count max-runs worker-fn]
  (let [recorder (create-recorder)
-       benchmark (Benchmark. (ref :stopped) 
+       benchmark (Benchmark. (atom :initialized) 
                              max-runs
                              (ref 0)     ; run-count
                              (atom nil)   ; workers

@@ -1,4 +1,5 @@
 (ns parbench.ning-client
+  "A fast HTTP client based on sonatype's asyn client. Conforms to the aleph http interface more or less"
    (:use lamina.core)
    (:require [clojure.tools.logging :as log])
    (:import com.ning.http.client.AsyncHttpClient
@@ -23,8 +24,8 @@
 
 (def id (atom 0))
 
-(defn http-client [options]
-  "Currently ignores all options"
+(defn create-http-client [options]
+  "Currently ignores all options. You probably don't want to use this directly, but rather want http-client"
   (let [client (AsyncHttpClient.)]
     (fn this
       ([request]
@@ -39,11 +40,18 @@
               (.setPerRequestConfig requestConfig)
               (.execute handler))
           result)))))
+
+(def default-client (create-http-client {}))
+
+(defn http-client
+  ([] http-client {})
+  ([options]
+  "Returns the default http client. Sonatype's client really works best with a single instance seeing as how it's fully asynchronous. Multiple clients eat up memory fast, and you'll hit an OOM"
+  default-client))
                   
 (defn http-request
   "Aleph style interface"
   ([request]
-     (http-request request -1))
+     (http-request request 90000))
   ([request timeout]
-     (let [client (http-client {})]
-       (client request timeout))))
+     (default-client request timeout)))

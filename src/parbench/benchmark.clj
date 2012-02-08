@@ -47,7 +47,7 @@
         (record-end recorder)
         (doseq [worker @workers]
           (compare-and-set! (:state worker) :started :stopped)))))
-
+  
   (increment-and-check-run-count [this]
     (dosync
       (if (>= @run-count max-runs)
@@ -110,6 +110,5 @@
 (defn create-single-url-benchmark
   "Create a new benchmark. You must call start on this to begin"
   [url concurrency requests]
-  (let [worker-fn (partial create-single-url-worker :ning url)
-        benchmark (create-benchmark concurrency requests worker-fn)]
-    benchmark))
+  (let [worker-fn (partial create-single-url-worker :ning url)]
+    (create-benchmark concurrency requests worker-fn)))

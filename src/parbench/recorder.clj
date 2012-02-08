@@ -3,7 +3,9 @@
   (:use [parbench.utils :only [median percentiles increment-keys]]
         lamina.core))
 
-(defn record-avg-runtime-by-start-time [stats {:keys [req-start runtime]}]
+(defn record-avg-runtime-by-start-time
+  "Records, how long, on average requests issued in the current time bucket take to return. Requests are quantized into buckets of  1 second."
+  [stats {:keys [req-start runtime]}]
   (update-in stats
          [:avg-runtime-by-start-time (long (/ req-start 1000))]
          (fn [bucket]
@@ -17,13 +19,16 @@
 (defn record-runtime [stats {:keys [runtime]}]
   (update-in stats [:runtimes] #(conj %1 runtime)))
 
-(defn record-response-code-count [stats {{resp-code :status} :response}]
+
+(defn record-response-code [stats {{resp-code :status} :response}]
   (update-in stats [:response-code-counts] increment-keys resp-code))
 
 (defn record-run-succeeded [stats data]
   (increment-keys stats :runs-succeeded :runs-total))
 
-(defn runtime-agg-stats [{:keys [runtimes runs-total]} started-at ended-at]
+(defn runtime-agg-stats
+  "Analysis for high-level data"
+  [{:keys [runtimes runs-total]} started-at ended-at]
   (let [runtime (- ended-at started-at)
         sorted-runtimes (vec (sort runtimes))]
     {:runtime runtime
@@ -33,26 +38,25 @@
 
 (defprotocol Recordable
   "Recording protocol"
-  (processed-stats [this])
-  (record-start [this])
-  (record-end [this])
-  (record-result [this worker-id data])
-  (record-error [this worker-id err]))
+  (processed-stats [this] "Stats with statistical analyses completed and integrated")
+  (record-start [this] "Can be called once. Must be called before receiving data")
+  (record-end [this] "Can be called once, ends collection of data")
+  (record-result [this worker-id data] "Given a worker-id and the workers results, this records the data")
+  (record-error [this worker-id err] "Attributes an error to a specific worker. err should be an Throwable or the like"))
 
 (defrecord StandardRecorder [started-at ended-at stats]
   Recordable
 
   (processed-stats [this]
     (let [statsd @stats]
-      ;(println  (runtime-agg-stats this statsd))
       (merge
        (runtime-agg-stats statsd
                           @started-at
                           (or @ended-at (System/currentTimeMillis)))
-        (select-keys statsd
-          [:runs-total :runs-succeeded :runs-failed
-           :avg-runtime-by-start-time
-           :response-code-counts]))))
+       (select-keys statsd
+                    [:runs-total :runs-succeeded :runs-failed
+                     :avg-runtime-by-start-time
+                     :response-code-counts]))))
   
   (record-start [this]
     (compare-and-set! started-at nil (System/currentTimeMillis)))
@@ -62,19 +66,16 @@
   
   (record-result
    [this worker-id data]
-   (send stats
+   (send stats ; Stats are asynchronously processed
          (fn [statsd]
-           (try
-             (reduce
-              (fn [v stat-fn] (stat-fn v data))
-              statsd
-              [record-avg-runtime-by-start-time
-               record-runtime
-               record-response-code-count
-               record-run-succeeded])
-             (catch Exception e
-               (.printStackTrace e))))))
-  
+           (reduce ; Reduce via each analysis function
+            (fn [v stat-fn] (stat-fn v data))
+            statsd
+            [record-avg-runtime-by-start-time
+             record-runtime
+             record-response-code
+             record-run-succeeded]))))
+
   (record-error [this worker-id err]
     (send stats increment-keys :runs-failed)) )
 

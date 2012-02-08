@@ -1,6 +1,7 @@
-(defproject parbench "1.3.2"
+(defproject parbench "2.0.0-ALPHA"
   :description "Parallel HTTP Benchmarker/Visualizer"
   :main parbench.core
+  :aot [parbench.core]
   :jvm-opts ["-server" "-Xmx2000M"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure "1.3.0"]

@@ -16,7 +16,7 @@
 
 (def test-page-count (atom 0))
 (defpage-async "/test" {} conn
-  (set-timeout 500
+  (set-timeout 1
                (fn []
                  (respond conn (str "Test Response #" (swap! test-page-count inc))))))
 

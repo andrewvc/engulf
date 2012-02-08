@@ -5,14 +5,14 @@
 
 (defn record-avg-runtime-by-start-time [stats {:keys [req-start runtime]}]
   (update-in stats
-         [:avg-runtime-by-start-time (int (/ req-start 1000))]
+         [:avg-runtime-by-start-time (long (/ req-start 1000))]
          (fn [bucket]
              (let [rcount (+ 1 (get bucket :count 0))
                    total  (+ runtime (get bucket :total 0))]
                    (merge bucket
                           {:count rcount
                            :total total
-                           :avg   (int (/ total rcount))})))))
+                           :avg   (long (/ total rcount))})))))
 
 (defn record-runtime [stats {:keys [runtime]}]
   (update-in stats [:runtimes] #(conj %1 runtime)))
@@ -60,19 +60,23 @@
   (record-end [this]
     (compare-and-set! ended-at nil (System/currentTimeMillis)))  
   
-  (record-result [this worker-id data]
-    (send stats
-      (fn [statsd]
-        (reduce
-          (fn [v stat-fn] (stat-fn v data))
-          statsd
-          [record-avg-runtime-by-start-time
-           record-runtime
-           record-response-code-count
-           record-run-succeeded]))))
+  (record-result
+   [this worker-id data]
+   (send stats
+         (fn [statsd]
+           (try
+             (reduce
+              (fn [v stat-fn] (stat-fn v data))
+              statsd
+              [record-avg-runtime-by-start-time
+               record-runtime
+               record-response-code-count
+               record-run-succeeded])
+             (catch Exception e
+               (.printStackTrace e))))))
   
   (record-error [this worker-id err]
-    (send stats increment-keys :runs-failed)))
+    (send stats increment-keys :runs-failed)) )
 
 (defn- empty-stats []
   {:started-at nil

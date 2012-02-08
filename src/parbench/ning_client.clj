@@ -13,8 +13,7 @@
               (enqueue (.success res-ch)
                        {:status status :content-type content-type})))
           (onThrowable [e]
-            (log/error e "We hit a throwable in Ning")
-            (enqueue res-ch e))))
+            (enqueue (.error res-ch) e))))
 
 (def method-prep-map
      {:get (memfn prepareGet url)
@@ -29,7 +28,7 @@
   (let [client (AsyncHttpClient.)]
     (fn this
       ([request]
-         (this request -1))
+         (this request 90000))
       ([{:keys [method url]} timeout]
         (let [req-id (swap! id inc)
               result (result-channel)

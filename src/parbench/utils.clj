@@ -14,7 +14,8 @@
 (defn send-bench-msg
   "Enqueue a message of the format {:dtype data-type :data data}
    on channel ch. This uses the io! macro since its assumed bench
-   messages will always hit clients"
+   messages
+will always hit clients"
   [ch data-type data]
   (io! (enqueue ch {:dtype data-type :data data})))
 

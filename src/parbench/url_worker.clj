@@ -5,69 +5,65 @@
             [clojure.tools.logging :as log])
   (:use [parbench.utils :only [send-bench-msg]]
         noir-async.utils
-         lamina.core))
+        lamina.core)
+  (:import java.util.concurrent.Executors))
+
+; Run callbacks in a cached thread pool for maximum throughput
+(def callback-pool (Executors/newCachedThreadPool))
 
 (defprotocol Workable
   "A worker aware of global job state"
+  (handle-success [this run-id req-start results])
+  (handle-error [this run-id req-start err])
   (work [this] [this run-id] "Execute the job")
   (exec-runner [this run-id] "Execute the runner associated with this worker"))
 
-(def tot-requests (atom 0))
-(def open-requests (atom 0))
-(def failures (atom 0))
-
-(set-interval 1000
-             (fn []
-               (println
-                 " T: " tot-requests
-                 " O: " open-requests
-                 " F: " failures)))
-
-(defrecord UrlWorker [state url worker-id client output-ch]
+(defrecord UrlWorker [state url worker-id client succ-callback err-callback]
   Workable
+
+  (handle-success [this run-id req-start response]
+                  (.submit callback-pool
+                           #(succ-callback
+                             (let [req-end (System/currentTimeMillis)]
+                               {:worker-id worker-id
+                                :run-id    run-id
+                                :req-start req-start
+                                :req-end   req-end
+                                :runtime   (- req-end req-start)
+                                :response  response})))
+                  (work this (inc run-id)))
+
+  (handle-error [this run-id req-start err]
+                (.submit callback-pool #(err-callback err))
+                (work this (inc run-id)))
    
   (exec-runner [this run-id]
-    (swap! tot-requests inc)
-    (swap! open-requests inc)
     (let [req-start (System/currentTimeMillis)
           ch (client {:method :get :url url} 2000)]
-      (on-success ch
-        (fn [res]
-          (swap! open-requests dec)
-          (send-bench-msg output-ch :worker-result
-            (let [req-end (System/currentTimeMillis)]
-              {:worker-id worker-id
-               :run-id    run-id
-               :req-start req-start
-               :req-end   req-end
-               :runtime   (- req-end req-start)
-               :response  res}))
-          (work this (inc run-id))))
-      (on-error ch
-        (fn [err]
-          (swap! failures inc)
-          (println "STACK!")
-          (.printStackTrace err)
-          (send-bench-msg output-ch :worker-error err)
-          (work this (inc run-id))))))
+      (on-success ch (partial handle-success this req-start run-id))
+      (on-error   ch (partial handle-error this req-start run-id))))
 
-  (work [this]
-        (work this 0))
+  (work
+   [this]
+   (compare-and-set! state :initialized :started)
+   (work this 0))
   
-  (work [this run-id]
-    (compare-and-set! state :initialized :started)
-    (when (= @state :started)
-         (exec-runner this run-id))))
+  (work
+   [this run-id]
+   (when (= @state :started)
+     (exec-runner this run-id))))
 
 (def aleph-client (atom nil))
 (def ning-client (ning-http/http-client {}))
 
-(defn create-single-url-worker [client-type url worker-id recorder]
+(defn create-single-url-worker
+  [client-type url worker-id succ-callback err-callback]
   (compare-and-set! aleph-client nil (aleph-http/http-client {:url url}))
   (let [client (if (= :aleph client-type) @aleph-client
-                                          ning-client)]
+                   ning-client)]
     (UrlWorker. (atom :initialized)
                 url
                 worker-id
                 client
-                (channel))))
+                succ-callback
+                err-callback)))

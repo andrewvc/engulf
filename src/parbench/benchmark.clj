@@ -37,8 +37,7 @@
         (doseq [worker @workers]
           (work worker))
         (compare-and-set! broadcast-task nil
-                          (broadcast-at-interval this 200))
-        )))
+                          (broadcast-at-interval this 200)))))
 
   (stop [this]
     (println "Stopping run. " run-count)

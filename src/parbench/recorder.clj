@@ -19,7 +19,6 @@
 (defn record-runtime [stats {:keys [runtime]}]
   (update-in stats [:runtimes] #(conj %1 runtime)))
 
-
 (defn record-response-code [stats {{resp-code :status} :response}]
   (update-in stats [:response-code-counts] increment-keys resp-code))
 

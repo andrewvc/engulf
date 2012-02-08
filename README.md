@@ -6,9 +6,7 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 ## Usage
 
-1. Download the JAR from the [downloads page](https://github.com/andrewvc/parbench/downloads).
-1. Run: `java -jar parbench.jar`
-1. Open [http://localhost:3000](http://localhost:3000) in your borwser
+1. You'll need leiningen for now. Clone the repo, then 'lein run'
 
 # Todo:
 

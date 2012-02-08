@@ -9,7 +9,7 @@
   [src-map & xs]
   (merge
     src-map
-    (into {} (map #(vector %1 (inc (or (get src-map %1) 0))) xs))))
+    (into {} (map #(vector %1 (inc (get src-map %1 0))) xs))))
 
 (defn send-bench-msg
   "Enqueue a message of the format {:dtype data-type :data data}

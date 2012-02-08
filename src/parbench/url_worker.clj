@@ -1,6 +1,7 @@
 (ns parbench.url-worker
   (:require [parbench.runner :as runner]
             [parbench.ning-client :as ning-http]
+            [parbench.hac-client :as hac-http]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [parbench.utils :only [send-bench-msg]]
@@ -45,11 +46,17 @@
 
 (def aleph-client (atom nil))
 (def ning-client (ning-http/http-client {}))
+(def hac-client (hac-http/http-client {}))
+
+(defn dispatch-client [client-id]
+  (condp = client-id
+    :aleph @aleph-client
+    :ning ning-client
+    :hac hac-client))
 
 (defn create-single-url-worker [client-type url worker-id recorder]
   (compare-and-set! aleph-client nil (aleph-http/http-client {:url url}))
-  (let [client (if (= :aleph client-type) @aleph-client
-                                          ning-client)]
+  (let [client (dispatch-client client-type)]
     (UrlWorker. (atom :initialized)
                 url
                 worker-id

@@ -9,4 +9,5 @@
                  [cheshire "2.0.4"]
                  [log4j/log4j "1.2.16"]
                  [com.ning/async-http-client "1.7.0"]
+                 [http.async.client "0.4.1"]
                  [org.clojure/tools.logging "0.2.3"]])

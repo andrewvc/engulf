@@ -110,9 +110,11 @@
                recorder output-ch (atom nil))))
 
 (def client-type
-     (if (= "aleph" (System/getenv "PARBENCH_CLIENT"))
-       :aleph
-       :ning))
+  (let [c (System/getenv "PARBENCH_CLIENT")]
+    (condp = c
+      "aleph" :aleph
+      "ning"  :ning
+      "hac"   :hac)))
 
 (println "Using " client-type " client")
 

@@ -40,8 +40,8 @@
   (exec-runner [this run-id]
     (let [req-start (System/currentTimeMillis)
           ch (client {:method :get :url url} 2000)]
-      (on-success ch (partial handle-success this req-start run-id))
-      (on-error   ch (partial handle-error this req-start run-id))))
+      (on-success ch (partial handle-success this run-id req-start))
+      (on-error   ch (partial handle-error this run-id req-start))))
 
   (work [this]
    (compare-and-set! state :initialized :started)

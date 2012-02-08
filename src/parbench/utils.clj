@@ -7,9 +7,7 @@
     
    Keys with a null value will be set to 1."
   [src-map & xs]
-  (merge
-    src-map
-    (into {} (map #(vector %1 (inc (get src-map %1 0))) xs))))
+  (into src-map (map #(vector %1 (inc (get src-map %1 0))) xs)))
 
 (defn send-bench-msg
   "Enqueue a message of the format {:dtype data-type :data data}

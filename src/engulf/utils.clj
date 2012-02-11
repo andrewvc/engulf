@@ -17,6 +17,11 @@ will always hit clients"
   [ch data-type data]
   (io! (enqueue ch {:dtype data-type :data data})))
 
+(defn mean
+  "Returns the mean value of a coll"
+  [coll]
+  (/ (reduce + coll) (count coll)))
+  
 (defn median
   "Returns the median element in a collection"
   [coll]
@@ -32,11 +37,9 @@ will always hit clients"
   (let [len   (count coll)
         partn (if (>= len 100) (int (/ len 100)) 1)]
     (map-indexed
-      (fn [idx group]
-        (let [min (first group)
-              max (last group)
-              avg (median group)]
-          {:min min :max max :avg avg
-           :idx idx
-           :count (count group)}))
-          (partition-all partn coll))))
+     (fn [idx group]
+       {:min (first group)
+        :max (last group)
+        :median (median group)
+        :avg (mean group)})
+     (partition-all partn coll))))

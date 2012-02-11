@@ -17,4 +17,5 @@
         {:port port :websocket true})))
  
 (defn -main [& args]
-  (start-webserver args))
+  (start-webserver args)
+  (println "Engulf Started!"))

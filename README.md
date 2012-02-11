@@ -2,7 +2,7 @@
 
 Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
-![Screenshot](https://skitch.com/andrewvc/8yshb/engulf-http-benchmarker)
+![Screenshot](https://img.skitch.com/20120211-qi1spbex2ua8wwsrkd599s1732.jpg)
 
 ## Usage
 

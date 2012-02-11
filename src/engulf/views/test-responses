@@ -1,0 +1,23 @@
+(ns engulf.views.test-responses
+  (use noir-async.core
+       noir-async.utils
+       noir.core
+       lamina.core)
+  (require [cheshire.core :as json]))
+
+(def fast-async-page-count (atom 0))
+
+(defpage-async "/test-responses/fast-async" {} conn
+  (set-timeout 1
+   (fn []
+       (respond conn
+                (str "Test Response #"
+                (swap! test-page-count inc))))))
+
+
+(defpage-async "/test-responses/async/:time" {:keys [delay]} conn
+  (set-timeout delay
+   (fn []
+       (respond conn
+                (str "Test Response #"
+                (swap! test-page-count inc))))))

@@ -1,8 +1,8 @@
-(defproject parbench "2.0.0-ALPHA"
-  :description "Parallel HTTP Benchmarker/Visualizer"
-  :main parbench.core
-  :aot [parbench.core]
-  :jvm-opts ["-server" "-Xmx2000M"]
+(defproject engulf "2.0.0-ALPHA"
+  :description "HTTP Benchmarker/Visualizer"
+  :main engulf.core
+  :aot [engulf.core]
+  :jvm-opts ["-server"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]

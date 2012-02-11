@@ -1,4 +1,4 @@
-(ns parbench.ning-client
+(ns engulf.ning-client
   "A fast HTTP client based on sonatype's asyn client. Conforms to the aleph http interface more or less"
    (:use lamina.core)
    (:require [clojure.tools.logging :as log])

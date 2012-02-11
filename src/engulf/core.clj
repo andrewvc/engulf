@@ -1,12 +1,12 @@
-(ns parbench.core
-  (:require [parbench.benchmark :as benchmark]
+(ns engulf.core
+  (:require [engulf.benchmark :as benchmark]
             [noir.server :as nr-server])
   (:use aleph.http
         noir.core
         lamina.core))
 
 (defn start-webserver [args]
-  (nr-server/load-views "src/parbench/views")
+  (nr-server/load-views "src/engulf/views")
    
   (let [mode (keyword (or (first args) :dev))
           port (Integer. (get (System/getenv) "PORT" "3000"))

@@ -1,8 +1,8 @@
-# parbench
+# engulf (formerly parbench)
 
 Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
-![Screenshot](https://img.skitch.com/20120131-ri4ru1rqkhtdpgwne4ps47mmis.jpg)
+![Screenshot](https://skitch.com/andrewvc/8yshb/engulf-http-benchmarker)
 
 ## Usage
 
@@ -17,11 +17,11 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 ## Hacking
 
-Parbench is a work in progresss and is rough around the edges in a number of places. Contributions are greatly appreciated, if you have any questions about contributing, just hit the message button on my github profile.
+Engulf is a work in progresss and is rough around the edges in a number of places. Contributions are greatly appreciated, if you have any questions about contributing, just hit the message button on my github profile.
 
 ## Legacy
 
-There is a legacy version of parbench available on the downloads page and the `legacy` branch that runs quite differently, and looks like this:
+There is a legacy version of engulf available on the downloads page and the `legacy` branch that runs quite differently, and looks like this:
 
 ![Screenshot](https://github.com/downloads/andrewvc/parbench/parbench-ss.png)
 

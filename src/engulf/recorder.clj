@@ -1,6 +1,6 @@
-(ns parbench.recorder
+(ns engulf.recorder
   (:require [clojure.tools.logging :as log])
-  (:use [parbench.utils :only [median percentiles increment-keys]]
+  (:use [engulf.utils :only [median percentiles increment-keys]]
         lamina.core))
 
 (defn record-avg-runtime-by-start-time

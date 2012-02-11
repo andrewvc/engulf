@@ -1,4 +1,4 @@
-(ns parbench.views.common
+(ns engulf.views.common
   (:use [noir.core :only [defpartial]]
         [hiccup.page-helpers :only [include-css html5 include-js javascript-tag link-to]]))
 
@@ -6,8 +6,8 @@
   (html5
     [:html {:class "no-js" :lang "en"}
     [:head [:meta {:charset "utf-8"}]
-     [:title "Parbench HTTP Benchmarker"]
-     [:meta {:name "description", :content "parbench http benchmarker"}]
+     [:title "Engulf HTTP Benchmarker"]
+     [:meta {:name "description", :content "engulf http benchmarker"}]
 
      [:link {:rel "icon" :type "image/png" :href "/favicon.png"}]
 
@@ -26,7 +26,7 @@
     [:body [:div {:id "container"}
              [:header
                [:h1
-                "(parbench)"]]
+                "(engulf)"]]
              [:div {:id "main" :role "main"}
                content]
 

@@ -172,7 +172,7 @@ AggregateStatsView = Backbone.View.extend({
     }
   },
   render: function () {
-    $('h1').text("(parbench " + $('#url').val().toLowerCase() + ")");
+    $('h1').text("(engulf " + $('#url').val().toLowerCase() + ")");
      
     var res = this.renderElements;
     res.completed.text(this.model.get('runs-total'));

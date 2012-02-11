@@ -1,13 +1,13 @@
-(ns parbench.benchmark
-  (:require [parbench.runner :as runner]
-            [parbench.utils :as utils]
+(ns engulf.benchmark
+  (:require [engulf.runner :as runner]
+            [engulf.utils :as utils]
             [clojure.tools.logging :as log])
   (:use clojure.tools.logging
         noir-async.utils
         lamina.core
-        [parbench.utils :only [send-bench-msg]]
-        [parbench.url-worker :only [work create-single-url-worker]]
-        [parbench.recorder :only [create-recorder
+        [engulf.utils :only [send-bench-msg]]
+        [engulf.url-worker :only [work create-single-url-worker]]
+        [engulf.recorder :only [create-recorder
                                   record-result
                                   record-error
                                   record-start

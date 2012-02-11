@@ -1,10 +1,10 @@
-(ns parbench.views.controls
+(ns engulf.views.controls
   (use noir-async.core
        noir-async.utils
        noir.core
        lamina.core)
   (require [cheshire.core :as json]
-           [parbench.benchmark :as benchmark]))
+           [engulf.benchmark :as benchmark]))
 
 (def bench (ref nil))
 (def socket-ch (channel))

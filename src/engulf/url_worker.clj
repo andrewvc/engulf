@@ -1,10 +1,10 @@
-(ns parbench.url-worker
-  (:require [parbench.runner :as runner]
-            [parbench.ning-client :as ning-http]
-            [parbench.hac-client :as hac-http]
+(ns engulf.url-worker
+  (:require [engulf.runner :as runner]
+            [engulf.ning-client :as ning-http]
+            [engulf.hac-client :as hac-http]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
-  (:use [parbench.utils :only [send-bench-msg]]
+  (:use [engulf.utils :only [send-bench-msg]]
         noir-async.utils
         lamina.core)
   (:import java.util.concurrent.Executors))

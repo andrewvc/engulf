@@ -57,6 +57,6 @@
   (UrlWorker. (atom :initialized)
                 url
                 worker-id
-                (hac-http/http-client {})
+                (ning-http/http-client {})
                 succ-callback
                 err-callback))

@@ -60,7 +60,7 @@ ConsoleView = Backbone.View.extend({
 });
 
 Benchmarker = Backbone.Model.extend({
-  url: "/benchmarker/state",
+  url: "/benchmarker",
   initialize: function () {
     this.fetch();
   },

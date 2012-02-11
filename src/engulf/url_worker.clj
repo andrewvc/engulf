@@ -49,14 +49,14 @@
    (work this 0))
   
   (work [this run-id]
-   (when (= @state :started)
-         (exec-runner this run-id))))
+    (when (= @state :started)
+      (exec-runner this run-id))))
 
 (defn create-single-url-worker
   [client-type url worker-id succ-callback err-callback]
   (UrlWorker. (atom :initialized)
                 url
                 worker-id
-                (ning-http/http-client {})
+                (hac-http/http-client {})
                 succ-callback
                 err-callback))

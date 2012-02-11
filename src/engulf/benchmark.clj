@@ -126,9 +126,9 @@
      (when-let [b @current-benchmark]
        (when-let [bt @(:broadcast-task b)]
          (.cancel bt)))
-     (ref-set current-benchmark benchmarker)
-     (start benchmarker)
-     benchmarker)))
+     (ref-set current-benchmark benchmarker)))
+    (start @current-benchmark)
+    @current-benchmark)
 
 (defn stop-current-benchmark
   "Stop current benchmark if it exists"

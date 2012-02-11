@@ -23,7 +23,7 @@
   (current-state))
 
 (defpage-async [:post "/benchmarker"]
-  {:keys [state url concurrency requests]} conn
+  {:keys [state url concurrency requests block-completion]} conn
   (println (format "Running: s:%s u:%s c:%s r:%s"
                     state url concurrency requests))
   (cond

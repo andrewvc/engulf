@@ -2,7 +2,7 @@
   :description "HTTP Benchmarker/Visualizer"
   :main engulf.core
   :aot [engulf.core]
-  :jvm-opts ["-server"]
+  :jvm-opts ["-server", "-Xmx2000M"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]

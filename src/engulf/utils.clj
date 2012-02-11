@@ -36,8 +36,8 @@ will always hit clients"
   [coll]
   (let [len   (count coll)
         partn (if (>= len 100) (int (/ len 100)) 1)]
-    (map-indexed
-     (fn [idx group]
+    (map
+     (fn [group]
        {:min (first group)
         :max (last group)
         :median (median group)

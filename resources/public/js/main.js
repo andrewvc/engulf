@@ -66,7 +66,7 @@ Benchmarker = Backbone.Model.extend({
   },
   start: function (url, concurrency, requests) {
     var self = this;
-    $.post("/benchmarker/state",
+    $.post("/benchmarker",
       {state: "started",
        concurrency: concurrency,
        requests: requests,
@@ -79,7 +79,7 @@ Benchmarker = Backbone.Model.extend({
   },
   stop: function () {
     var self = this;
-    $.post("/benchmarker/state", {state: "stopped"}, function () {
+    $.post("/benchmarker", {state: "stopped"}, function () {
       self.set({state: "stopped"});
     });
   },

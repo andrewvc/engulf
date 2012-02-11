@@ -12,18 +12,19 @@
                                   record-error
                                   record-start
                                   processed-stats
-                                  record-end]]))
+                                record-end]]))
+
+(def current-benchmark (ref nil))
 
 (defprotocol Benchmarkable
-  (start [this])
-  (start [this])
-  (stop [this])
-  (init-run [this])
-  (increment-and-check-run-count [this])
-  (check-result-recordability? [this])
-  (receive-result [this worker-id data])
-  (receive-error [this worker-id err])
-  (broadcast-at-interval [this millis]))
+  (start [this] "Start the benchmark")
+  (stop [this] "Stop the benchmark")
+  (increment-and-check-run-count [this] "Internal use only")
+  (check-result-recordability? [this] "Internal use only")
+  (receive-result [this worker-id data] "Handle a worker result")
+  (receive-error [this worker-id err] "Handle a worker error")
+  (broadcast-at-interval [this millis])
+  (stats [this] "Returns processed stats"))
   
 (defrecord Benchmark
   [state max-runs run-count workers recorder output-ch broadcast-task]
@@ -40,9 +41,8 @@
                           (broadcast-at-interval this 200)))))
 
   (stop [this]
-    (println "Stopping run. " run-count)
-    (if (not (compare-and-set! state :started :stopped))
-      (log/warn "Could not stop run, not yet started")
+    (println "Stopping run at " run-count)
+    (when (compare-and-set! state :started :stopped)
       (do
         (record-end recorder)
         (doseq [worker @workers]
@@ -77,9 +77,11 @@
                  (fn []
                    (enqueue output-ch {:dtype "state" :data @state})
                    (try
-                     (send-bench-msg output-ch :stats (processed-stats recorder))
+                     (send-bench-msg output-ch :stats (stats this))
                      (catch Exception e
-                       (.printStackTrace e)))))))
+                       (.printStackTrace e))))))
+  (stats [this]
+    (processed-stats recorder)))
 
 (defn create-workers-for-benchmark
   "Creates a vector of workers instantiated via worker-fn, which
@@ -112,3 +114,23 @@
   [url concurrency requests]
   (let [worker-fn (partial create-single-url-worker :ning url)]
     (create-benchmark concurrency requests worker-fn)))
+
+(defn run-new-benchmark
+  "Attempt to run a new benchmark"
+  [url concurrency requests]
+  (let [benchmarker (create-single-url-benchmark url concurrency requests)]
+    (dosync
+     ;; Cancel the current broadcast task
+     ;; TODO: refactor the codebase to not stream results constantly
+     ;; so this won't be necessary 
+     (when-let [b @current-benchmark]
+       (when-let [bt @(:broadcast-task b)]
+         (.cancel bt)))
+     (ref-set current-benchmark benchmarker)
+     (start benchmarker)
+     benchmarker)))
+
+(defn stop-current-benchmark
+  "Stop current benchmark if it exists"
+  []
+  (when-let [b @current-benchmark] (stop b)))

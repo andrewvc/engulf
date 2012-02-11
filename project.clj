@@ -11,4 +11,5 @@
                  [log4j/log4j "1.2.16"]
                  [org.slf4j/slf4j-simple "1.6.4"]
                  [com.ning/async-http-client "1.7.0"]
+                 [http.async.client "0.4.1"]
                  [org.clojure/tools.logging "0.2.3"]])

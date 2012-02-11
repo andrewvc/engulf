@@ -1,6 +1,7 @@
 (ns parbench.url-worker
   (:require [parbench.runner :as runner]
             [parbench.ning-client :as ning-http]
+            [parbench.hac-client :as hac-http]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [parbench.utils :only [send-bench-msg]]

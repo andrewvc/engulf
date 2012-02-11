@@ -1,4 +1,5 @@
 (ns engulf.core
+  (:gen-class)
   (:require [engulf.benchmark :as benchmark]
             [noir.server :as nr-server])
   (:use aleph.http

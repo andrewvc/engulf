@@ -6,7 +6,7 @@
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]
-                 [noir-async "0.1.2"]
+                 [noir-async "0.1.3"]
                  [cheshire "2.0.4"]
                  [log4j/log4j "1.2.16"]
                  [org.slf4j/slf4j-simple "1.6.4"]

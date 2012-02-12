@@ -3,18 +3,30 @@
    (:use lamina.core)
    (:require [clojure.tools.logging :as log])
    (:import com.ning.http.client.AsyncHttpClient
+            com.ning.http.client.AsyncHandler
+            com.ning.http.client.AsyncHandler$STATE
             com.ning.http.client.PerRequestConfig
             com.ning.http.client.AsyncCompletionHandler))
 
+(defrecord Response [status])
+
+(deftype StatusHandler [status res-ch]
+  com.ning.http.client.AsyncHandler
+  (onStatusReceived [this status-resp]
+                    (compare-and-set! status nil (.getStatusCode status-resp))
+                    AsyncHandler$STATE/CONTINUE)
+  (onHeadersReceived [this headers]
+                     AsyncHandler$STATE/CONTINUE)
+  (onBodyPartReceived [this body-part]
+                      AsyncHandler$STATE/CONTINUE)
+  (onCompleted [this]
+               (enqueue (.success res-ch)
+                        (Response. @status))
+               AsyncHandler$STATE/CONTINUE)
+  (onThrowable [this e] (enqueue (.error res-ch) e)))
+
 (defn client-handler [res-ch]
-  (proxy [com.ning.http.client.AsyncCompletionHandler] []
-          (onCompleted [response]
-            (let [content-type   (.getContentType response)
-                  status         (.getStatusCode  response)]
-              (enqueue (.success res-ch)
-                       {:status status :content-type content-type})))
-          (onThrowable [e]
-            (enqueue (.error res-ch) e))))
+  (StatusHandler. (atom nil) res-ch))
 
 (def method-prep-map
      {:get (memfn prepareGet url)

@@ -29,10 +29,10 @@
   "Analysis for high-level data"
   [{:keys [runtimes runs-total]} started-at ended-at]
   (let [runtime (- ended-at started-at)
-        sorted-runtimes (vec (sort runtimes))]
+        sorted-runtimes (vec runtimes)]
     {:runtime runtime
      :runs-sec (/ runs-total (/ runtime 1000))
-     :median-runtime (median sorted-runtimes)
+     :median-runtime 0
      :runtime-percentiles (percentiles sorted-runtimes)}))
 
 (defprotocol Recordable
@@ -88,7 +88,7 @@
    :runs-failed 0
    :response-code-counts {}
    :avg-runtime-by-start-time {}
-   :runtimes []})
+   :runtimes (sorted-set)})
 
 (defn create-recorder []
   (StandardRecorder. (atom nil)

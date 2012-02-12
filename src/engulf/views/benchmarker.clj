@@ -6,7 +6,8 @@
   (require [cheshire.core :as json]
            [engulf.benchmark :as benchmark]))
 
-(def socket-ch (channel))
+(def socket-ch (permanent-channel))
+(receive-all socket-ch (fn [_] ))
 
 (defn current-state
   "Returns the current benchmarker's state in JSON"

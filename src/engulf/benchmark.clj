@@ -104,9 +104,9 @@
                              (ref 0)     ; run-count
                              (atom nil)   ; workers
                              recorder
-                             (channel)   ; output ch
+                             (permanent-channel)   ; output ch
                              (atom nil))] ; broadcast-task
-   (receive-all (:output-ch benchmark) (fn [] )) ; Keep output ch drained
+   (receive-all (:output-ch benchmark) (fn [_] )) ; Keep output ch drained
    (create-workers-for-benchmark worker-fn benchmark worker-count)
    benchmark))
      

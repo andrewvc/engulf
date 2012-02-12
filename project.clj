@@ -1,4 +1,4 @@
-(defproject engulf "2.0.0-ALPHA"
+(defproject engulf "2.0.0-ALPHA2"
   :description "HTTP Benchmarker/Visualizer"
   :main engulf.core
   :aot [engulf.core]

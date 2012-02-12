@@ -75,7 +75,7 @@
   (broadcast-at-interval [this millis]
    (set-interval millis
                  (fn []
-                   (enqueue output-ch {:dtype "state" :data @state})
+                   (send-bench-msg output-ch :state @state)
                    (try
                      (send-bench-msg output-ch :stats (stats this))
                      (catch Exception e
@@ -106,6 +106,7 @@
                              recorder
                              (channel)   ; output ch
                              (atom nil))] ; broadcast-task
+   (receive-all (:output-ch benchmark) (fn [] )) ; Keep output ch drained
    (create-workers-for-benchmark worker-fn benchmark worker-count)
    benchmark))
      

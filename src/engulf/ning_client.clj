@@ -1,6 +1,7 @@
 (ns engulf.ning-client
   "A fast HTTP client based on sonatype's asyn client. Conforms to the aleph http interface more or less"
-   (:use lamina.core)
+  (:use lamina.core
+        lamina.api)
    (:require [clojure.tools.logging :as log])
    (:import com.ning.http.client.AsyncHttpClient
             com.ning.http.client.AsyncHandler
@@ -20,21 +21,12 @@
   (onBodyPartReceived [this body-part]
                       AsyncHandler$STATE/CONTINUE)
   (onCompleted [this]
-               (enqueue (.success res-ch)
-                        (Response. @status))
+               (success! res-ch (Response. @status))
                AsyncHandler$STATE/CONTINUE)
-  (onThrowable [this e] (enqueue (.error res-ch) e)))
+  (onThrowable [this e] (error! res-ch e)))
 
 (defn client-handler [res-ch]
   (StatusHandler. (atom nil) res-ch))
-
-(def method-prep-map
-     {:get (memfn prepareGet url)
-      :put (memfn preparePut url)
-      :post (memfn preparePost url)
-      :delete (memfn prepareDelete url)})
-
-(def id (atom 0))
 
 (defn create-http-client [options]
   "Currently ignores all options. You probably don't want to use this directly, but rather want http-client"
@@ -43,12 +35,11 @@
       ([request]
          (this request 90000))
       ([{:keys [method url]} timeout]
-        (let [req-id (swap! id inc)
-              result (result-channel)
+        (let [result (result-channel)
               handler (client-handler result)
               requestConfig (doto (PerRequestConfig.)
                                   (.setRequestTimeoutInMs (int timeout)))]
-          (-> ((get method-prep-map method) client url)
+          (-> (.prepareGet client url)
               (.setPerRequestConfig requestConfig)
               (.execute handler))
           result)))))

@@ -7,7 +7,8 @@
             com.ning.http.client.AsyncHandler
             com.ning.http.client.AsyncHandler$STATE
             com.ning.http.client.PerRequestConfig
-            com.ning.http.client.AsyncCompletionHandler))
+            com.ning.http.client.AsyncCompletionHandler
+            com.ning.http.client.AsyncHttpClient$BoundRequestBuilder))
 
 (defrecord Response [status])
 
@@ -15,14 +16,14 @@
   com.ning.http.client.AsyncHandler
   (onStatusReceived [this status-resp]
                     (compare-and-set! status nil (.getStatusCode status-resp))
-                    AsyncHandler$STATE/CONTINUE)
+                    AsyncHandler$STATE/ABORT)
   (onHeadersReceived [this headers]
-                     AsyncHandler$STATE/CONTINUE)
+                    AsyncHandler$STATE/ABORT)
   (onBodyPartReceived [this body-part]
-                      AsyncHandler$STATE/CONTINUE)
+                    AsyncHandler$STATE/ABORT)
   (onCompleted [this]
                (success! res-ch (Response. @status))
-               AsyncHandler$STATE/CONTINUE)
+               AsyncHandler$STATE/ABORT)
   (onThrowable [this e] (error! res-ch e)))
 
 (defn client-handler [res-ch]
@@ -36,13 +37,13 @@
          (this request 90000))
       ([{:keys [method url]} timeout]
         (let [result (result-channel)
-              handler (client-handler result)
-              requestConfig (doto (PerRequestConfig.)
-                                  (.setRequestTimeoutInMs (int timeout)))]
-          (-> (.prepareGet client url)
-              (.setPerRequestConfig requestConfig)
-              (.execute handler))
-          result)))))
+              ^StatusHandler handler (client-handler result)
+              ^AsyncHttpClient$BoundRequestBuilder prepped (.prepareGet client url)
+              ^PerRequestConfig requestConfig (doto (PerRequestConfig.)
+                                          (.setRequestTimeoutInMs (int 90000)))
+              ^AsyncHttpClient$BoundRequestBuilder configged (.setPerRequestConfig prepped requestConfig)]
+        (.execute configged handler)
+        result)))))
 
 (def default-client (create-http-client {}))
 

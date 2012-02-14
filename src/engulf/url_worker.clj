@@ -1,16 +1,16 @@
 (ns engulf.url-worker
   (:require [engulf.runner :as runner]
             [engulf.ning-client :as ning-http]
-            [engulf.hac-client :as hac-http]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [engulf.utils :only [send-bench-msg]]
         noir-async.utils
         lamina.core)
-  (:import java.util.concurrent.Executors))
+  (:import java.util.concurrent.Executors
+           java.util.concurrent.ExecutorService))
 
 ; Run callbacks in a cached thread pool for maximum throughput
-(def callback-pool (Executors/newCachedThreadPool))
+(def ^ExecutorService callback-pool (Executors/newFixedThreadPool 2))
 
 (defprotocol BenchmarkWorkable
   "A worker aware of global job state"
@@ -23,19 +23,22 @@
   BenchmarkWorkable
 
   (handle-success [this run-id req-start response]
-   (.submit callback-pool
-    #(succ-callback
-      (let [req-end (System/currentTimeMillis)]
-           {:worker-id worker-id
-            :run-id    run-id
-            :req-start req-start
-            :req-end   req-end
-            :runtime   (- req-end req-start)
-            :response  response})))
+    ;; This type-hint actually matters
+    (let [^Callable callback-dispatcher
+                    #(succ-callback
+                      (let [req-end (System/currentTimeMillis)]
+                        {:worker-id worker-id
+                         :run-id    run-id
+                         :req-start req-start
+                         :req-end   req-end
+                         :runtime   (- req-end req-start)
+                         :response  response}))]
+      (.submit callback-pool callback-dispatcher))
     (work this (inc run-id)))
 
   (handle-error [this run-id req-start err]
-    (.submit callback-pool #(err-callback err))
+    (let [^Callable callback-dispatcher #(err-callback err)]
+      (.submit callback-pool callback-dispatcher))
     (work this (inc run-id)))
    
   (exec-runner [this run-id]
@@ -54,9 +57,10 @@
 
 (defn create-single-url-worker
   [client-type url worker-id succ-callback err-callback]
-  (UrlWorker. (atom :initialized)
-                url
-                worker-id
-                (ning-http/http-client {})
-                succ-callback
-                err-callback))
+  (let [worker (UrlWorker. (atom :initialized)
+                           url
+                           worker-id
+                           (ning-http/http-client {})
+                           succ-callback
+                    err-callback)]
+    worker))

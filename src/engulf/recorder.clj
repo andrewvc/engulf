@@ -32,7 +32,7 @@
         sorted-runtimes (vec runtimes)]
     {:runtime runtime
      :runs-sec (/ runs-total (/ runtime 1000))
-     :median-runtime 0
+     :median-runtime (median sorted-runtimes)
      :runtime-percentiles (percentiles sorted-runtimes)}))
 
 (defprotocol Recordable

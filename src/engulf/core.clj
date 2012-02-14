@@ -9,7 +9,7 @@
 (defn start-webserver [args]
   (nr-server/load-views "src/engulf/views")
    
-  (let [mode (keyword (or (first args) :dev))
+  (let [mode (keyword (or (first args) :prod))
           port (Integer. (get (System/getenv) "PORT" "3000"))
           noir-handler (nr-server/gen-handler {:mode mode})]
       (start-http-server

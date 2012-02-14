@@ -12,7 +12,8 @@
                                   record-error
                                   record-start
                                   processed-stats
-                                record-end]]))
+                                record-end]])
+  (:import java.util.concurrent.atomic.AtomicLong))
 
 (def current-benchmark (ref nil))
 
@@ -27,7 +28,7 @@
   (stats [this] "Returns processed stats"))
   
 (defrecord Benchmark
-  [state max-runs run-count workers recorder output-ch broadcast-task]
+  [state max-runs ^AtomicLong run-count workers recorder output-ch broadcast-task]
   Benchmarkable
   
   (start [this]
@@ -41,7 +42,7 @@
                           (broadcast-at-interval this 200)))))
 
   (stop [this]
-    (println "Stopping run at " run-count)
+    (println "Stopping run at: " max-runs " runs.")
     (when (compare-and-set! state :started :stopped)
       (do
         (record-end recorder)
@@ -49,19 +50,19 @@
           (compare-and-set! (:state worker) :started :stopped)))))
   
   (increment-and-check-run-count [this]
-    (dosync
-      (if (>= @run-count max-runs)
-        :over
-        (if (= max-runs (alter run-count inc))
-          :thresh
-          :under))))                    
-  
+    (let [n (.incrementAndGet run-count)]
+      (cond
+       (> max-runs n) :under
+       (= max-runs n) :thresh
+       :else          :over)))
+        
   (check-result-recordability? [this]
     (when (= @state :started)
       (let [thresh-status (increment-and-check-run-count this)]
-        (cond (= :thresh thresh-status) (do (stop this) true)
-              (= :under  thresh-status) true
-              :else                     false))))
+        (condp = thresh-status
+            :thresh (do (stop this) true)
+            :under  true
+            :over   false))))
   
   (receive-result [this worker-id result]
     (when (check-result-recordability? this)
@@ -101,7 +102,7 @@
  (let [recorder (create-recorder)
        benchmark (Benchmark. (atom :initialized) 
                              max-runs
-                             (ref 0)     ; run-count
+                             (AtomicLong.)     ; run-count
                              (atom nil)   ; workers
                              recorder
                              (permanent-channel)   ; output ch

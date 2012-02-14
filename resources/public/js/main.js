@@ -446,7 +446,7 @@ ResponseTimeSeriesView = Backbone.View.extend({
 
 $(function () {
   var benchmarkStream = window.benchmarkStream = new BenchmarkStream(
-    {addr: 'ws://localhost:3000/benchmarker/stream'}
+      {addr: 'ws://' + location.host + '/benchmarker/stream'}
   );
    
   var consoleView  = window.consoleView = new ConsoleView(

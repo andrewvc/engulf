@@ -4,6 +4,7 @@
   :aot [engulf.core]
   :jvm-opts ["-server"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
+  ;; :warn-on-reflection true
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]
                  [noir-async "0.1.3"]

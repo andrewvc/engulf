@@ -4,13 +4,15 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 ![Screenshot](https://img.skitch.com/20120211-qi1spbex2ua8wwsrkd599s1732.jpg)
 
-## Usage
+## Get up and running
 
-1. You'll need leiningen for now. Clone the repo, then 'lein run'
+1. Download the jar from the [downloads page](https://github.com/andrewvc/engulf/downloads)
+1. Run it like so `PORT=3000 java -jar engulf-VERSION.jar`
+1. Visit http://localhost:3000 in your browser to use the GUI
 
 # Todo:
 
-* RESTful interface
+* RESTful interface (partially complete)
 * Cleaned up javascript
 * Distributed workers
 * Extraction of HTTP task distribution to a separate jar

@@ -24,6 +24,7 @@
   (check-result-recordability? [this] "Internal use only")
   (receive-result [this worker-id data] "Handle a worker result")
   (receive-error [this worker-id err] "Handle a worker error")
+  (broadcast-state [this] "Enqueues the current state/stats on the output ch")
   (broadcast-at-interval [this millis])
   (stats [this] "Returns processed stats"))
   
@@ -47,7 +48,8 @@
       (do
         (record-end recorder)
         (doseq [worker @workers]
-          (compare-and-set! (:state worker) :started :stopped)))))
+          (compare-and-set! (:state worker) :started :stopped))
+        (broadcast-state this))))
   
   (increment-and-check-run-count [this]
     (let [n (.incrementAndGet run-count)]
@@ -72,15 +74,14 @@
     (log/warn err)
     (when (check-result-recordability? this)
       (record-error recorder worker-id err)))
-           
+
+  (broadcast-state [this]
+    (send-bench-msg output-ch :state @state)
+    (send-bench-msg output-ch :stats (stats this)))
+
   (broadcast-at-interval [this millis]
-   (set-interval millis
-                 (fn []
-                   (send-bench-msg output-ch :state @state)
-                   (try
-                     (send-bench-msg output-ch :stats (stats this))
-                     (catch Exception e
-                       (.printStackTrace e))))))
+   (set-interval millis #(broadcast-state this)))
+         
   (stats [this]
     (processed-stats recorder)))
 

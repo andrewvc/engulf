@@ -16,11 +16,11 @@
   com.ning.http.client.AsyncHandler
   (onStatusReceived [this status-resp]
                     (compare-and-set! status nil (.getStatusCode status-resp))
-                    AsyncHandler$STATE/ABORT)
+                    AsyncHandler$STATE/CONTINUE)
   (onHeadersReceived [this headers]
-                    AsyncHandler$STATE/ABORT)
+                    AsyncHandler$STATE/CONTINUE)
   (onBodyPartReceived [this body-part]
-                    AsyncHandler$STATE/ABORT)
+                    AsyncHandler$STATE/CONTINUE)
   (onCompleted [this]
                (success! res-ch (Response. @status))
                AsyncHandler$STATE/ABORT)

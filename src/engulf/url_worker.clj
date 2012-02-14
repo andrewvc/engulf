@@ -9,7 +9,7 @@
   (:import java.util.concurrent.Executors
            java.util.concurrent.ExecutorService))
 
-; Run callbacks in a cached thread pool for maximum throughput
+; Run callbacks in a thread pool for maximum throughput
 (def ^ExecutorService callback-pool (Executors/newFixedThreadPool 2))
 
 (defprotocol BenchmarkWorkable

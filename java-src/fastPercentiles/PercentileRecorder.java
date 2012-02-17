@@ -4,9 +4,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class PercentileRecorder {
-    private int count;
+    private int count = 0;
     private int range;
     private int[] data;
+    private int minVal = -1;
+    private int maxVal = -1;
     private final ReentrantLock dataLock = new ReentrantLock();
 
     public int getRange() {
@@ -32,6 +34,9 @@ public class PercentileRecorder {
         
         dataLock.lock();
         
+        if (minVal == -1 || value < minVal) minVal = value;
+        if (maxVal == -1 || value > maxVal) maxVal = value;
+        
         this.data[value]++;
         this.count++;
         
@@ -46,10 +51,15 @@ public class PercentileRecorder {
         for (int i=0; i < 100; i++) {
             results[i] = new Percentile(partitionSize);
         }
+
+        if (count == 0) {
+            dataLock.unlock();
+            return results;
+        }
         
         int percentileIdx = 0;
         Percentile curPercentile = results[percentileIdx];
-        for (int value = 0; value < data.length; value++) {
+        for (int value = minVal; value < maxVal; value++) {
             int valueCount = data[value];
             int qTaken = 0;
             int qLeft = valueCount;

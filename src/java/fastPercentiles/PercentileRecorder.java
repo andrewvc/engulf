@@ -67,7 +67,7 @@ public class PercentileRecorder {
                         percentileIdx++;                    
                         curPercentile = results[percentileIdx];
                     } else if (qLeft > 0) {
-                        //TODO: if we have a couple left over, do something better than discard
+                        curPercentile.record(value, qLeft);
                         qLeft = 0;
                     }
                 }

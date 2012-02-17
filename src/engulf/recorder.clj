@@ -12,6 +12,7 @@
          {:avg (.getAvg p)
           :min (.getMin p)
           :max (.getMax p)
+          :median (.getMedian p)
           :count (.getCount p)
           :total (.getTotal p)})
        unformatted)))
@@ -46,7 +47,7 @@
         percentiles (format-percentiles (.percentiles runtime-percentiles-recorder))]
     {:runtime runtime
      :runs-sec (/ runs-total (/ runtime 1000))
-     :median-runtime (:median (nth percentiles 50))
+     :median-runtime (:avg (nth percentiles 50))
      :runtime-percentiles percentiles}))
 
 (defprotocol Recordable

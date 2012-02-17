@@ -1,7 +1,20 @@
 (ns engulf.recorder
   (:require [clojure.tools.logging :as log])
   (:use [engulf.utils :only [median percentiles increment-keys]]
-        lamina.core))
+        lamina.core)
+  (:import fastPercentiles.PercentileRecorder
+           fastPercentiles.Percentile))
+
+(defn format-percentiles
+  "Takes a fastPercentiles.Percentile[] and formats it as [{},{},...]"
+  [unformatted]
+  (vec (map (fn [p]
+         {:avg (.getAvg p)
+          :min (.getMin p)
+          :max (.getMax p)
+          :count (.getCount p)
+          :total (.getTotal p)})
+       unformatted)))
 
 (defn record-avg-runtime-by-start-time
   "Records, how long, on average requests issued in the current time bucket take to return. Requests are quantized into buckets of  1 second."
@@ -17,7 +30,8 @@
                            :avg   (long (/ total rcount))})))))
 
 (defn record-runtime [stats {:keys [runtime]}]
-  (update-in stats [:runtimes] #(conj %1 runtime)))
+  (.record (:runtime-percentiles-recorder stats) (int runtime))
+  stats)
 
 (defn record-response-code [stats {{resp-code :status} :response}]
   (update-in stats [:response-code-counts] increment-keys resp-code))
@@ -27,13 +41,13 @@
 
 (defn runtime-agg-stats
   "Analysis for high-level data"
-  [{:keys [runtimes runs-total]} started-at ended-at]
+  [{:keys [runtime-percentiles-recorder runs-total]} started-at ended-at]
   (let [runtime (- ended-at started-at)
-        sorted-runtimes (vec runtimes)]
+        percentiles (format-percentiles (.percentiles runtime-percentiles-recorder))]
     {:runtime runtime
      :runs-sec (/ runs-total (/ runtime 1000))
-     :median-runtime (median sorted-runtimes)
-     :runtime-percentiles (percentiles sorted-runtimes)}))
+     :median-runtime (:median (nth percentiles 50))
+     :runtime-percentiles percentiles}))
 
 (defprotocol Recordable
   "Recording protocol"
@@ -88,7 +102,8 @@
    :runs-failed 0
    :response-code-counts {}
    :avg-runtime-by-start-time {}
-   :runtimes (sorted-set)})
+   :runtime-percentiles-recorder (PercentileRecorder. 100000)})
+
 
 (defn create-recorder []
   (StandardRecorder. (atom nil)

@@ -1,9 +1,9 @@
 (ns engulf.views.benchmarker
-  (use noir-async.core
+  (:use noir-async.core
        noir-async.utils
        noir.core
        lamina.core)
-  (require [cheshire.core :as json]
+  (:require [cheshire.core :as json]
            [engulf.benchmark :as benchmark]))
 
 (def socket-ch (permanent-channel))

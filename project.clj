@@ -3,6 +3,8 @@
   :main engulf.core
   :aot [engulf.core]
   :jvm-opts ["-server"]
+  :java-source-path "src/java"
+  
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   ;; :warn-on-reflection true
   :dependencies [[org.clojure/clojure "1.3.0"]

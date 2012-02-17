@@ -6,8 +6,10 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 ## Get up and running
 
-1. Download the jar from the [downloads page](https://github.com/andrewvc/engulf/downloads)
-1. Run it like so `PORT=3000 java -jar engulf-VERSION.jar`
+You must have leiningen installed
+
+1. `git clone git@github.com:andrewvc/engulf.git`
+1. `lein run` 
 1. Visit http://localhost:3000 in your browser to use the GUI
 
 # Todo:

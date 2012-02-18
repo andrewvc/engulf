@@ -18,10 +18,15 @@
      (include-js
        "/js/libs/modernizr-2.0.min.js"
        "/js/libs/respond.min.js"
+       "/js/libs/jquery-1.6.2.min.js"
        "/js/libs/d3/d3.js"
        "/js/libs/d3/d3.chart.js"
        "/js/libs/respond.min.js"
-       "/js/libs/script.js")
+       "/js/libs/script.js"
+       "/js/libs/jquery-ui.min.js",
+       "/js/libs/underscore.min.js",
+       "/js/libs/backbone.min.js",
+       "/js/main.js")
      (javascript-tag "try{Typekit.load();}catch(e){};")]
     [:body [:div {:id "container"}
              [:header
@@ -31,11 +36,4 @@
                content]
 
            ]
-     (include-js "//ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js")
-     (javascript-tag "window.jQuery || document.write('<script src=\"/js/libs/jquery-1.6.2.min.js\"><\\/script>');")
-     (javascript-tag "
-       $script(['/js/libs/jquery-ui.min.js','/js/libs/underscore.min.js', '/js/libs/backbone.min.js'], function () {
-         $script(['/js/main.js']);
-       });
-     ")
      ]]))

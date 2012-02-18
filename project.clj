@@ -1,11 +1,11 @@
-(defproject engulf "2.0.0-BETA2"
+(defproject engulf "2.0.0-BETA3"
   :description "HTTP Benchmarker/Visualizer"
   :main engulf.core
   :aot [engulf.core]
   :jvm-opts ["-server"]
   :java-source-path "java-src"
   :jar-exclusions [#"\.DS_Store"]
-  :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/snapshots/"}
+  :repositories {"Sonatype" "https://oss.sonatype.org/c ontent/repositories/snapshots/"}
   ;; :warn-on-reflection true
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]

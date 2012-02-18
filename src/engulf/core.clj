@@ -1,14 +1,15 @@
 (ns engulf.core
   (:gen-class)
   (:require [engulf.benchmark :as benchmark]
+            engulf.views.benchmarker
+            engulf.views.common
+            engulf.views.index
             [noir.server :as nr-server])
   (:use aleph.http
         noir.core
         lamina.core))
 
 (defn start-webserver [args]
-  (nr-server/load-views "src/engulf/views")
-   
   (let [mode (keyword (or (first args) :prod))
           port (Integer. (or (System/getenv "PORT") "3000"))
           noir-handler (nr-server/gen-handler {:mode mode})]

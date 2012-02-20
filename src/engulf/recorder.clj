@@ -5,6 +5,11 @@
   (:import fastPercentiles.PercentileRecorder
            fastPercentiles.Percentile))
 
+(defn runs-per-second [runs millis]
+  (if (or (= 0 runs) (= 0 millis))
+    0
+    (/ runs (float (/ millis 1000)))))
+
 (defn format-percentiles
   "Takes a fastPercentiles.Percentile[] and formats it as [{},{},...]"
   [unformatted]
@@ -46,7 +51,7 @@
   (let [runtime (- ended-at started-at)
         percentiles (format-percentiles (.percentiles runtime-percentiles-recorder))]
     {:runtime runtime
-     :runs-sec (/ runs-total (/ runtime 1000))
+     :runs-sec (runs-per-second runs-total runtime)
      :median-runtime (:avg (nth percentiles 50))
      :runtime-percentiles percentiles}))
 

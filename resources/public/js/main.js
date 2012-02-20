@@ -77,6 +77,23 @@ Benchmarker = Backbone.Model.extend({
     stream.bind('dtype-state', function (data) {
       self.set({state: data});
     });
+  },
+  avgRuntimesWithStartTime: function () {
+    var raw = this.get('avg-runtime-by-start-time');
+    var data = [];
+    for (time in raw) {
+      data.push({time: time, value: raw[time].avg});
+    }
+    return data;
+  },
+  maxInResponseTimes: function () {
+    var max = 0;
+    _.each(this.avgRuntimesWithStartTime(), function (d) {
+      if (d.value > max) {
+        max = d.value;
+      }
+    });
+    return max;
   }
 });
 
@@ -124,7 +141,7 @@ ControlsView = Backbone.View.extend({
   },
   renderStoppable: function () {
     this.disableInputs();
-     
+    
     var stopCtl = this.$el.find('#stop-ctl');
     stopCtl.removeAttr('disabled');
     stopCtl.show();
@@ -337,87 +354,53 @@ ResponseTimeSeriesView = Backbone.View.extend({
       domain([0, upper]).
       range([0, this.w]);
   },
-  initialize: function () {
-    var self = this;
-     
-    this.$el = $(this.el);
-     
-    _.bindAll(this, "render");
-    this.model.bind('change', this.render);
-
-    var chartW = self.chartW = 500;
-    var data = _.range(100).map(function (i) { return {value: 0, count: 0}});
-    var data = [];
-
-    var w = this.w = chartW;
-    var h = this.h = 80;
-
-    this.lastTotal = 0;
-
+  setupContainer: function () {
     var chart = d3.select("#resp-time-series").
       append("svg").
       attr("class", "chart").
-      attr("width", self.chartW).
-      attr("height", self.h);
-
+      attr("width", this.w).
+      attr("height", this.h);
+    
     chart.append("line").
       attr("x1", 0).
-      attr("x2", self.chartW).
-      attr("y1", self.h - .5).
-      attr("y2", self.h - .5).
+      attr("x2", this.w).
+      attr("y1", this.h - .5).
+      attr("y2", this.h - .5).
       style("stroke", "#000");
+    
+    this.chart = chart;
+  },
+  initialize: function () {
+    var self = this;
+    this.$el = $(this.el);
+    
+    _.bindAll(this, "render");
+    this.model.bind('change', this.render);
 
-      this.chart = chart;
+    this.w = 500;
+    this.h = 80;
+    
+    this.setupContainer();
   },
   render: function () {
     var self = this;
-     
     var data = [];
-    var raw = this.model.get('avg-runtime-by-start-time');
+    
+    var times = this.model.avgRuntimesWithStartTime();
+    if (!times) { return };
+    var max = this.model.maxInResponseTimes();
+    
+    console.log(max, times.length, times)
+    this.setYScale(max);
+    this.setXScale(times.length);
 
-    var valMax = 0;
-    var rawTotal = 0;
-    for (time in raw) {
-      var d = raw[time];
-       
-      rawTotal += d.total;
-       
-      if (d.avg > valMax) {
-        valMax = d.avg;
-      }
-
-      d.time = time;
-      d.value = d.avg;
-      data.push(d);
-    }
-
-    if (rawTotal != self.lastTotal) {
-      self.lastTotal = rawTotal;
-    } else {
-      return;
-    }
-
-    this.setYScale(valMax);
-    this.setXScale(data.length);
-
-    if (!data) {
-      return 
-    }
-
-    var w = this.w;
-    var h = this.h;
-
-
-    var x = this.x;
-    var y = this.y;
-
-    var rect = this.chart.selectAll("rect")
-      .data(data, function(d) { return d.time; });
-
-    rect.enter().
+    var cont = this.chart.selectAll("rect").
+      data(times, function(d) { return d.time; });
+    
+    cont.enter().
       append("rect").
       attr("x", function(d, i) { return self.xScale(i + 1) - .5; }).
-      attr("y", function(d) { return h - self.yScale(d.value) - .5; }).
+      attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
       attr("width", 1).
       attr("height", function(d) { return self.yScale(d.value); }).
       transition().
@@ -425,11 +408,11 @@ ResponseTimeSeriesView = Backbone.View.extend({
       attr("x", function(d, i) { return self.xScale(i) - .5; });
 
 
-    rect.transition()
+    cont.transition()
         .duration(200)
         .attr("x", function(d, i) { return self.xScale(i) - .5; });
 
-    rect.exit().transition()
+    cont.exit().transition()
         .duration(200)
         .attr("x", function(d, i) { return self.xScale(i - 1) - .5; })
         .remove();

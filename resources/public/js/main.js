@@ -34,22 +34,8 @@ ConsoleView = Backbone.View.extend({
     if (!this.consoleEnabledBox.attr('checked')) {
       return;
     }
-     
-    this.$el.append('<div>' + msg + '</div>');
-
-    var children = this.$el.children();
-    if (children.length > this.maxMessages) {
-      var garbage = children.slice(0, children.length - this.maxMessages);
-      $(garbage).remove();
-    }
-
-    this.scrollBottom();
-  },
-  scrollBottom: function () {
-    this.$el 
     
-    var lastTop = $(consoleView.$el.children().last()).offset().top;
-    this.$el.scrollTop(lastTop);
+    console.log(msg);
   },
   logEvents: function (obj, eventType) {
     var self = this;
@@ -74,7 +60,6 @@ Benchmarker = Backbone.Model.extend({
       },
       function (data) {
         self.set({state: "started"});
-        console.log(data);
     });
   },
   stop: function () {
@@ -224,6 +209,22 @@ AggregateStatsView = Backbone.View.extend({
 });
 
 ChartsView = Backbone.View.extend({
+  initialize: function () {
+    var self = this;
+    this.$el = $(this.el);
+    
+    _.bindAll(this, "render");
+    this.model.bind('change', this.render);
+    
+    var chartW = 595;
+    var w = this.w = (parseInt(chartW/100));
+    var h = this.h = 100;
+    
+    var blankData = _.range(100).map(function (i) {return {}});
+    this.initializeBox();
+    this.initializeBars(blankData);
+    this.initializeLabels(blankData);
+  },
   filterData: function (data) {
     return _.map(data, function (d) { return d.avg} );
   },
@@ -239,48 +240,37 @@ ChartsView = Backbone.View.extend({
       domain([0, 1]).
       range([0, width]);
   },
-  initialize: function () {
-    var self = this;
-    this.$el = $(this.el);
-     
-    _.bindAll(this, "render");
-    this.model.bind('change', this.render);
-
-    var chartW = 595;
-    var w = this.w = (parseInt(chartW/100));
-    var h = this.h = 100;
-
-    // Which field in the results to use as data
-    this.yField = "avg";
-
-    var data = _.range(100).map(function (i) {return {}});
- 
-    this.setYScale(100);
-    this.setXScale(w);
-
+  initializeBox: function () {
+    // Create the container
     this.rtPercentiles = d3.select("#resp-time-percentiles").
          append("svg").
          attr("class", "chart").
-         attr("width", w * 100).
-         attr("height", h);
-
-    // Setup bars
-    this.rtPercentiles.selectAll("rect").
-         data(data).
-         enter().append("rect").
-         attr("x", function(d, i) { return self.xScale(i) - .5; }).
-         attr("y", function(d) { return h - self.yScale(d[self.yField]) - .5; }).
-         attr("width", w).
-         attr("height", function(d) { return self.yScale(d[self.yField]); });
+         attr("width", this.w * 100).
+         attr("height", this.h);
 
     // Create bottom line
     this.rtPercentiles.append("line").
          attr("x1", 0).
-         attr("x2", w * data.length).
-         attr("y1", h - .5).
-         attr("y2", h - .5).
+         attr("x2", this.w * 100).
+         attr("y1", this.h - .5).
+         attr("y2", this.h - .5).
          style("stroke", "#000");
+  },
+  initializeBars: function (data) {
+    var self = this;
+    this.setYScale(100);
+    this.setXScale(this.w);
 
+    this.rtPercentiles.selectAll("rect").
+         data(data).
+         enter().append("rect").
+         attr("x", function(d, i) { return self.xScale(i) - .5; }).
+         attr("y", 0).
+         attr("width", this.w).
+         attr("height", 0);    
+  },
+  initializeLabels: function (data) {
+    var self = this;
     // Setup percentile labels
     this.rtPercentiles.selectAll("text").
          data(data).
@@ -290,7 +280,9 @@ ChartsView = Backbone.View.extend({
          attr("dx", -3). // padding-right
          attr("dy", ".35em"). // vertical-align: middle
          attr("text-anchor", "end"). // text-align: right
-         attr("class", function (d,i) { return (i === 0 || ((i+1) % 10 === 0)) ? "decile" : "non-decile" }).
+         attr("class", function (d,i) {
+           return (i === 0 || ((i+1) % 10 === 0)) ? "decile" : "non-decile"
+         }).
          text("");
   },
   render: function () {
@@ -320,7 +312,7 @@ ChartsView = Backbone.View.extend({
     self.rtPercentiles.selectAll(".decile").
          data(deciles).
          transition().
-         duration(100).
+         duration(50).
          attr("x", function (d, i) {
            return self.xScale((i+1) * self.w * 1.83) - 8; 
          }).
@@ -464,7 +456,7 @@ $(function () {
       el: $('#console')
     }
   );
-  consoleView.logEvents(benchmarkStream, 'data');
+  consoleView.logEvents(benchmarkStream, 'jsonData');
    
   var benchmarker  = window.benchmarker = new Benchmarker();
   benchmarker.bindToStream(benchmarkStream);
@@ -489,7 +481,6 @@ $(function () {
       model: benchmarker,
     }
   );
-
 
   var responseTimeSeriesView = window.responseTimeSeriesView = new ResponseTimeSeriesView(
     {

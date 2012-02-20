@@ -208,7 +208,7 @@ AggregateStatsView = Backbone.View.extend({
   }
 });
 
-ChartsView = Backbone.View.extend({
+PercentilesView = Backbone.View.extend({
   initialize: function () {
     var self = this;
     this.$el = $(this.el);
@@ -321,12 +321,22 @@ ChartsView = Backbone.View.extend({
          attr("dy", ".35em"). // vertical-align: middle
          attr("text-anchor", "end"). // text-align: right
          text(function (d, i) { return d + 'ms' } );
-
   }
-
 });
 
 ResponseTimeSeriesView = Backbone.View.extend({
+  yScale: null,
+  setYScale: function (upper) {
+    this.yScale= d3.scale.linear().
+      domain([0, upper]).
+      rangeRound([0, this.h]);
+  },
+  xScale: null,
+  setXScale: function (upper) {
+    this.xScale = d3.scale.linear().
+      domain([0, upper]).
+      range([0, this.w]);
+  },
   initialize: function () {
     var self = this;
      
@@ -342,24 +352,25 @@ ResponseTimeSeriesView = Backbone.View.extend({
     var w = this.w = chartW;
     var h = this.h = 80;
 
-    self.setYMax = function(upper) {
-      self.y = d3.scale.linear().
-                  domain([0, upper]).
-                  rangeRound([0, h]);
-    };
-     
-    self.setXMax = function(upper) {
-      self.x = d3.scale.linear()
-              .domain([0, upper])
-              .range([0, w]);
-    }
-
-
     this.lastTotal = 0;
+
+    var chart = d3.select("#resp-time-series").
+      append("svg").
+      attr("class", "chart").
+      attr("width", self.chartW).
+      attr("height", self.h);
+
+    chart.append("line").
+      attr("x1", 0).
+      attr("x2", self.chartW).
+      attr("y1", self.h - .5).
+      attr("y2", self.h - .5).
+      style("stroke", "#000");
+
+      this.chart = chart;
   },
   render: function () {
     var self = this;
-
      
     var data = [];
     var raw = this.model.get('avg-runtime-by-start-time');
@@ -386,26 +397,8 @@ ResponseTimeSeriesView = Backbone.View.extend({
       return;
     }
 
-    $('#resp-time-series').html('');
-     
-     var chart = d3.select("#resp-time-series").append("svg")
-      .attr("class", "chart")
-      .attr("width", self.chartW)
-      .attr("height", self.h);
-
-    chart.append("line")
-      .attr("x1", 0)
-      .attr("x2", self.chartW)
-      .attr("y1", self.h - .5)
-      .attr("y2", self.h - .5)
-      .style("stroke", "#000");
-
-
-      this.chart = chart;
-    
-
-    this.setYMax(valMax);
-    this.setXMax(data.length);
+    this.setYScale(valMax);
+    this.setXScale(data.length);
 
     if (!data) {
       return 
@@ -418,29 +411,28 @@ ResponseTimeSeriesView = Backbone.View.extend({
     var x = this.x;
     var y = this.y;
 
-    var rect = chart.selectAll("rect")
+    var rect = this.chart.selectAll("rect")
       .data(data, function(d) { return d.time; });
 
-    rect.enter().append("rect", "line")
-      .attr("x", function(d, i) { return x(i + 1) - .5; })
-      .attr("y", function(d) { return h - y(d.value) - .5; })
-      .attr("width", 2)
-      .attr("height", function(d) { return y(d.value); })
-    .transition()
-      .duration(1)
-      .attr("x", function(d, i) { return x(i) - .5; });
+    rect.enter().
+      append("rect").
+      attr("x", function(d, i) { return self.xScale(i + 1) - .5; }).
+      attr("y", function(d) { return h - self.yScale(d.value) - .5; }).
+      attr("width", 1).
+      attr("height", function(d) { return self.yScale(d.value); }).
+      transition().
+      duration(1000).
+      attr("x", function(d, i) { return self.xScale(i) - .5; });
 
-    /*
+
     rect.transition()
-        .duration(1)
-        .attr("x", function(d, i) { return x(i) - .5; });
+        .duration(200)
+        .attr("x", function(d, i) { return self.xScale(i) - .5; });
 
     rect.exit().transition()
-        .duration(1)
-        .attr("x", function(d, i) { return x(i - 1) - .5; })
-        .emove();
-        */
-
+        .duration(200)
+        .attr("x", function(d, i) { return self.xScale(i - 1) - .5; })
+        .remove();
   }
 });
 
@@ -475,7 +467,7 @@ $(function () {
     }
   );
    
-  var chartsView = window.chartsView = new ChartsView(
+  var percentilesView = window.percentilesView = new PercentilesView(
     {
       el: $('#resp-time-percentiles')[0],
       model: benchmarker,

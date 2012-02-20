@@ -94,6 +94,21 @@ Benchmarker = Backbone.Model.extend({
       }
     });
     return max;
+  },
+  percentileAvgs: function () {
+    return _.map(this.get('runtime-percentiles'),
+                 function (d) { return d.avg}
+                );
+  },
+  decileAvgs: function () {
+    // Grab every 10th percentile for the avg time overlay
+    var deciles = [];
+    _.each(this.percentileAvgs(), function (p, i) {
+      if (i === 0 || ((i+1) % 10 === 0)) {
+        deciles.push(p)
+      }
+    });
+    return deciles;
   }
 });
 
@@ -242,9 +257,6 @@ PercentilesView = Backbone.View.extend({
     this.initializeBars(blankData);
     this.initializeLabels(blankData);
   },
-  filterData: function (data) {
-    return _.map(data, function (d) { return d.avg} );
-  },
   yScale: null,
   setYScale: function(newYMax) {
     this.yScale = d3.scale.linear().
@@ -304,18 +316,11 @@ PercentilesView = Backbone.View.extend({
   },
   render: function () {
     var self = this;
-    var rawData = this.model.get('runtime-percentiles');
-    if (! rawData) return;
     
-    var percentiles = this.filterData(rawData);
+    if (! this.model.get('runtime-percentiles')) return;
     
-    // Grab every 10th percentile for the avg time overlay
-    var deciles = [];
-    _.each(percentiles, function (p, i) {
-      if (i === 0 || ((i+1) % 10 === 0)) {
-        deciles.push(p)
-      }
-    });
+    var percentiles = this.model.percentileAvgs();
+    var deciles = this.model.decileAvgs();
     
     this.setYScale(percentiles[percentiles.length-1]);
 
@@ -342,6 +347,18 @@ PercentilesView = Backbone.View.extend({
 });
 
 ResponseTimeSeriesView = Backbone.View.extend({
+  initialize: function () {
+    var self = this;
+    this.$el = $(this.el);
+    
+    _.bindAll(this, "render");
+    this.model.bind('change', this.render);
+
+    this.w = 500;
+    this.h = 80;
+    
+    this.setupContainer();
+  },
   yScale: null,
   setYScale: function (upper) {
     this.yScale= d3.scale.linear().
@@ -370,34 +387,22 @@ ResponseTimeSeriesView = Backbone.View.extend({
     
     this.chart = chart;
   },
-  initialize: function () {
-    var self = this;
-    this.$el = $(this.el);
-    
-    _.bindAll(this, "render");
-    this.model.bind('change', this.render);
-
-    this.w = 500;
-    this.h = 80;
-    
-    this.setupContainer();
-  },
   render: function () {
     var self = this;
     var data = [];
     
     var times = this.model.avgRuntimesWithStartTime();
     if (!times) { return };
+    
     var max = this.model.maxInResponseTimes();
     
-    console.log(max, times.length, times)
     this.setYScale(max);
     this.setXScale(times.length);
 
-    var cont = this.chart.selectAll("rect").
+    var rect = this.chart.selectAll("rect").
       data(times, function(d) { return d.time; });
     
-    cont.enter().
+    rect.enter().
       append("rect").
       attr("x", function(d, i) { return self.xScale(i + 1) - .5; }).
       attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
@@ -408,11 +413,11 @@ ResponseTimeSeriesView = Backbone.View.extend({
       attr("x", function(d, i) { return self.xScale(i) - .5; });
 
 
-    cont.transition()
+    rect.transition()
         .duration(200)
         .attr("x", function(d, i) { return self.xScale(i) - .5; });
 
-    cont.exit().transition()
+    rect.exit().transition()
         .duration(200)
         .attr("x", function(d, i) { return self.xScale(i - 1) - .5; })
         .remove();

@@ -224,9 +224,23 @@ AggregateStatsView = Backbone.View.extend({
 });
 
 ChartsView = Backbone.View.extend({
+  filterData: function (data) {
+    return _.map(data, function (d) { return d.avg} );
+  },
+  yScale: null,
+  setYScale: function(newYMax) {
+    this.yScale = d3.scale.linear().
+      domain([0, newYMax]).
+      rangeRound([0, this.h-40]);
+  },
+  xScale: null,
+  setXScale: function (width) {
+    this.xScale = d3.scale.linear().
+      domain([0, 1]).
+      range([0, width]);
+  },
   initialize: function () {
     var self = this;
-     
     this.$el = $(this.el);
      
     _.bindAll(this, "render");
@@ -239,89 +253,85 @@ ChartsView = Backbone.View.extend({
     // Which field in the results to use as data
     this.yField = "avg";
 
-    var data = _.range(100).map(function (i) { return {avg: 0, idx: i} });
+    var data = _.range(100).map(function (i) {return {}});
  
-    this.x = d3.scale.linear().
-               domain([0, 1]).
-               range([0, w]);
- 
+    this.setYScale(100);
+    this.setXScale(w);
 
-    this.setYMax = function(upper) {
-      self.y = d3.scale.linear().
-                  domain([0, upper]).
-                  rangeRound([0, h-40]);
-    };
-     
-    this.setYMax(100);
-    
     this.rtPercentiles = d3.select("#resp-time-percentiles").
          append("svg").
          attr("class", "chart").
          attr("width", w * 100).
          attr("height", h);
 
+    // Setup bars
     this.rtPercentiles.selectAll("rect").
          data(data).
          enter().append("rect").
-         attr("x", function(d, i) { return self.x(i) - .5; }).
-         attr("y", function(d) { return h - self.y(d[self.yField]) - .5; }).
+         attr("x", function(d, i) { return self.xScale(i) - .5; }).
+         attr("y", function(d) { return h - self.yScale(d[self.yField]) - .5; }).
          attr("width", w).
-         attr("height", function(d) { return self.y(d[self.yField]); });
+         attr("height", function(d) { return self.yScale(d[self.yField]); });
 
-    this.rtPercentiles.append("line")
-         .attr("x1", 0)
-         .attr("x2", w * data.length)
-         .attr("y1", h - .5)
-         .attr("y2", h - .5)
-         .style("stroke", "#000");
+    // Create bottom line
+    this.rtPercentiles.append("line").
+         attr("x1", 0).
+         attr("x2", w * data.length).
+         attr("y1", h - .5).
+         attr("y2", h - .5).
+         style("stroke", "#000");
 
-    this.rtPercentiles.selectAll("text")
-         .data(data)
-       .enter().append("text")
-         .attr("x", function (d, i) { return self.x(i); })
-         .attr("y", function(d, i) { return 1; })
-         .attr("dx", -3) // padding-right
-         .attr("dy", ".35em") // vertical-align: middle
-         .attr("text-anchor", "end") // text-align: right
-         .attr("class", function (d,i) { return (i === 0 || ((i+1) % 10 === 0)) ? "decile" : "non-decile" })
-         .text("");
-    
-
-    window.rtp = this.rtPercentiles;
-
+    // Setup percentile labels
+    this.rtPercentiles.selectAll("text").
+         data(data).
+         enter().append("text").
+         attr("x", function (d, i) { return self.xScale(i); }).
+         attr("y", function(d, i) { return 1; }).
+         attr("dx", -3). // padding-right
+         attr("dy", ".35em"). // vertical-align: middle
+         attr("text-anchor", "end"). // text-align: right
+         attr("class", function (d,i) { return (i === 0 || ((i+1) % 10 === 0)) ? "decile" : "non-decile" }).
+         text("");
   },
   render: function () {
-   var self = this;
-   var rtpData = _.map(this.model.get('runtime-percentiles'), function (d) { return d.avg})
-   var decileData = _.filter(this.model.get('runtime-percentiles'),
-                           function(d) { return (d.idx === 0 || ((d.idx+1) % 10 === 0)) }).
-                           map(function (d) { return d.avg});
-
-
-   if (!rtpData) {
-    return 
-   }
+    var self = this;
+    var rawData = this.model.get('runtime-percentiles');
+    if (! rawData) return;
     
-   self.setYMax(rtpData[rtpData.length-1]);
+    var percentiles = this.filterData(rawData);
+    
+    // Grab every 10th percentile for the avg time overlay
+    var deciles = [];
+    _.each(percentiles, function (p, i) {
+      if (i === 0 || ((i+1) % 10 === 0)) {
+        deciles.push(p)
+      }
+    });
+    
+    this.setYScale(percentiles[percentiles.length-1]);
 
-   self.rtPercentiles.selectAll("rect").
-       data(rtpData).
-      transition().
-       duration(50).
-       attr("y", function(d) { return self.h - self.y(d) - .5; }).
-       attr("height", function(d) { return self.y(d); });
+    self.rtPercentiles.selectAll("rect").
+         data(percentiles).
+         transition().
+         duration(50).
+         attr("y", function(d) { return self.h - self.yScale(d) - .5; }).
+         attr("height", function(d) { return self.yScale(d); });
 
+    self.rtPercentiles.selectAll(".decile").
+         data(deciles).
+         transition().
+         duration(100).
+         attr("x", function (d, i) {
+           return self.xScale((i+1) * self.w * 1.83) - 8; 
+         }).
+         attr("y", function(d, i) { return 20; }).
+         attr("dx", -3). // padding-right
+         attr("dy", ".35em"). // vertical-align: middle
+         attr("text-anchor", "end"). // text-align: right
+         text(function (d, i) { return d + 'ms' } );
 
-    self.rtPercentiles.selectAll(".decile")
-         .data(decileData)
-         .transition().duration(100)
-         .attr("x", function (d, i) { return self.x((i+1) * self.w * 1.83) - 8 ; })
-         .attr("y", function(d, i) { return 20; })
-         .attr("dx", -3) // padding-right
-         .attr("dy", ".35em") // vertical-align: middle
-         .attr("text-anchor", "end") // text-align: right
-         .text(function (d, i) { return d + 'ms' } );
   }
+
 });
 
 ResponseTimeSeriesView = Backbone.View.extend({

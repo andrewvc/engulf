@@ -1,27 +1,28 @@
 
-BenchmarkStream = Backbone.Model.extend({
-  initialize: function () {
-    var self = this;
-    self.socket = new WebSocket(this.get('addr'));
-    self.socket.onopen = function (e) {
-      self.trigger('open', e);
-    };
-    self.socket.onmessage = function (e) {
-      self.trigger('message', e);
+BenchmarkStream = function (addr) {
+  this.addr = addr;
+  _.extend(this, Backbone.Events);
+  var self = this;
+  
+  self.socket = new WebSocket(this.addr);
+  self.socket.onopen = function (e) {
+    self.trigger('open', e);
+  };
+  self.socket.onmessage = function (e) {
+    self.trigger('message', e);
       self.trigger('data', e.data);
-
-      var parsed = JSON.parse(e.data);
+    
+    var parsed = JSON.parse(e.data);
       self.trigger('jsonData', parsed);
-      self.trigger('dtype-' + parsed.dtype, parsed.data);
-    };
-    self.socket.onclose = function (e) {
-      self.trigger('close', e);
-    };
-    self.socket.onerror = function (e) {
+    self.trigger('dtype-' + parsed.dtype, parsed.data);
+  };
+  self.socket.onclose = function (e) {
+    self.trigger('close', e);
+  };
+  self.socket.onerror = function (e) {
       self.trigger('error', e);
-    };
-  } 
-});
+  };
+};
 
 
 ConsoleView = Backbone.View.extend({
@@ -427,9 +428,7 @@ ResponseTimeSeriesView = Backbone.View.extend({
 
 
 $(function () {
-  var benchmarkStream = window.benchmarkStream = new BenchmarkStream(
-      {addr: 'ws://' + location.host + '/benchmarker/stream'}
-  );
+  var benchmarkStream = window.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/benchmarker/stream');
    
   var consoleView  = window.consoleView = new ConsoleView(
     {

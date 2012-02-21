@@ -29,6 +29,13 @@
 (defn client-handler [res-ch]
   (StatusHandler. (atom nil) res-ch))
 
+(defn prep-request [method ^AsyncHttpClient client url]
+    (condp = method
+      :get    (.prepareGet client url)
+      :put    (.preparePut client url)
+      :delete (.prepareDelete client url)
+      :post   (.preparePost client url)))
+
 (defn create-http-client [options]
   "Currently ignores all options. You probably don't want to use this directly, but rather want http-client"
   (let [client (AsyncHttpClient.)]
@@ -38,7 +45,7 @@
       ([{:keys [method url]} timeout]
         (let [result (result-channel)
               ^StatusHandler handler (client-handler result)
-              ^AsyncHttpClient$BoundRequestBuilder prepped (.prepareGet client url)
+              ^AsyncHttpClient$BoundRequestBuilder prepped (prep-request method client url)
               ^PerRequestConfig requestConfig (doto (PerRequestConfig.)
                                           (.setRequestTimeoutInMs (int 90000)))
               ^AsyncHttpClient$BoundRequestBuilder configged (.setPerRequestConfig prepped requestConfig)]

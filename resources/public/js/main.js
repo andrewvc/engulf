@@ -448,14 +448,13 @@ ResponseTimeSeriesView = Backbone.View.extend({
       attr("x", function(d, i) { return self.xScale(i) - .5; });
 
 
-    rect.transition()
-        .duration(200)
-        .attr("x", function(d, i) { return self.xScale(i) - .5; });
+    rect.transition().
+      duration(200).
+      attr("x", function(d, i) { return self.xScale(i) - .5; }).
+      attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
+      attr("height", function(d) { return self.yScale(d.value); });
 
-    rect.exit().transition()
-        .duration(200)
-        .attr("x", function(d, i) { return self.xScale(i - 1) - .5; })
-        .remove();
+    rect.exit().transition().duration(0).remove();
   }
 });
 

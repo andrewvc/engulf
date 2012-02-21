@@ -4,7 +4,9 @@
        noir.core
        lamina.core)
   (:require [cheshire.core :as json]
-           [engulf.benchmark :as benchmark]))
+            [engulf.benchmark :as benchmark]
+            [clojure.tools.logging :as log])
+  (:import java.net.URL))
 
 (def socket-ch (permanent-channel))
 (def json-socket-ch (map* #(json/generate-string %1) socket-ch))
@@ -30,14 +32,20 @@
                     state url concurrency requests))
   (cond
    (= "started" state)
-   (let [cur-bench (benchmark/run-new-benchmark
-                    url
-                    (Integer/valueOf concurrency)
-                    (Integer/valueOf requests))]
-     (siphon (:output-ch cur-bench) socket-ch))
-   :else
-     (benchmark/stop-current-benchmark))
-  (respond conn (current-state)))
+   (try
+     (println "WTF")
+     (let [url (str (URL. url))
+           conc (Integer/valueOf concurrency)
+           reqs (Integer/valueOf requests)]
+       (log/warn "About to start test for " url)
+       (benchmark/run-new-benchmark url conc reqs)
+       (siphon (:output-ch @benchmark/current-benchmark) socket-ch)
+       (respond conn (current-state)))
+     (catch Exception e
+       (log/error e "Could not start benchmarker")
+       (respond conn (json/generate-string
+                      {:error (str (class e) ": " (.getMessage e))}))))
+   :else (benchmark/stop-current-benchmark)))
 
 (defwebsocket "/benchmarker/stream" {} conn
   (receive-all json-socket-ch #(send-message conn %1)))

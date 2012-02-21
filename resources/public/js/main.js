@@ -58,10 +58,20 @@ Benchmarker = Backbone.Model.extend({
        concurrency: concurrency,
        requests: requests,
        url: url
-      },
-      function (data) {
-        self.set({state: "started"});
-    });
+      }).
+      success(function (data) {
+        var parsed = JSON.parse(data);
+        if (parsed.error) {
+          alert("Could not start: " + parsed.error);
+          self.set({state: "stopped"});
+        } else {
+          self.set({state: "started"});
+          self.set({state: "stopped"});
+        }
+      }).
+      error(function (error) {
+        alert("Error processing request: " + error);
+      })
   },
   stop: function () {
     var self = this;
@@ -126,15 +136,26 @@ ControlsView = Backbone.View.extend({
     "change": "render"
   },
   start: function (e) {
-    console.log("Starting");
-    var self = this;
-     
-    self.disableInputs();
-     
     var url = this.$el.find('#url').val();
-    var concurrency = this.$el.find('#concurrency').val();
-    var requests = this.$el.find('#requests').val();
-    self.model.start(url, concurrency, requests);
+    var concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
+    var requests = parseInt(this.$el.find('#requests').val(), 10);
+    
+    if (!url || url.length < 3) {
+      alert("Could not start benchmark, no URL specified!")
+      return;
+    }
+    if (!concurrency || concurrency < 1) {
+      alert("Concurrency must be a positive integer!");
+      return;
+    }
+    if (!requests || requests < 1) {
+      alert("Requests must be a positive integer!");
+      return;
+    }
+    
+    console.log("Starting");
+    this.disableInputs();
+    this.model.start(url, concurrency, requests);
   },
   stop: function (e) {
     this.model.stop();

@@ -13,7 +13,8 @@
                                   record-start
                                   processed-stats
                                 record-end]])
-  (:import java.util.concurrent.atomic.AtomicLong))
+  (:import java.util.concurrent.atomic.AtomicLong
+           java.net.URL))
 
 (def current-benchmark (ref nil))
 

@@ -16,16 +16,16 @@
        "/css/style.css"
        "/css/main.css")
      (include-js
-       "/js/libs/modernizr-2.0.min.js"
-       "/js/libs/respond.min.js"
-       "/js/libs/jquery-1.6.2.min.js"
-       "/js/libs/d3/d3.js"
-       "/js/libs/d3/d3.chart.js"
-       "/js/libs/respond.min.js"
-       "/js/libs/script.js"
-       "/js/libs/jquery-ui.min.js",
-       "/js/libs/underscore.min.js",
-       "/js/libs/backbone.min.js",
+       "/js/vendor/modernizr-2.0.min.js"
+       "/js/vendor/respond.min.js"
+       "/js/vendor/jquery.min.js"
+       "/js/vendor/d3/d3.js"
+       "/js/vendor/d3/d3.chart.js"
+       "/js/vendor/respond.min.js"
+       "/js/vendor/script.js"
+       "/js/vendor/jquery-ui.min.js",
+       "/js/vendor/underscore.min.js",
+       "/js/vendor/backbone.min.js",
        "/js/main.js")
      (javascript-tag "try{Typekit.load();}catch(e){};")]
     [:body [:div {:id "container"}

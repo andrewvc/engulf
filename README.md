@@ -2,7 +2,7 @@
 
 Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
-![Screenshot](https://img.skitch.com/20120221-mm16ikpr7tnn4915q7ugkjny82.png)
+![Screenshot](https://img.skitch.com/20120221-eqssdyky47c8atq74tnen866xy.png)
 
 ## Get up and running
 

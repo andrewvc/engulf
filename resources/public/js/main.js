@@ -89,17 +89,17 @@ Benchmarker = Backbone.Model.extend({
       self.set(data);
     });
   },
-  avgRuntimesWithStartTime: function () {
+  timeSeriesFor: function (field) {
     var raw = this.get('stats')['avg-runtime-by-start-time'];
     var data = [];
     for (time in raw) {
-      data.push({time: time, value: raw[time].avg});
+      data.push({time: time, value: raw[time][field]});
     }
     return data;
   },
-  maxInResponseTimes: function () {
+  maxInTimeSeries: function (timeSeries) {
     var max = 0;
-    _.each(this.avgRuntimesWithStartTime(), function (d) {
+    _.each(timeSeries, function (d) {
       if (d.value > max) {
         max = d.value;
       }
@@ -381,10 +381,10 @@ PercentilesView = Backbone.View.extend({
   }
 });
 
-ResponseTimeSeriesView = Backbone.View.extend({
-  initialize: function () {
-    var self = this;
+TimeSeriesView = Backbone.View.extend({
+  initialize: function (opts) {
     this.$el = $(this.el);
+    this.field = opts.field;
     
     _.bindAll(this, "render");
     this.model.bind('change', this.render);
@@ -407,7 +407,7 @@ ResponseTimeSeriesView = Backbone.View.extend({
       range([0, this.w]);
   },
   setupContainer: function () {
-    var chart = d3.select("#resp-time-series").
+    var chart = d3.select(this.el).
       append("svg").
       attr("class", "chart").
       attr("width", this.w).
@@ -426,10 +426,10 @@ ResponseTimeSeriesView = Backbone.View.extend({
     var self = this;
     var data = [];
     
-    var times = this.model.avgRuntimesWithStartTime();
+    var times = this.model.timeSeriesFor(this.field);
     if (!times) { return };
     
-    var max = this.model.maxInResponseTimes();
+    var max = this.model.maxInTimeSeries(times);
     
     this.setYScale(max);
     this.setXScale(times.length);
@@ -494,10 +494,19 @@ $(function () {
     }
   );
 
-  var responseTimeSeriesView = window.responseTimeSeriesView = new ResponseTimeSeriesView(
+  var responseTimeAvgSeriesView = new TimeSeriesView(
     {
       el: $('#resp-time-series')[0],
       model: benchmarker,
+      field: 'avg'
+    }
+  )
+    
+  var throughputTimeAvgSeriesView = new TimeSeriesView(
+    {
+      el: $('#throughput-time-series')[0],
+      model: benchmarker,
+      field: 'count'
     }
   );
 });

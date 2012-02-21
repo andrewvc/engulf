@@ -19,7 +19,7 @@
         
         [:input {:id "start-ctl" :type "button" :value "Start"}]
         [:input {:id "stop-ctl"  :type "button" :value "Stop"}]
-      ]
+       ]
     ]
       
     [:div {:id "output"}
@@ -51,21 +51,23 @@
           [:table {:id "response-code-stats"}
             [:tbody]
           ]
-        ]
+         ]
+       
+       [:form
+         [:input {:id "console-enabled", :type "checkbox"
+                  :name="console-enabled"}]
+         [:label {:for "console-enabled"} "Enable Console Logging"]
+       ]
+       
       ]
        
-      [:h2 "Response Time Percentiles: "]
+      [:h2 "Avg. Response Time Percentiles: "]
       [:div {:id "resp-time-percentiles"}]
        
-      [:h2 "Response Time vs. Time: "]
+      [:h2 "Avg. Response Time vs. Time: "]
       [:div {:id "resp-time-series"}]
 
-      [:div {:id "console-cont"}
-        [:form
-          [:input {:id "console-enabled", :type "checkbox"
-                   :name="console-enabled"}]
-          [:label {:for "console-enabled"} "Log to browser console"]
-        ]
-      ]
+      [:h2 "Throughput vs. Time: "]
+      [:div {:id "throughput-time-series"}]
     ]
   ))

@@ -1,6 +1,5 @@
 (ns engulf.url-worker
   (:require [engulf.runner :as runner]
-            [engulf.ning-client :as ning-http]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [engulf.utils :only [send-bench-msg]]
@@ -19,7 +18,10 @@
   (work [this] [this run-id] "Execute the job")
   (exec-runner [this run-id] "Execute the runner associated with this worker"))
 
-(defrecord UrlWorker [state url worker-id client succ-callback err-callback]
+(defn-async async-fetch [url]
+  (runner/req :get url))
+
+(defrecord UrlWorker [state url worker-id succ-callback err-callback]
   BenchmarkWorkable
 
   (handle-success [this run-id req-start response]
@@ -43,7 +45,7 @@
    
   (exec-runner [this run-id]
     (let [req-start (System/currentTimeMillis)
-          ch (client {:method :get :url url} 2000)]
+          ch (runner/req-async :get url)]
       (on-success ch (partial handle-success this run-id req-start))
       (on-error   ch (partial handle-error this run-id req-start))))
 
@@ -60,7 +62,6 @@
   (let [worker (UrlWorker. (atom :initialized)
                            url
                            worker-id
-                           (ning-http/http-client {})
                            succ-callback
                     err-callback)]
     worker))

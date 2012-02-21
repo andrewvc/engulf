@@ -1,5 +1,5 @@
 (ns engulf.runner
-  (:use aleph.http
+  (:use engulf.ning-client
         aleph.formats
         noir-async.utils
         lamina.core))
@@ -12,11 +12,15 @@
 (defn record-result [res-ch]
   res-ch)
 
+(defn req-async [method url]
+  "Dispatches an actually asynchronous request"
+  (http-request {:method method :url url}))
+
 (defn req
   "Issue a request for a URL"
   [method url]
   (force (async
-    (let [request (http-request {:method method :url url})]
+    (let [request (req-async method url)]
       (record-result request)))))
 
 (defn- sleep-ch

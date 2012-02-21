@@ -82,15 +82,15 @@ Benchmarker = Backbone.Model.extend({
   bindToStream: function (stream) {
     var self = this;
     stream.bind('dtype-stats', function (data) {
-      self.set(data)
+      self.set({stats: data});
     });
 
     stream.bind('dtype-state', function (data) {
-      self.set({state: data});
+      self.set(data);
     });
   },
   avgRuntimesWithStartTime: function () {
-    var raw = this.get('avg-runtime-by-start-time');
+    var raw = this.get('stats')['avg-runtime-by-start-time'];
     var data = [];
     for (time in raw) {
       data.push({time: time, value: raw[time].avg});
@@ -107,7 +107,7 @@ Benchmarker = Backbone.Model.extend({
     return max;
   },
   percentileAvgs: function () {
-    return _.map(this.get('runtime-percentiles'),
+    return _.map(this.get('stats')['runtime-percentiles'],
                  function (d) { return d.avg}
                 );
   },
@@ -129,6 +129,10 @@ ControlsView = Backbone.View.extend({
      
     _.bindAll(this, "render");
     this.model.bind('change', this.render);
+
+    this.$urlInput = $('#url');
+    this.$concInput = $('#concurrency');
+    this.$reqsInput = $('#requests');
   },
   events: {
     "click #start-ctl": "start",
@@ -163,9 +167,17 @@ ControlsView = Backbone.View.extend({
   render: function () {
     if (this.model.get('state') === 'stopped') {
       this.renderStartable();
+      if (this.$urlInput.val() === '') {
+        this.$urlInput.val('http://' + location.host);
+      }
     } else {
       this.renderStoppable();
+      this.$urlInput.val(this.model.get('url'));
+      this.$concInput.val(this.model.get('workers'));
+      this.$reqsInput.val(this.model.get('max-runs'));
     }
+
+
   },
   renderStartable: function () {
     this.enableInputs();
@@ -214,22 +226,23 @@ AggregateStatsView = Backbone.View.extend({
     $('h1').text("(engulf " + $('#url').val().toLowerCase() + ")");
      
     var res = this.renderElements;
-    res.completed.text(this.model.get('runs-total'));
-    res.succeeded.text(this.model.get('runs-succeeded'));
-    res.failed.text(this.model.get('runs-failed'));
-    res.runtime.text(this.formatMillis(this.model.get('runtime')));
+    var stats = this.model.get('stats');
+    res.completed.text(stats['runs-total']);
+    res.succeeded.text(stats['runs-succeeded']);
+    res.failed.text(stats['runs-failed']);
+    res.runtime.text(this.formatMillis(stats['runtime']));
 
-    var medianRuntime = this.model.get('median-runtime');
+    var medianRuntime = stats['median-runtime'];
     if (medianRuntime) {
       res.medianRuntime.text(medianRuntime + " ms");
     }
 
-    var runsSec = this.model.get('runs-sec');
+    var runsSec = stats['runs-sec'];
     if (runsSec) {
       res.runsSec.text(parseInt(runsSec) + ' / sec');
     }
 
-    this.renderResponseCodes(this.model.get('response-code-counts'));
+    this.renderResponseCodes(stats['response-code-counts']);
   },
   renderResponseCodes: function (codeCounts) {
     var self = this;
@@ -339,7 +352,7 @@ PercentilesView = Backbone.View.extend({
   render: function () {
     var self = this;
     
-    if (! this.model.get('runtime-percentiles')) return;
+    if (! this.model.get('stats')['runtime-percentiles']) return;
     
     var percentiles = this.model.percentileAvgs();
     var deciles = this.model.decileAvgs();

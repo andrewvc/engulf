@@ -33,11 +33,10 @@
   (cond
    (= "started" state)
    (try
-     (println "WTF")
      (let [url (str (URL. url))
            conc (Integer/valueOf concurrency)
            reqs (Integer/valueOf requests)]
-       (log/warn "About to start test for " url)
+       (log/info "About to start test for " url)
        (benchmark/run-new-benchmark url conc reqs)
        (siphon (:output-ch @benchmark/current-benchmark) socket-ch)
        (respond conn (current-state)))

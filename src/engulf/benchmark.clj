@@ -30,7 +30,7 @@
   (stats [this] "Returns processed stats"))
   
 (defrecord Benchmark
-  [state max-runs ^AtomicLong run-count workers recorder output-ch broadcast-task]
+  [state url max-runs ^AtomicLong run-count workers recorder output-ch broadcast-task]
   Benchmarkable
   
   (start [this]
@@ -77,7 +77,10 @@
       (record-error recorder worker-id err)))
 
   (broadcast-state [this]
-    (send-bench-msg output-ch :state @state)
+    (send-bench-msg output-ch :state {:state @state
+                                      :url url
+                                      :workers (count @workers)
+                                      :max-runs max-runs})
     (send-bench-msg output-ch :stats (stats this)))
 
   (broadcast-at-interval [this millis]
@@ -100,16 +103,17 @@
 
 (defn create-benchmark
  "Create a new Benchmark record. This encapsulates the full benchmark state"
- [worker-count max-runs worker-fn]
+ [url worker-count max-runs worker-fn]
  (let [recorder (create-recorder)
-       benchmark (Benchmark. (atom :initialized) 
+       benchmark (Benchmark. (atom :initialized)
+                             url
                              max-runs
-                             (AtomicLong.)     ; run-count
-                             (atom nil)   ; workers
+                             (AtomicLong.) ; run-count
+                             (atom nil) ; workers
                              recorder
-                             (permanent-channel)   ; output ch
+                             (permanent-channel) ; output ch
                              (atom nil))] ; broadcast-task
-   (receive-all (:output-ch benchmark) (fn [_] )) ; Keep output ch drained
+   (receive-all (:output-ch benchmark) (fn [_] )) ; Ground
    (create-workers-for-benchmark worker-fn benchmark worker-count)
    benchmark))
      
@@ -117,7 +121,7 @@
   "Create a new benchmark. You must call start on this to begin"
   [url concurrency requests]
   (let [worker-fn (partial create-single-url-worker :ning url)]
-    (create-benchmark concurrency requests worker-fn)))
+    (create-benchmark url concurrency requests worker-fn)))
 
 (defn run-new-benchmark
   "Attempt to run a new benchmark"

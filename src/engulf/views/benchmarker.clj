@@ -7,7 +7,8 @@
            [engulf.benchmark :as benchmark]))
 
 (def socket-ch (permanent-channel))
-(receive-all socket-ch (fn [_] ))
+(def json-socket-ch (map* #(json/generate-string %1) socket-ch))
+(receive-all json-socket-ch (fn [_])) ; Ground
 
 (defn current-state
   "Returns the current benchmarker's state in JSON"
@@ -39,6 +40,4 @@
   (respond conn (current-state)))
 
 (defwebsocket "/benchmarker/stream" {} conn
-  (receive-all socket-ch
-               (fn [msg]
-                 (send-message conn (json/generate-string msg)))))
+  (receive-all json-socket-ch #(send-message conn %1)))

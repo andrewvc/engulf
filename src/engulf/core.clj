@@ -9,14 +9,13 @@
         noir.core
         lamina.core))
 
-(defn start-webserver [args]
-  (let [mode (keyword (or (first args) :prod))
-          port (Integer. (or (System/getenv "PORT") "3000"))
-          noir-handler (nr-server/gen-handler {:mode mode})]
-      (start-http-server
-        (wrap-ring-handler noir-handler)
-        {:port port :websocket true})))
+(defn start-webserver [port mode]
+  (start-http-server
+   (wrap-ring-handler (nr-server/gen-handler {:mode mode}))
+   {:port port :websocket true}))
  
 (defn -main [& args]
-  (start-webserver args)
-  (println "Engulf Started!"))
+  (let [mode (keyword (or (first args) :prod))
+        port (Integer/valueOf (or (System/getenv "PORT") 4000))]
+    (start-webserver port mode)
+    (println "Engulf Started on port " port)))

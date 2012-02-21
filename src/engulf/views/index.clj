@@ -9,7 +9,7 @@
     [:div {:id "controls"}
       [:form
         [:label {:for "url"} "URL: "]
-        [:input {:id "url" :name "url" :type "url" :value "http://localhost:3000/test" }]
+       [:input {:id "url" :name "url" :type "url"}]
 
         [:label {:for "concurrency"} "Concurrency: "]
         [:input {:id "concurrency" :class "short-num" :name "concurrency" :type "number" :min 1 :value 4 }]

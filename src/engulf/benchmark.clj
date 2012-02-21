@@ -71,7 +71,7 @@
       (record-result recorder worker-id result)))
 
   (receive-error [this worker-id err]
-    (log/warn err)
+    (log/warn err "Error received from worker")
     (when (check-result-recordability? this)
       (record-error recorder worker-id err)))
 

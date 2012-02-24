@@ -1,10 +1,25 @@
+$(function () {
+  if ($.browser.mozilla) {
+    $('#firefox-warning').fadeIn(1500);
+  }
+});
+
 
 BenchmarkStream = function (addr) {
   this.addr = addr;
   _.extend(this, Backbone.Events);
   var self = this;
   
-  self.socket = new WebSocket(this.addr);
+  if (typeof(WebSocket) !== 'undefined') {
+    console.log("Using a standarb websocket");
+    self.socket = new WebSocket(this.addr);
+  } else if (typeof(MozWebSocket) !== 'undefined') {
+    console.log("Using MozWebSocket")
+    self.socket = new MozWebSocket(this.addr);
+  } else {
+    alert("Your browser does not support web sockets. No stats for you!");
+  }
+  
   self.socket.onopen = function (e) {
     self.trigger('open', e);
   };
@@ -223,7 +238,7 @@ AggregateStatsView = Backbone.View.extend({
     }
   },
   render: function () {
-    $('h1').text("(engulf " + $('#url').val().toLowerCase() + ")");
+    $('h1').text("(enulf " + $('#url').val().toLowerCase() + ")");
      
     var res = this.renderElements;
     var stats = this.model.get('stats');
@@ -330,7 +345,8 @@ PercentilesView = Backbone.View.extend({
          enter().append("rect").
          attr("x", function(d, i) { return self.xScale(i) - .5; }).
          attr("y", 0).
-         attr("width", this.w).
+         attr("width", this.w - 2).
+
          attr("height", 0);    
   },
   initializeLabels: function (data) {
@@ -439,7 +455,7 @@ TimeSeriesView = Backbone.View.extend({
     
     rect.enter().
       append("rect").
-      attr("x", function(d, i) { return self.xScale(i + 1) - .5; }).
+      attr("x", function(d, i) { return self.xScale(i + 1) + 1; }).
       attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
       attr("width", 1).
       attr("height", function(d) { return self.yScale(d.value); }).

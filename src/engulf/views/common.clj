@@ -19,6 +19,7 @@
        "/js/vendor/modernizr-2.0.min.js"
        "/js/vendor/respond.min.js"
        "/js/vendor/jquery.min.js"
+       "/js/vendor/jquery-ui.min.js"
        "/js/vendor/d3/d3.js"
        "/js/vendor/d3/d3.chart.js"
        "/js/vendor/respond.min.js"
@@ -32,8 +33,10 @@
              [:header
                [:h1
                 "(engulf)"]]
-             [:div {:id "main" :role "main"}
-               content]
+            [:div {:id "main" :role "main"}
+             [:div {:id "firefox-warning" :style "display:none"}
+              "Warning! Firefox runs these visualizations slowly. Please use Google Chrome for best results"]
+             content]
 
            ]
      ]]))

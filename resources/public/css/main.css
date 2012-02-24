@@ -72,7 +72,7 @@ header {
   float:left;
   width: 190px;
   padding-right: 20px;
-  min-height: 280px;
+  min-height: 480px;
 }
 
 table {
@@ -110,4 +110,12 @@ td {
 
 .non-decile {
   display: none;
+}
+
+#firefox-warning {
+  background-color: #f44;
+  padding: 10px;
+  width: 700px;
+  margin: 10px auto;
+  text-align: center;
 }

@@ -22,11 +22,11 @@
           :total (.getTotal p)})
        unformatted)))
 
-(defn record-avg-runtime-by-start-time
+(defn record-by-start-time
   "Records, how long, on average requests issued in the current time bucket take to return. Requests are quantized into buckets of  1 second."
   [stats {:keys [req-start runtime]}]
   (update-in stats
-         [:avg-runtime-by-start-time (long (/ req-start 1000))]
+         [:by-start-time (long (/ req-start 1000))]
          (fn [bucket]
              (let [rcount (+ 1 (get bucket :count 0))
                    total  (+ runtime (get bucket :total 0))]
@@ -74,7 +74,7 @@
                           (or @ended-at (System/currentTimeMillis)))
        (select-keys statsd
                     [:runs-total :runs-succeeded :runs-failed
-                     :avg-runtime-by-start-time
+                     :by-start-time
                      :response-code-counts]))))
   
   (record-start [this]
@@ -90,7 +90,7 @@
            (reduce ; Reduce via each analysis function
             (fn [v stat-fn] (stat-fn v data))
             statsd
-            [record-avg-runtime-by-start-time
+            [record-by-start-time
              record-runtime
              record-response-code
              record-run-succeeded]))))
@@ -107,7 +107,7 @@
    :runs-succeeded 0
    :runs-failed 0
    :response-code-counts {}
-   :avg-runtime-by-start-time {}
+   :by-start-time {}
    :runtime-percentiles-recorder (PercentileRecorder. 100000)})
 
 

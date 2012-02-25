@@ -4,6 +4,7 @@
             engulf.views.benchmarker
             engulf.views.common
             engulf.views.index
+            engulf.views.test-responses
             [noir.server :as nr-server])
   (:use aleph.http
         noir.core

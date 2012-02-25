@@ -12,12 +12,13 @@
    (fn []
        (respond conn
                 (str "Test Response #"
-                (swap! test-page-count inc))))))
+                (swap! fast-async-page-count inc))))))
 
+(def timed-page-count (atom 0))
 
 (defpage-async "/test-responses/async/:time" {:keys [delay]} conn
   (set-timeout delay
    (fn []
        (respond conn
                 (str "Test Response #"
-                (swap! test-page-count inc))))))
+                (swap! timed-page-count inc))))))

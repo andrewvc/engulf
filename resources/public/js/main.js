@@ -242,7 +242,7 @@ ControlsView = Backbone.View.extend({
     if (this.model.get('state') === 'stopped') {
       this.renderStartable();
       if (this.$urlInput.val() === '') {
-        this.$urlInput.val('http://' + location.host);
+        this.$urlInput.val('http://' + location.host + '/test-responses/fast-async');
       }
     } else {
       this.renderStoppable();

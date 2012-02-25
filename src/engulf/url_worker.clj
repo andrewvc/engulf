@@ -12,7 +12,6 @@
 (def ^ExecutorService callback-pool (Executors/newFixedThreadPool 2))
 
 (defprotocol BenchmarkWorkable
-  "A worker aware of global job state"
   (handle-success [this run-id req-start results])
   (handle-error [this run-id req-start err])
   (work [this] [this run-id] "Execute the job")

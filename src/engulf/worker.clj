@@ -1,4 +1,4 @@
-(ns engulf.url-worker
+(ns engulf.worker
   (:require [engulf.runner :as runner]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
@@ -20,7 +20,7 @@
 (defn-async async-fetch [url]
   (runner/req :get url))
 
-(defrecord UrlWorker [state url worker-id succ-callback err-callback]
+(defrecord Worker [state url worker-id succ-callback err-callback]
   BenchmarkWorkable
 
   (handle-success [this run-id req-start response]
@@ -58,7 +58,7 @@
 
 (defn create-single-url-worker
   [client-type url worker-id succ-callback err-callback]
-  (let [worker (UrlWorker. (atom :initialized)
+  (let [worker (Worker. (atom :initialized)
                            url
                            worker-id
                            succ-callback

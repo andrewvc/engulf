@@ -6,7 +6,7 @@
         noir-async.utils
         lamina.core
         [engulf.utils :only [send-bench-msg]]
-        [engulf.url-worker :only [work create-single-url-worker]]
+        [engulf.worker :only [work create-single-url-worker]]
         [engulf.recorder :only [create-recorder
                                   record-result
                                   record-error

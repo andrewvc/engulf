@@ -5,65 +5,6 @@ $(function () {
 });
 
 
-RequestItem = Backbone.Model.extend({
-  initialize: function () {
-
-  }
-});
-
-RequestPlan = Backbone.Collection.extend({
-  initialize: function () {
-
-  },
-  model: RequestItem
-});
-
-RequestPlanView = Backbone.View.extend({
-  initialize: function () {
-    this.$el = $(this.el); 
-    
-    _(this).bindAll('add', 'remove', 'reset');
-    this.collection.bind('add', this.add);
-    this.collection.bind('remove', this.remove);
-    this.collection.bind('reset', this.reset);
-  },
-  tagName: 'ol',
-  render: function () {
-    return this.el;
-  },
-  add: function (item) {
-    console.log("Collection add: ", item);
-    
-    var view = new RequestItemView({model: item});
-    this.$el.append(view.render());
-  },
-  remove: function (item) {
-    console.log("Collection remove", item);
-    this.$el.find('#' + item.cid).remove();
-  },
-  reset: function (e) {
-    console.log("Collection reset: ", e);
-  },
-});
-
-RequestItemView = Backbone.View.extend({
-  initialize: function () {
-    this.$el = $(this.el);
-    this.tmpl = _.template("<li><%= reqMethod %>: <%= reqUrl %>");
-  },
-  tagName: 'li',
-  render: function () {
-    return this.tmpl(this.model.toJSON());
-  }
-});
-
-plan = new RequestPlan();
-pview = new RequestPlanView({collection: plan});
-plan.add({reqMethod: 'get', reqUrl: 'http://localhost:4000'})
-plan.add({reqMethod: 'get', reqUrl: 'http://localhost:4000/foo'})
-
-
-
 BenchmarkStream = function (addr) {
   this.addr = addr;
   _.extend(this, Backbone.Events);

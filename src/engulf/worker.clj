@@ -1,66 +1,83 @@
 (ns engulf.worker
   (:require [engulf.runner :as runner]
+            [engulf.config :as config]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [engulf.utils :only [send-bench-msg]]
         noir-async.utils
-        lamina.core)
+        lamina.core
+        lamina.api)
   (:import java.util.concurrent.Executors
            java.util.concurrent.ExecutorService))
 
-; Run callbacks in a thread pool for maximum throughput
-(def ^ExecutorService callback-pool (Executors/newFixedThreadPool 2))
+;; Emit all messages in a threadpool to ensure that outside users of this
+;; don't black throughput
+(def ^ExecutorService callback-pool (Executors/newFixedThreadPool 1))
+
+(defn submit-result [^Callable cb]
+  (.submit callback-pool cb))
 
 (defprotocol BenchmarkWorkable
   (handle-success [this run-id req-start results])
   (handle-error [this run-id req-start err])
-  (work [this] [this run-id] "Execute the job")
-  (exec-runner [this run-id] "Execute the runner associated with this worker"))
+  (warmup [this] "Warm the VM up for this worker")
+  (work [this] [this run-id result] "Execute the job"))
 
-(defn-async async-fetch [url]
-  (runner/req :get url))
+(defn format-response
+  "Formats the response from an runner request with
+   auxilliary data"
+  [{:keys [worker-id run-id]} req-start resp]
+  (let [req-end (System/currentTimeMillis)]
+    {:worker-id worker-id
+     :run-id    run-id
+     :req-start req-start
+     :req-end   req-end
+     :runtime   (- req-end req-start)
+     :response  resp}))
 
-(defrecord Worker [state url worker-id succ-callback err-callback]
+(defn format-error
+  "Formats an error with worker data"
+  [{:keys [worker-id run-id]} req-start error]
+  {:worker-id worker-id :run-id run-id :error error})
+
+(defrecord Worker [state url worker-id]
   BenchmarkWorkable
-
-  (handle-success [this run-id req-start response]
-    ;; This type-hint actually matters
-    (let [^Callable callback-dispatcher
-                    #(succ-callback
-                      (let [req-end (System/currentTimeMillis)]
-                        {:worker-id worker-id
-                         :run-id    run-id
-                         :req-start req-start
-                         :req-end   req-end
-                         :runtime   (- req-end req-start)
-                         :response  response}))]
-      (.submit callback-pool callback-dispatcher))
-    (work this (inc run-id)))
-
-  (handle-error [this run-id req-start err]
-    (let [^Callable callback-dispatcher #(err-callback err)]
-      (.submit callback-pool callback-dispatcher))
-    (work this (inc run-id)))
-   
-  (exec-runner [this run-id]
-    (let [req-start (System/currentTimeMillis)
-          ch (runner/req-async :get url)]
-      (on-success ch (partial handle-success this run-id req-start))
-      (on-error   ch (partial handle-error this run-id req-start))))
 
   (work [this]
    (compare-and-set! state :initialized :started)
-   (work this 0))
+   (work this 0 (result-channel)))
   
-  (work [this run-id]
-    (when (= @state :started)
-      (exec-runner this run-id))))
+  (work [this run-id result]
+    (cond
+     (not= @state :started)
+     false
+     :else
+     (let [req-start (System/currentTimeMillis)
+           ch (runner/req-async :get url)
+           next-result (result-channel)
+           continue #(work this (inc run-id) next-result)]
+       (on-success ch (fn [response]
+        (submit-result
+         #(success! result
+           [(format-response this req-start response) next-result]))
+        (continue)))
+       (on-error ch (fn [error]
+         (submit-result
+          #(error! result
+            [(format-error this req-start error) next-result]))
+        (continue)))
+       result)))
+
+      
+  (warmup [this]
+    (dotimes [n 1]
+      (let [warmup-url (str "http://127.0.0.1:"
+                            (config/opt :port)
+                            "/test-responses/fast-async")]
+      @(runner/req :get warmup-url)))))
 
 (defn create-single-url-worker
-  [client-type url worker-id succ-callback err-callback]
-  (let [worker (Worker. (atom :initialized)
-                           url
-                           worker-id
-                           succ-callback
-                    err-callback)]
+  "Suitable for benchmarking a single URL at a time"
+  [url worker-id]
+  (let [worker (Worker. (atom :initialized) url worker-id)]
     worker))

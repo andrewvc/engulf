@@ -39,12 +39,14 @@
        (log/info "About to start test for " url)
        (benchmark/run-new-benchmark url conc reqs)
        (siphon (:output-ch @benchmark/current-benchmark) socket-ch)
-       (respond conn (current-state)))
+       ;; If block completion is set, don't return till the benchmark is done
+       (when (not= block-completion "true")
+         (respond conn (current-state))))
      (catch Exception e
        (log/error e "Could not start benchmarker")
        (respond conn (json/generate-string
                       {:error (str (class e) ": " (.getMessage e))}))))
-   :else (benchmark/stop-current-benchmark)))
+  :else (benchmark/stop-current-benchmark)))
 
 (defwebsocket "/benchmarker/stream" {} conn
   (receive-all json-socket-ch #(send-message conn %1)))

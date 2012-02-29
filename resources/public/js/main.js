@@ -85,6 +85,7 @@ Benchmarker = Backbone.Model.extend({
         }
       }).
       error(function (error) {
+        console.log("Error", error);
         alert("Error processing request: " + error);
       })
   },

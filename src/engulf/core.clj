@@ -11,8 +11,7 @@
         noir.core
         lamina.core))
 
-(defn start-webserver [
-                       port mode]
+(defn start-webserver [port mode]
   (start-http-server
    (wrap-ring-handler (nr-server/gen-handler {:mode mode}))
    {:port (config/opt :port) :websocket true}))

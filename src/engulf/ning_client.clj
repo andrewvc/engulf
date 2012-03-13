@@ -8,61 +8,86 @@
             com.ning.http.client.AsyncHandler$STATE
             com.ning.http.client.PerRequestConfig
             com.ning.http.client.AsyncCompletionHandler
+            com.ning.http.client.Request
+            com.ning.http.client.RequestBuilder
+            com.ning.http.client.AsyncHttpClientConfig$Builder
+            com.ning.http.client.PerRequestConfig
+            java.net.ConnectException
+            java.io.IOException
             com.ning.http.client.AsyncHttpClient$BoundRequestBuilder))
 
-(defrecord Response [status])
-
-(deftype StatusHandler [status res-ch]
+(deftype ResponseHandler [status res-ch]
   com.ning.http.client.AsyncHandler
-  (onStatusReceived [this status-resp]
-                    (compare-and-set! status nil (.getStatusCode status-resp))
-                    AsyncHandler$STATE/CONTINUE)
-  (onHeadersReceived [this headers]
-                    AsyncHandler$STATE/CONTINUE)
-  (onBodyPartReceived [this body-part]
-                    AsyncHandler$STATE/CONTINUE)
-  (onCompleted [this]
-               (success! res-ch (Response. @status))
-               AsyncHandler$STATE/ABORT)
-  (onThrowable [this e] (error! res-ch e)))
+  (onStatusReceived
+   [this status-resp]
+   (compare-and-set! status nil (.getStatusCode status-resp))
+   AsyncHandler$STATE/CONTINUE)
+  (onHeadersReceived
+   [this headers]
+   AsyncHandler$STATE/CONTINUE)
+  (onBodyPartReceived
+   [this body-part]
+   AsyncHandler$STATE/CONTINUE)
+  (onCompleted
+   [this]
+   (success! res-ch {:status @status})
+   AsyncHandler$STATE/ABORT)
+  (onThrowable
+   [this e]
+   (error! res-ch e)))
 
-(defn client-handler [res-ch]
-  (StatusHandler. (atom nil) res-ch))
+(defn create-response-handler
+  (^ResponseHandler [res-ch]
+    (ResponseHandler. (atom nil) res-ch)))
 
-(defn prep-request [method ^AsyncHttpClient client url]
-    (condp = method
-      :get    (.prepareGet client url)
-      :put    (.preparePut client url)
-      :delete (.prepareDelete client url)
-      :post   (.preparePost client url)))
+(def default-client-options
+     {:max-conns-per-host 4
+      :timeout 90000})
 
-(defn create-http-client [options]
-  "Currently ignores all options. You probably don't want to use this directly, but rather want http-client"
-  (let [client (AsyncHttpClient.)]
-    (fn this
-      ([request]
-         (this request 90000))
-      ([{:keys [method url]} timeout]
-        (let [result (result-channel)
-              ^StatusHandler handler (client-handler result)
-              ^AsyncHttpClient$BoundRequestBuilder prepped (prep-request method client url)
-              ^PerRequestConfig requestConfig (doto (PerRequestConfig.)
-                                          (.setRequestTimeoutInMs (int 90000)))
-              ^AsyncHttpClient$BoundRequestBuilder configged (.setPerRequestConfig prepped requestConfig)]
-        (.execute configged handler)
-        result)))))
+(defn create-client
+  (^AsyncHttpClient
+   []
+   (create-client {}))
+  (^AsyncHttpClient
+   [arg-opts]
+   (let [opts (merge default-client-options arg-opts)
+         {:keys [max-conns-per-host timeout]} opts]
+    (-> (AsyncHttpClientConfig$Builder.)
+        (.setMaximumConnectionsPerHost max-conns-per-host)
+        (.setConnectionTimeoutInMs timeout)
+        (.setRequestTimeoutInMs timeout)
+        (.setAllowPoolingConnection false)
+        (.setMaxRequestRetry 0)
+        (.setFollowRedirects false)
+        (.build)
+        (AsyncHttpClient.)))))
 
-(def default-client (create-http-client {}))
+(defn close-client
+  [client]
+  (.close client))
 
-(defn http-client
-  ([] http-client {})
-  ([options]
-  "Returns the default http client. Sonatype's client really works best with a single instance seeing as how it's fully asynchronous. Multiple clients eat up memory fast, and you'll hit an OOM"
-  default-client))
-                  
-(defn http-request
-  "Aleph style interface"
-  ([request]
-     (http-request request 90000))
-  ([request timeout]
-     (default-client request timeout)))
+(def default-request-opts
+     {:method "get"})
+
+(defn build-request
+  [arg-opts]
+  (let [opts (merge default-request-opts arg-opts)
+        {:keys [method url]} opts]
+    (.build
+     (.setUrl
+      (RequestBuilder. (str method))
+      url))))
+
+(defn execute-request
+  [client request]
+    (let [result (result-channel)
+          handler (create-response-handler result)]
+      (try
+        (.executeRequest client request handler)
+        result
+        (catch Exception e
+          nil))))
+
+(defn request
+  [client opts]
+  (execute-request client (build-request opts)))

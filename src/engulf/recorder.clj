@@ -82,7 +82,7 @@
 
   (record-end [this]
     (compare-and-set! ended-at nil (System/currentTimeMillis)))  
-  
+
   (record-result
    [this worker-id data]
    (send stats ; Stats are asynchronously processed

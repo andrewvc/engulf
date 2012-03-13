@@ -1,6 +1,7 @@
 (ns engulf.worker
   (:require [engulf.runner :as runner]
             [engulf.config :as config]
+            [engulf.ning-client :as ning-client]
             [aleph.http :as aleph-http]
             [clojure.tools.logging :as log])
   (:use [engulf.utils :only [send-bench-msg]]
@@ -40,7 +41,7 @@
   [{:keys [worker-id run-id]} req-start error]
   {:worker-id worker-id :run-id run-id :error error})
 
-(defrecord Worker [state url worker-id]
+(defrecord Worker [state client request worker-id]
   BenchmarkWorkable
 
   (work [this]
@@ -53,31 +54,30 @@
      false
      :else
      (let [req-start (System/currentTimeMillis)
-           ch (runner/req-async :get url)
            next-result (result-channel)
            continue #(work this (inc run-id) next-result)]
-       (on-success ch (fn [response]
-        (submit-result
-         #(success! result
-           [(format-response this req-start response) next-result]))
-        (continue)))
-       (on-error ch (fn [error]
-         (submit-result
-          #(error! result
-            [(format-error this req-start error) next-result]))
-        (continue)))
-       result)))
-
+       (when-let [ch (ning-client/execute-request client request)]
+         (on-success ch (fn [response]
+           (submit-result
+            #(success! result
+              [(format-response this req-start response) next-result]))
+           (continue)))
+         (on-error ch (fn [error]
+           (submit-result
+            #(error! result
+              [(format-error this req-start error) next-result]))
+           (continue)))
+         result))))
       
   (warmup [this]
-    (dotimes [n 1]
-      (let [warmup-url (str "http://127.0.0.1:"
+    (let [warmup-url (str "http://127.0.0.1:"
                             (config/opt :port)
                             "/test-responses/fast-async")]
-      @(runner/req :get warmup-url)))))
+      (runner/req-async :get warmup-url 1))))
 
 (defn create-single-url-worker
   "Suitable for benchmarking a single URL at a time"
-  [url worker-id]
-  (let [worker (Worker. (atom :initialized) url worker-id)]
+  [client url worker-id]
+  (let [request (ning-client/build-request {:method "get" :url url})
+        worker (Worker. (atom :initialized) client request worker-id)]
     worker))

@@ -39,9 +39,7 @@
        (log/info "About to start test for " url)
        (benchmark/run-new-benchmark url conc reqs)
        (siphon (:output-ch @benchmark/current-benchmark) socket-ch)
-       ;; If block completion is set, don't return till the benchmark is done
-       (when (not= block-completion "true")
-         (respond conn (current-state))))
+       (respond conn (current-state)))
      (catch Exception e
        (log/error e "Could not start benchmarker")
        (respond conn (json/generate-string

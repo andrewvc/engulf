@@ -1,7 +1,7 @@
 (ns engulf.benchmark
-  (:require [engulf.runner :as runner]
-            [engulf.utils :as utils]
-            [clojure.tools.logging :as log])
+  (:require [engulf.utils :as utils]
+            [clojure.tools.logging :as log]
+            [engulf.ning-client :as ning-client])
   (:use clojure.tools.logging
         noir-async.utils
         lamina.core
@@ -29,7 +29,7 @@
   (stats [this] "Returns processed stats"))
   
 (defrecord Benchmark
-  [state url max-runs ^AtomicLong run-count workers recorder output-ch broadcast-task]
+  [state client url max-runs ^AtomicLong run-count workers recorder output-ch broadcast-task]
   Benchmarkable
   
   (start [this]
@@ -47,6 +47,7 @@
     (println "Stopping run at: " max-runs " runs.")
     (when (compare-and-set! state :started :stopped)
       (do
+        (ning-client/close-client client)
         (record-end recorder)
         (doseq [worker @workers]
           (swap! (:state worker) (fn [s] :stopped)))
@@ -99,16 +100,15 @@
    handler"
   [worker-fn benchmark worker-count]
   (compare-and-set! (:workers benchmark) nil
-   (vec (map (fn [worker-id]
-               (let [worker (worker-fn worker-id)]
-                 worker))
+   (vec (map (fn [worker-id] (worker-fn worker-id))
              (range worker-count)))))
 
 (defn create-benchmark
  "Create a new Benchmark record. This encapsulates the full benchmark state"
- [url worker-count max-runs worker-fn]
+ [client url worker-count max-runs worker-fn]
  (let [recorder (create-recorder)
        benchmark (Benchmark. (atom :initialized)
+                             client
                              url
                              max-runs
                              (AtomicLong.) ; run-count
@@ -123,8 +123,9 @@
 (defn create-single-url-benchmark
   "Create a new benchmark. You must call start on this to begin"
   [url concurrency requests]
-  (let [worker-fn (partial create-single-url-worker url)]
-    (create-benchmark url concurrency requests worker-fn)))
+  (let [client (ning-client/create-client {:max-conns-per-host concurrency})
+        worker-fn (partial create-single-url-worker client url)]
+    (create-benchmark client url concurrency requests worker-fn)))
 
 (defn replace-current-benchmark
   "Replace the current-benchmark with a newly initialized one"

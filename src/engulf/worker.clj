@@ -1,9 +1,8 @@
 (ns engulf.worker
-  (:require [engulf.runner :as runner]
-            [engulf.config :as config]
-            [engulf.ning-client :as ning-client]
+  (:require [engulf.ning-client :as ning-client]
             [aleph.http :as aleph-http]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [engulf.config :as config])
   (:use [engulf.utils :only [send-bench-msg]]
         noir-async.utils
         lamina.core
@@ -71,9 +70,9 @@
       
   (warmup [this]
     (let [warmup-url (str "http://127.0.0.1:"
-                            (config/opt :port)
-                            "/test-responses/fast-async")]
-      (runner/req-async :get warmup-url 1))))
+                            (config/get-opt :port)
+                            "/test-responses/fast-async")])))
+      
 
 (defn create-single-url-worker
   "Suitable for benchmarking a single URL at a time"

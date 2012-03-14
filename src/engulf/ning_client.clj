@@ -42,7 +42,8 @@
 
 (def default-client-options
      {:max-conns-per-host 4
-      :timeout 90000})
+      :timeout 90000
+      :connection-pooling true})
 
 (defn create-client
   (^AsyncHttpClient
@@ -51,12 +52,14 @@
   (^AsyncHttpClient
    [arg-opts]
    (let [opts (merge default-client-options arg-opts)
-         {:keys [max-conns-per-host timeout]} opts]
+         {:keys [max-conns-per-host
+                 timeout
+                 connection-pooling]} opts]
     (-> (AsyncHttpClientConfig$Builder.)
         (.setMaximumConnectionsPerHost max-conns-per-host)
         (.setConnectionTimeoutInMs timeout)
         (.setRequestTimeoutInMs timeout)
-        (.setAllowPoolingConnection false)
+        (.setAllowPoolingConnection connection-pooling)
         (.setMaxRequestRetry 0)
         (.setFollowRedirects false)
         (.build)

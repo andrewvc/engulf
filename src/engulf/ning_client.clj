@@ -46,7 +46,7 @@
      {:max-conns-per-host 4
       :timeout 90000
       :executor-service (Executors/newFixedThreadPool 1)
-      :connection-pooling true})
+      :connection-pooling false})
 
 (defn create-client
   (^AsyncHttpClient

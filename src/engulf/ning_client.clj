@@ -3,7 +3,9 @@
   (:use lamina.core
         lamina.api)
    (:require [clojure.tools.logging :as log])
-   (:import com.ning.http.client.AsyncHttpClient
+   (:import java.util.concurrent.Executors
+            java.util.concurrent.ExecutorService
+            com.ning.http.client.AsyncHttpClient
             com.ning.http.client.AsyncHandler
             com.ning.http.client.AsyncHandler$STATE
             com.ning.http.client.PerRequestConfig
@@ -43,6 +45,7 @@
 (def default-client-options
      {:max-conns-per-host 4
       :timeout 90000
+      :executor-service (Executors/newFixedThreadPool 1)
       :connection-pooling true})
 
 (defn create-client

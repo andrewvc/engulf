@@ -47,4 +47,5 @@
   :else (benchmark/stop-current-benchmark)))
 
 (na/defpage-async "/benchmarker/stream" {} conn
-  (receive-all json-socket-ch #(na/async-push conn %1)))
+  (receive-all json-socket-ch
+               (fn [m] (na/async-push conn m))))

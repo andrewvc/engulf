@@ -1,5 +1,5 @@
 (ns engulf.utils
-  (:use lamina.core))
+  (:use lamina.core noir-async.utils))
 
 (defn increment-keys
   "Given a map and a list of keys, this will return an identical map with those keys

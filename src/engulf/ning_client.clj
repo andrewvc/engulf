@@ -45,7 +45,7 @@
 (def default-client-options
      {:max-conns-per-host 4
       :timeout 90000
-      :executor-service (Executors/newFixedThreadPool 1)
+      :executor-service (Executors/newFixedThreadPool 2)
       :connection-pooling true})
 
 (defn create-client

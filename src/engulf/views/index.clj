@@ -2,7 +2,7 @@
   (:require [engulf.views.common :as common])
   (:use [noir.core :only [defpage]]
         [hiccup.core :only [html]]
-        [hiccup.page-helpers :only [link-to]]))
+        [hiccup.element :only [link-to]]))
 
 (defpage "/" []
   (common/layout

@@ -184,7 +184,7 @@ ControlsView = Backbone.View.extend({
     if (this.model.get('state') === 'stopped') {
       this.renderStartable();
       if (this.$urlInput.val() === '') {
-        this.$urlInput.val('http://' + location.host + '/test-responses/delay/1');
+        this.$urlInput.val('http://' + location.host + '/test-responses/delay/15');
       }
     } else {
       this.renderStoppable();
@@ -239,7 +239,7 @@ AggregateStatsView = Backbone.View.extend({
     }
   },
   render: function () {
-    $('h1').text("(enulf " + $('#url').val().toLowerCase() + ")");
+    $('h1').text("(engulf " + $('#url').val().toLowerCase() + ")");
      
     var res = this.renderElements;
     var stats = this.model.get('stats');

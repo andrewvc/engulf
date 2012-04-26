@@ -1,18 +1,13 @@
 (ns engulf.benchmark
   (:require [engulf.utils :as utils]
             [clojure.tools.logging :as log]
-            [engulf.ning-client :as ning-client])
+            [engulf.ning-client :as ning-client]
+            [engulf.recorder :as rec]
+            [engulf.worker :as wrkr])
   (:use clojure.tools.logging
         noir-async.utils
         lamina.core
-        [engulf.utils :only [send-bench-msg]]
-        [engulf.worker :only [work warmup create-single-url-worker]]
-        [engulf.recorder :only [create-recorder
-                                record-result
-                                record-error
-                                record-start
-                                processed-stats
-                                record-end]])
+        [engulf.utils :only [send-bench-msg]])
   (:import java.util.concurrent.atomic.AtomicLong
            java.net.URL))
 
@@ -36,9 +31,9 @@
     (if (not (compare-and-set! state :initialized :started))
       (io! (log/warn (str "Could not start from: @state")))
       (do
-        (record-start recorder)
+        (rec/record-start recorder)
         (doseq [worker @workers]
-          (if-let [res-ch (work worker)]
+          (if-let [res-ch (wrkr/work worker)]
             (handle-result this res-ch)))
         (compare-and-set! broadcast-task nil
                           (broadcast-at-interval this 200)))))
@@ -48,7 +43,7 @@
     (when (compare-and-set! state :started :stopped)
       (do
         (ning-client/close-client client)
-        (record-end recorder)
+        (rec/record-end recorder)
         (doseq [worker @workers]
           (swap! (:state worker) (fn [s] :stopped)))
         (broadcast-state this))))
@@ -72,13 +67,13 @@
     (on-success res-ch (fn [[result next-result]]
      (let [{:keys [worker-id]} result]
        (when (check-result-recordability? this)
-         (record-result recorder worker-id result)))
+         (rec/record-result recorder worker-id result)))
      (handle-result this next-result)))
     (on-error res-ch (fn [[result next-result]]
       (let [{:keys [worker-id error]} result]
         (log/warn error (str "Error received from worker" worker-id))
         (when (check-result-recordability? this)
-          (record-error recorder worker-id error))
+          (rec/record-error recorder worker-id error))
         (handle-result this next-result)))))
   
   (broadcast-state [this]
@@ -92,7 +87,7 @@
    (set-interval millis #(broadcast-state this)))
          
   (stats [this]
-    (processed-stats recorder)))
+    (rec/processed-stats recorder)))
 
 (defn create-workers-for-benchmark
   "Creates a vector of workers instantiated via worker-fn, which
@@ -106,7 +101,7 @@
 (defn create-benchmark
  "Create a new Benchmark record. This encapsulates the full benchmark state"
  [client url worker-count max-runs worker-fn]
- (let [recorder (create-recorder)
+ (let [recorder (rec/create-recorder)
        benchmark (Benchmark. (atom :initialized)
                              client
                              url
@@ -124,7 +119,7 @@
   "Create a new benchmark. You must call start on this to begin"
   [url concurrency requests]
   (let [client (ning-client/create-client {:max-conns-per-host concurrency})
-        worker-fn (partial create-single-url-worker client url)]
+        worker-fn (partial wrkr/create-single-url-worker client url)]
     (create-benchmark client url concurrency requests worker-fn)))
 
 (defn replace-current-benchmark

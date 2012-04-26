@@ -18,7 +18,7 @@
             java.io.IOException
             com.ning.http.client.AsyncHttpClient$BoundRequestBuilder))
 
-(deftype ResponseHandler [status res-ch]
+(defrecord ResponseHandler [status res-ch]
   com.ning.http.client.AsyncHandler
   (onStatusReceived
    [this status-resp]

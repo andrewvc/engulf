@@ -99,8 +99,8 @@
              (range worker-count)))))
 
 (defn create-benchmark
- "Create a new Benchmark record. This encapsulates the full benchmark state"
- [client url worker-count max-runs worker-fn]
+  "Create a new Benchmark record. This encapsulates the full benchmark state"
+  [client url worker-count max-runs worker-fn]
  (let [recorder (rec/create-recorder)
        benchmark (Benchmark. (atom :initialized)
                              client

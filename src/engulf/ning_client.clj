@@ -16,7 +16,11 @@
             com.ning.http.client.PerRequestConfig
             java.net.ConnectException
             java.io.IOException
-            com.ning.http.client.AsyncHttpClient$BoundRequestBuilder))
+            com.ning.http.client.AsyncHttpClient$BoundRequestBuilder
+            com.ning.http.client.websocket.WebSocketByteListener
+            com.ning.http.client.websocket.WebSocketTextListener
+            com.ning.http.client.websocket.WebSocketUpgradeHandler
+            com.ning.http.client.websocket.WebSocketUpgradeHandler$Builder))
 
 (defrecord ResponseHandler [status res-ch]
   com.ning.http.client.AsyncHandler
@@ -37,6 +41,23 @@
   (onThrowable
    [this e]
    (error! res-ch e)))
+
+(defrecord WebsocketUpgradeHandler [on-open res-ch com-ch]
+  com.ning.http.client.websocket.WebSocketTextListener
+  (onOpen
+   [this websocket]
+   (success! res-ch com-ch))
+  (onClose
+   [this websocket]
+   (close com-ch))
+  (onError
+   [this throwable]
+   (error! com-ch throwable))
+  (onMessage
+   [this message]
+   (enqueue com-ch message)))
+  
+  
 
 (defn create-response-handler
   (^ResponseHandler [res-ch]
@@ -97,3 +118,29 @@
 (defn request
   [client opts]
   (execute-request client (build-request opts)))
+
+(defrecord ChannelSocketListener [ch]
+  WebSocketTextListener
+  (onOpen [this sock])
+  (onClose [this sock]
+           (close ch))
+  (onMessage [this message]
+             (enqueue ch message))
+  (onError [this throwable]
+           (enqueue-and-close ch throwable)))
+
+(defn request-websocket
+  "Opens a websocket connection to a remote host, returning a channel that sends back
+   messages and exceptions"
+  [client opts]
+  (let [ch (channel)
+        handler-builder (WebSocketUpgradeHandler$Builder.)
+        listener (ChannelSocketListener. ch)]
+    (.addWebSocketListener handler-builder listener)
+    (.execute
+     (.prepareGet client (:url opts))
+     (.build handler-builder))
+    ch))
+
+;(def ch (engulf.ning-client/request-websocket (create-client) {:url "ws://localhost:4000/benchmarker/stream"}))
+;(println (wait-for-message ch 1000))

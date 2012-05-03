@@ -28,7 +28,7 @@
 
 (na/defpage-async [:post "/benchmarker"]
   {:keys [state url concurrency requests block-completion]} conn
-  (println (format "Running: s:%s u:%s c:%s r:%s"
+  (println (format "Running IT: s:%s u:%s c:%s r:%s"
                     state url concurrency requests))
   (cond
    (= "started" state)
@@ -49,3 +49,7 @@
 (na/defpage-async "/benchmarker/stream" {} conn
   (receive-all json-socket-ch
                (fn [m] (na/async-push conn m))))
+
+(na/defpage-async "/coordinator"
+  {:keys [id]} conn
+  (on-receive conn (fn [m] 

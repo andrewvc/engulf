@@ -20,4 +20,5 @@
                  [org.clojure/tools.logging "0.2.3"]
                  [cascalog/carbonite "1.2.1"]]
   :dev-dependencies [[org.clojure/tools.trace "0.7.3"]
+                     [lein-midje "1.0.9"]
                      [midje "1.3.1"]])

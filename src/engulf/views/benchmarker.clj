@@ -49,7 +49,3 @@
 (na/defpage-async "/benchmarker/stream" {} conn
   (receive-all json-socket-ch
                (fn [m] (na/async-push conn m))))
-
-(na/defpage-async "/coordinator"
-  {:keys [id]} conn
-  (on-receive conn (fn [m] 

@@ -1,4 +1,4 @@
-(ns engulf.remote-client
+(ns engulf.comm.worker-client
   (:require
    [engulf.benchmark :as bench]
    [engulf.ning-client :as http]
@@ -9,8 +9,7 @@
 (def registry (carb/default-registry))
 
 (defn send-snapshot
-  [conn benchmarker]
-  (bench/current-snapshot))
+  [conn benchmarker])
 
 
 (def http-client (http/create-client))
@@ -21,7 +20,8 @@
   [host port]
   (http/request-websocket http-client {:url (str "ws://" host ":" port "/benchmarker/slave")}))
 
-(def connect [host port]
-     (compare-and-set! conn nil (create-conn host port))
-     (receive-all conn
-                  (fn [m])))
+(defn connect
+  [host port]
+  (compare-and-set! conn nil (create-conn host port))
+  (receive-all conn
+               (fn [m])))

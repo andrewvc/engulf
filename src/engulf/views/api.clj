@@ -1,6 +1,8 @@
 (ns engulf.views.api
-  (:require [engulf.control :as control])
+  (:require [engulf.comm.control :as control])
   (:use noir-async.core))
 
 (defpage-async "/control" {} conn
-  (control/connect conn))
+  (if (not (websocket? conn))
+    (async-push "Since you aren't a websocket, this page isn't so useful, is it?")
+    (control/connect conn)))

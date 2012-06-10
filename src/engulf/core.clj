@@ -1,12 +1,7 @@
 (ns engulf.core
   (:gen-class)
-  (:require [engulf.benchmark :as benchmark]
-            [noir.server :as nr-server]
-            [engulf.config :as config]
-            engulf.views.benchmarker
-            engulf.views.common
-            engulf.views.index
-            engulf.views.test-responses)
+  (:require [noir.server :as nr-server]
+            [engulf.config :as config])
   (:use [clojure.tools.cli :only [cli]]
         aleph.http
         noir.core

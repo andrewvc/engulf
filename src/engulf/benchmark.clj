@@ -7,6 +7,7 @@
   (:use clojure.tools.logging
         noir-async.utils
         lamina.core
+        [lamina.core.result :only [subscribe result-callback]]
         [engulf.utils :only [send-bench-msg]])
   (:import java.util.concurrent.atomic.AtomicLong
            java.net.URL))
@@ -63,26 +64,31 @@
             :under  true
             :over   false))))
 
-  (handle-result [this res-ch]
-    (on-success res-ch (fn [[result next-result]]
-     (let [{:keys [worker-id]} result]
-       (when (check-result-recordability? this)
-         (rec/record-result recorder worker-id result)))
-     (handle-result this next-result)))
-    (on-error res-ch (fn [[result next-result]]
-      (let [{:keys [worker-id error]} result]
-        (log/warn error (str "Error received from worker" worker-id))
-        (when (check-result-recordability? this)
-          (rec/record-error recorder worker-id error))
-        (handle-result this next-result)))))
+  (handle-result
+   [this res-ch]
+   (subscribe
+    res-ch
+    (result-callback
+     (fn handle-res-succ [[result next-result]]
+       (let [{:keys [worker-id]} result]
+         (when (check-result-recordability? this)
+           (rec/record-result recorder worker-id result)))
+       (handle-result this next-result))
+     (fn handle-res-err [[result next-result]]
+       (let [{:keys [worker-id error]} result]
+         (log/warn error (str "Error received from worker" worker-id))
+         (when (check-result-recordability? this)
+           (rec/record-error recorder worker-id error))
+         (handle-result this next-result))))))
   
-  (broadcast-state [this]
-    (send-bench-msg output-ch :state {:state @state
-                                      :url url
-                                      :workers (count @workers)
-                                      :max-runs max-runs})
-    (send-bench-msg output-ch :stats (stats this)))
-
+  (broadcast-state
+   [this]
+   (send-bench-msg output-ch :state {:state @state
+                                     :url url
+                                     :workers (count @workers)
+                                     :max-runs max-runs})
+   (send-bench-msg output-ch :stats (stats this)))
+  
   (broadcast-at-interval [this millis]
    (set-interval millis #(broadcast-state this)))
          

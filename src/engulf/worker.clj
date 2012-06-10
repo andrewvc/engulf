@@ -6,7 +6,7 @@
   (:use [engulf.utils :only [send-bench-msg]]
         noir-async.utils
         lamina.core
-        lamina.api)
+        [lamina.core.result :only [result-callback subscribe success! error!]])
   (:import java.util.concurrent.Executors
            java.util.concurrent.ExecutorService))
 
@@ -56,16 +56,18 @@
            next-result (result-channel)
            continue #(work this (inc run-id) next-result)]
        (when-let [ch (ning-client/execute-request client request)]
-         (on-success ch (fn [response]
-           (submit-result
-            #(success! result
-              [(format-response this req-start response) next-result]))
-           (continue)))
-         (on-error ch (fn [error]
-           (submit-result
-            #(error! result
-              [(format-error this req-start error) next-result]))
-           (continue)))
+         (subscribe ch
+                    (result-callback
+                     (fn [response]
+                       (submit-result
+                        #(success! result
+                                   [(format-response this req-start response) next-result]))
+                       (continue)))
+                    (fn [error]
+                      (submit-result
+                       #(error! result
+                                [(format-error this req-start error) next-result]))
+                      (continue)))
          result))))
       
   (warmup [this]

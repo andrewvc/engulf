@@ -1,7 +1,7 @@
 (ns engulf.ning-client
   "A fast HTTP client based on sonatype's asyn client. Conforms to the aleph http interface more or less"
   (:use lamina.core
-        lamina.api)
+        [lamina.core.result :only [success! error!]])
    (:require [clojure.tools.logging :as log])
    (:import java.util.concurrent.Executors
             java.util.concurrent.ExecutorService
@@ -119,28 +119,37 @@
   [client opts]
   (execute-request client (build-request opts)))
 
-(defrecord ChannelSocketListener [ch]
-  WebSocketTextListener
-  (onOpen [this sock])
-  (onClose [this sock]
-           (close ch))
-  (onMessage [this message]
-             (enqueue ch message))
-  (onError [this throwable]
-           (enqueue-and-close ch throwable)))
+(defprotocol AsyncSocketSender
+  (send-message [this msg-bytes]))
 
+(defrecord ChannelSocketListener [on-open on-receive on-error on-close]
+  WebSocketTextListener
+  (onOpen [this sock]
+    (when on-open (on-open)))
+  (onClose [this sock]
+    (when on-close (on-close)))
+  (onMessage [this message]
+    (when on-receive (on-receive message)))
+  (onError [this throwable]
+           (when on-error (on-error throwable)))
+  AsyncSocketSender
+  (send-message [this msg-bytes]
+    (.sendMessage this msg-bytes)))
+                
 (defn request-websocket
   "Opens a websocket connection to a remote host, returning a channel that sends back
    messages and exceptions"
   [client opts]
-  (let [ch (channel)
-        handler-builder (WebSocketUpgradeHandler$Builder.)
-        listener (ChannelSocketListener. ch)]
-    (.addWebSocketListener handler-builder listener)
+  (let [handler-builder (WebSocketUpgradeHandler$Builder.)
+        conn (ChannelSocketListener. (:on-open opts)
+                                     (:on-receive opts)
+                                     (:on-error opts)
+                                     (:on-close opts))]
+    (.addWebSocketListener handler-builder conn)
     (.execute
      (.prepareGet client (:url opts))
      (.build handler-builder))
-    ch))
+    conn))
 
 ;(def ch (engulf.ning-client/request-websocket (create-client) {:url "ws://localhost:4000/benchmarker/stream"}))
 ;(println (wait-for-message ch 1000))

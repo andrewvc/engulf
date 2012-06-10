@@ -4,10 +4,12 @@
 
 (defn encode-msg
   "Encodes a message using SMILE"
-  [msg]
-  {:pre [(not= nil (or (msg "type") (msg :type)))
-         (not= nil (or (msg "body") (msg :body)))]}
-  (chesh/encode-smile msg))
+  ([type body]
+     (encode-msg {:type type :body body}))
+  ([msg]
+     {:pre [(not= nil (or (msg "type") (msg :type)))
+            (not= nil (or (msg "body") (msg :body)))]}
+     (chesh/encode-smile msg)))
 
 (defn parse-msg
   "Parses a SIMLE msg, ensures it's properly formatted as well"

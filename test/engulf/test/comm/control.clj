@@ -59,7 +59,7 @@
    "about handling messages"
    (let [n (ctrl/node "htest-unique-id" {})
          msg {:type "htest-type" :body "htest-body"}
-         res (ctrl/handle-message n (cmsg/encode-msg msg))
+         res (ctrl/handle-message n (cmsg/parse-msg (cmsg/encode-msg msg)))
          expected-msg (assoc msg :node n)]
      (fact
       "the parsed and tagged message message should be enqueued on node-ch"
@@ -67,3 +67,11 @@
      (fact
       "the parsed and and tagged message should be emitted onto node-ch"
       (lc/receive ctrl/node-ch (fn [m] m => res))))))
+
+(facts
+ "about starting and stopping servers"
+ (let [port (+ 10000 (int (rand 20000)))
+       srv (ctrl/start-server port)]
+   (fact "the server should start" srv => truthy)
+   (fact "the server should stop" (srv) => truthy)))
+

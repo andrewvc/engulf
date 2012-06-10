@@ -6,7 +6,7 @@
 
 (facts
  "about message encoding"
- (let [msg {"type" "a-msg-type" "body" "a-msg-body"}]
+ (let [msg ["a-msg-type" "a-msg-body"]]
    (fact
     "it should match the original when decoded"
     (chesh/parse-smile (cmsg/encode-msg msg)) => msg)

@@ -5,15 +5,11 @@
 (defn encode-msg
   "Encodes a message using SMILE"
   ([type body]
-     (encode-msg {:type type :body body}))
-  ([msg]
-     {:pre [(not= nil (or (msg "type") (msg :type)))
-            (not= nil (or (msg "body") (msg :body)))]}
-     (chesh/encode-smile msg)))
+     (chesh/encode-smile {:type type :body body})))
 
-(defn parse-msg
+(defn decode-msg
   "Parses a SIMLE msg, ensures it's properly formatted as well"
   [msg]
-  {:post [(not= nil (or (% "type") (% :type)))
-          (not= nil (or (% "body") (% :body)))]}
-  (keywordize-keys (chesh/parse-smile msg)))
+  {:post [(not= nil (first %))]}
+  (let [{:strs [type body]} (chesh/parse-smile msg)]
+    [type body]))

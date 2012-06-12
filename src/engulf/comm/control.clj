@@ -1,9 +1,7 @@
 (ns engulf.comm.control
-  (:require [engulf.messages :as msgs]
-            [lamina.core :as lc]
+  (:require [lamina.core :as lc]
             [engulf.comm.netchan :as nc]
-            [clojure.tools.logging :as log])
-  (:use [engulf.comm.message]))
+            [clojure.tools.logging :as log]))
 
 ;; Permanent channel streaming events from all nodes
 ;; Dynamic for testing
@@ -17,8 +15,7 @@
   (let [ch (lc/channel)]
     (lc/receive-all ch (fn node-ground [_]))
     {:uuid uuid
-     :conn conn
-     :channel ch}))
+     :conn conn}))
 
 (defn get-node
   [uuid]
@@ -35,44 +32,38 @@
                       (get (alter nodes assoc uuid n)
                            uuid))))]
     (when (not (nil? new-node))
-      (lc/enqueue node-ch {:type "new-node" :body new-node}))
+      (lc/enqueue node-ch [ :system "new-node" new-node]))
     new-node))
           
 (defn deregister-node
   "Removes a node from the global list of nodes"
   [node]
-  (lc/close (:channel node))
+  (lc/close (:conn node))
   (dosync (alter nodes dissoc (:uuid node))))
 
 (defn handle-message
-  [node msg]
-  (let [tagged-msg (assoc msg :node node)]
-    (lc/enqueue node-ch tagged-msg)
-    (lc/enqueue (:channel node) tagged-msg)
-    tagged-msg))
+  [node name body]
+  )
 
 (defn server-handler
-  [msg uuid-atom]
+  [[name body] uuid-atom conn]
   (println "GOT MESSAGE!")
-  (println (String. msg))
+  (println name body)
   (try
-    (let [parsed (parse-msg msg)]
-      (cond
-       (and (nil? @uuid-atom) (= "uuid" (:type parsed)))
-         (reset! uuid-atom (:body parsed))
-       @uuid-atom
-         (handle-message @uuid-atom parsed)
-       :else
-       (log/warn (str "Unexpected non-identity message received" parsed))))
+    (cond
+     (and (nil? @uuid-atom) (= "uuid" name))
+     (reset! uuid-atom (register-node body conn))
+     @uuid-atom
+     (lc/enqueue node-ch [node name body])
+     :else
+     (log/warn (str "Unexpected non-identity message received" name body)))
     (catch Exception e (log/warn e "Error Handling Message"))))
 
 (defn start-server
   [port]
   (nc/start-server
    port
-   (fn [ch client-info]
+   (fn [conn client-info]
      (let [uuid (atom nil)]
-       (lc/on-error ch (fn [e] (log/warn e "Server Channel Error!") ))
-       (lc/receive-all
-        ch
-        (fn [m] (server-handler m uuid)))))))
+       (lc/on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
+       (lc/receive-all conn (fn [m] (server-handler m uuid conn)))))))

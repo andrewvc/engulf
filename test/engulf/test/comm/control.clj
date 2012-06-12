@@ -1,6 +1,5 @@
 (ns engulf.test.comm.control
   (:require [engulf.comm.control :as ctrl]
-            [engulf.comm.message :as cmsg]
             [lamina.core :as lc]
             [cheshire.core :as chesh])
   (:use midje.sweet
@@ -26,13 +25,13 @@
       "the node should have the right uuid"
       (:uuid n) => ident)
      (fact
-      "the node should have a channel"
-      (:channel n) =not=> nil?)
+      "the node should include its connection"
+      (:conn n) =not=> nil?)
      (fact
       "the node should have enqueued a creation message"
       (lc/receive ctrl/node-ch
                   (fn [msg]
-                    msg => {:type "new-node" :body n} )))))
+                    msg => [:system "new-node" n] )))))
  (facts
    "for nodes that do currently exist"
    (let [ident "some-unique-id"
@@ -47,26 +46,12 @@
  (facts
   "for nodes that don't yet exist"
   (let [ident "a-unique-identifier"
-        n (ctrl/register-node ident {})]
+        n (ctrl/register-node ident (lc/channel))]
     (fact
      "the node should no longer be present after removal"
      (ctrl/get-node ident) =not=> nil
      (ctrl/deregister-node n)
      (ctrl/get-node ident) => nil))))
-
-(with-clean-node-ch
-  (facts
-   "about handling messages"
-   (let [n (ctrl/node "htest-unique-id" {})
-         msg {:type "htest-type" :body "htest-body"}
-         res (ctrl/handle-message n (cmsg/parse-msg (cmsg/encode-msg msg)))
-         expected-msg (assoc msg :node n)]
-     (fact
-      "the parsed and tagged message message should be enqueued on node-ch"
-      res => expected-msg)
-     (fact
-      "the parsed and and tagged message should be emitted onto node-ch"
-      (lc/receive ctrl/node-ch (fn [m] m => res))))))
 
 (facts
  "about starting and stopping servers"
@@ -74,4 +59,3 @@
        srv (ctrl/start-server port)]
    (fact "the server should start" srv => truthy)
    (fact "the server should stop" (srv) => truthy)))
-

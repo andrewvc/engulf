@@ -40,5 +40,3 @@
        "it should receive sent messages back"
        (enqueue conn ["ohai" "there"])
        @(read-channel* conn :timeout 1000) => ["ohai" "there"] )))))
-
-(println "DONE")

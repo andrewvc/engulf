@@ -11,8 +11,8 @@
 
 (defn encode-msg
   "Encodes a message using SMILE"
-  ([type body]
-     (chesh/encode-smile {:type type :body body})))
+  [type body]
+  (chesh/encode-smile {:type type :body body}))
 
 (defn decode-msg
   "Parses a SIMLE msg, ensures it's properly formatted as well"

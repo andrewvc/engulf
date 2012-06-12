@@ -1,7 +1,8 @@
 (defproject engulf "2.0.0"
   :description "HTTP Benchmarker/Visualizer"
   :main engulf.core
-  :jvm-opts ["-server"]
+  :jvm-opts ["-server", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+  :extra-classpath-dirs ["/usr/lib/jvm/java-6-sun/lib/tools.jar"]
   :java-source-path "java-src"
   :jar-exclusions [#"\.DS_Store"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
@@ -16,4 +17,5 @@
                  [org.clojure/tools.logging "0.2.3"]]
   :dev-dependencies [[org.clojure/tools.trace "0.7.3"]
                      [lein-midje "1.0.9"]
+                     [lein-swank "1.4.4"]
                      [midje "1.4.0"]])

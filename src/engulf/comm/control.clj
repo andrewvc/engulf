@@ -10,6 +10,10 @@
 
 (def nodes (ref {}))
 
+(defn count-nodes []
+  "Returns the current number of connected nodes"
+  (count (keys @nodes)))
+
 (defn node
   [uuid conn]
   (let [ch (lc/channel)]
@@ -47,23 +51,28 @@
 
 (defn server-handler
   [[name body] uuid-atom conn]
-  (println "GOT MESSAGE!")
-  (println name body)
   (try
     (cond
+     ;; Handle the initial UUID message
      (and (nil? @uuid-atom) (= "uuid" name))
      (reset! uuid-atom (register-node body conn))
+     ;; Handle all subsequent messages
      @uuid-atom
      (lc/enqueue node-ch [node name body])
-     :else
-     (log/warn (str "Unexpected non-identity message received" name body)))
+     ;; Send warnings when normal messages sent before a UUID
+     :else (log/warn (str "Unexpected non-identity message received" name body)))
     (catch Exception e (log/warn e "Error Handling Message"))))
 
 (defn start-server
   [port]
-  (nc/start-server
-   port
-   (fn [conn client-info]
-     (let [uuid (atom nil)]
-       (lc/on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
-       (lc/receive-all conn (fn [m] (server-handler m uuid conn)))))))
+  (let [nc (nc/start-server
+            port
+            (fn [conn client-info]
+              (let [uuid (atom nil)]
+                (lc/on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
+                (lc/receive-all conn (fn [m] (server-handler m uuid conn))))))]
+    ;; Stop the server when this is called
+    (fn []
+      (dosync
+       (doseq [n (vals @nodes)] (deregister-node n)))
+      (nc))))

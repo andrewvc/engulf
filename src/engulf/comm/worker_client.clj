@@ -17,10 +17,13 @@
 
 (defn client-connect
   [host port]
-  (let [ch (try @(nc/client-connect host port)
-                (catch java.net.ConnectException e
-                  (log/warn e "Could not connect to control server!")))]
-    (on-error ch (fn [e] (log/warn e "Server Channel Error!") ))
-    (receive-all ch (fn client-conn-handler [msg] (handle-message msg)))
-    ;; Send identity immediately
-    (enqueue ch "uuid" uuid)))
+  (try
+    (let [conn @(nc/client-connect host port)]
+      (on-closed conn (fn [] (log/warn "Connection to master closed!")))
+      (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
+      (receive-all conn (fn client-conn-handler [msg] (handle-message msg)))
+      ;; Send identity immediately
+      (enqueue conn ["uuid" uuid])
+      conn)
+    (catch java.net.ConnectException e
+      (log/warn e "Could not connect to control server!"))))

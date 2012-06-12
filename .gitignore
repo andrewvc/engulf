@@ -12,3 +12,4 @@ lib/*
 .\#*#
 .#*
 vendor/bundle
+.lein-failures

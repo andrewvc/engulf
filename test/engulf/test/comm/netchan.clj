@@ -35,7 +35,7 @@
        conn => channel?)
       (fact
        "it should send messages without error"
-       (enqueue conn ["ohai" "there"]))
+       (enqueue conn ["ohai" "there"]) => truthy)
       (fact
        "it should receive sent messages back"
        (enqueue conn ["ohai" "there"])

@@ -9,7 +9,6 @@
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]
                  [noir-async "1.1.0-SNAPSHOT"]
-                 [protobuf "0.6.0-beta16"]
                  [cheshire "4.0.0"]
                  [log4j/log4j "1.2.16"]
                  [org.slf4j/slf4j-simple "1.6.4"]
@@ -17,4 +16,4 @@
                  [org.clojure/tools.logging "0.2.3"]]
   :dev-dependencies [[org.clojure/tools.trace "0.7.3"]
                      [lein-midje "1.0.9"]
-                     [midje "1.3.1"]])
+                     [midje "1.4.0"]])

@@ -8,6 +8,9 @@
 (def ^:dynamic emitter (lc/permanent-channel))
 (lc/ground emitter)
 
+(def ^:dynamic receiver (lc/permanent-channel))
+(lc/ground receiver)
+
 (def nodes (ref {}))
 
 (defn count-nodes []
@@ -69,6 +72,7 @@
             port
             (fn [conn client-info]
               (let [uuid (atom nil)]
+                (lc/siphon receiver conn)
                 (lc/on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
                 (lc/receive-all conn (fn [m] (server-handler m uuid conn))))))]
     ;; Stop the server when this is called

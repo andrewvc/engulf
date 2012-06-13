@@ -25,16 +25,18 @@
 
 (defn decompress-byte-array
   [^bytes ba]
-  ;; It's late, gonna be lazy and read in 2MB only
   (let [bais (ByteArrayInputStream. ba)
         gzis (GZIPInputStream. bais)
-        buf-size (* 2 1024 1024)
-        buf (byte-array buf-size)
-        read-len (.read gzis buf 0 buf-size)]
-    (.close gzis)
-    (when (>= read-len buf-size)
-      (throw ( Exception. "Hit max buf size! Fix my lazy work!")))
-    (Arrays/copyOfRange buf 0 read-len)))
+        buf-size (* 100 1024)
+        baos (ByteArrayOutputStream.)]
+    (loop []
+      (let [buf (byte-array buf-size)
+            read-len (.read gzis buf 0 buf-size)]
+        (when (> read-len 0)
+          (.write baos buf 0 read-len)
+          (recur))))
+    (.close gzis)    
+    (.toByteArray baos)))
 
 (defn encode-msg
     "Encodes a message using SMILE and GZIP"

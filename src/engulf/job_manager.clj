@@ -4,6 +4,8 @@
 
 (def jobs (ref {}))
 
+(def current-job (ref {}))
+
 (defn job
   [type params]
   (ref
@@ -18,8 +20,17 @@
   [type params]
   (let [j (job type params)]
     (dosync
-     (alter jobs assoc (:uuid @j) j)))
+     (alter jobs assoc (:uuid @j) j)
+     (ref-set current-job j)))
   job)
+
+(defn stop-job
+  [uuid]
+  (dosync
+   (let [j (get @jobs uuid)]
+     (dosync
+      (alter current-job assoc :ended-at (System/currentTimeMillis))))))
+
 
 (defn record-results
   [uuid results]

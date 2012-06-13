@@ -14,7 +14,7 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 # Todo:
 
 * RESTful interface (partially complete)
-* Distributed workers
+* Distributed workers (in progress, on 'net' branch)
 
 ## Hacking
 

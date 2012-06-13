@@ -1,9 +1,9 @@
                            JS Frontend
                             HTTP-API
                             /       \
-                   node-server  <-> job-store <-> stat-reducer
+                   node-server  <-> plan/res-reduce <-> job-store
                        ^v
-                   node-client  <-> stat-reducer
+                   node-client  <-> plan/res-reduce
                     worker(s)
 
 Message Types:
@@ -18,6 +18,8 @@ Message Types:
 ["job-start" 
  {"type"   "http-test",
   "uuid"   UUID
+  "started-at" 123123123123
+  "ended-at"   123231232311
   "params" {"url" "http://...",
            "method" "GET"
            "headers" {"X-Something" "Foo"}

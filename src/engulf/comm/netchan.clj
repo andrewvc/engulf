@@ -5,7 +5,8 @@
   (:use aleph.tcp
         lamina.core
         gloss.core
-        gloss.io)
+        gloss.io
+        [clojure.walk :only [keywordize-keys]])
   (:import java.nio.ByteBuffer
            java.util.Arrays))
 
@@ -19,7 +20,7 @@
   [msg]
   {:post [(not= nil (first %))]}
   (let [{:strs [type body]} (chesh/parse-smile msg)]
-    [type body]))
+    [type (keywordize-keys body)]))
 
 ;; Simple int32 prefixed frames
 (def wire-protocol

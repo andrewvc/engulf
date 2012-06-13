@@ -30,7 +30,7 @@ public class PercentileRecorder {
     public void merge(int[] meregData) {
         dataLock.lock();
         for (int i = 0; i < this.range; i++) {
-            data[i] += mergeData;
+            data[i] += mergeData[i];
         }
         dataLock.unlock()
     }

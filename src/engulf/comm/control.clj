@@ -5,8 +5,8 @@
 
 ;; Permanent channel streaming events from all nodes
 ;; Dynamic for testing
-(def ^:dynamic node-ch (lc/permanent-channel))
-(lc/receive-all node-ch (fn global-node-ground [_]))
+(def ^:dynamic emitter (lc/permanent-channel))
+(lc/ground emitter)
 
 (def nodes (ref {}))
 
@@ -36,7 +36,7 @@
                       (get (alter nodes assoc uuid n)
                            uuid))))]
     (when (not (nil? new-node))
-      (lc/enqueue node-ch [ :system "new-node" new-node]))
+      (lc/enqueue emitter [ :system "new-node" new-node]))
     new-node))
           
 (defn deregister-node
@@ -58,7 +58,7 @@
      (reset! uuid-atom (register-node body conn))
      ;; Handle all subsequent messages
      @uuid-atom
-     (lc/enqueue node-ch [node name body])
+     (lc/enqueue emitter [node name body])
      ;; Send warnings when normal messages sent before a UUID
      :else (log/warn (str "Unexpected non-identity message received" name body)))
     (catch Exception e (log/warn e "Error Handling Message"))))

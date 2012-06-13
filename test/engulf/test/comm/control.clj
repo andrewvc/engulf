@@ -5,10 +5,10 @@
   (:use midje.sweet
         [clojure.walk :only [keywordize-keys]]))
 
-(defmacro with-clean-node-ch
+(defmacro with-clean-emitter
   "Used in testing to reset currently queued messages"
   [& body]
-  `(binding [ctrl/node-ch (lc/permanent-channel)]
+  `(binding [ctrl/emitter (lc/permanent-channel)]
      ~@body))
 
 (defn clear-nodes
@@ -17,7 +17,7 @@
 
 (facts
  "about registering nodes"
- (with-clean-node-ch
+ (with-clean-emitter
    (clear-nodes)
    (let [ident "a-unique-identifier"
          n  (ctrl/register-node ident {})]
@@ -29,7 +29,7 @@
       (:conn n) =not=> nil?)
      (fact
       "the node should have enqueued a creation message"
-      (lc/receive ctrl/node-ch
+      (lc/receive ctrl/emitter
                   (fn [msg]
                     msg => [:system "new-node" n] )))))
  (facts

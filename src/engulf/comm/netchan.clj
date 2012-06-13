@@ -2,25 +2,51 @@
   (:require
    [clojure.tools.logging :as log]
    [cheshire.core :as chesh])
-  (:use aleph.tcp
-        lamina.core
-        gloss.core
-        gloss.io
-        [clojure.walk :only [keywordize-keys]])
-  (:import java.nio.ByteBuffer
-           java.util.Arrays))
+  (:use
+   aleph.tcp
+   lamina.core
+   gloss.core
+   gloss.io
+   [clojure.walk :only [keywordize-keys]])
+  (:import
+   java.util.zip.GZIPOutputStream
+   java.util.zip.GZIPInputStream
+   java.io.ByteArrayOutputStream
+   java.io.ByteArrayInputStream
+   java.nio.ByteBuffer
+   java.util.Arrays))
+
+(defn compress-byte-array
+  [^bytes ba]
+  (let [baos (ByteArrayOutputStream.)
+        gzos (GZIPOutputStream. baos)]
+    (doto gzos (.write ba) (.close))
+    (.toByteArray baos)))
+
+(defn decompress-byte-array
+  [^bytes ba]
+  ;; It's late, gonna be lazy and read in 2MB only
+  (let [bais (ByteArrayInputStream. ba)
+        gzis (GZIPInputStream. bais)
+        buf-size (* 2 1024 1024)
+        buf (byte-array buf-size)
+        read-len (.read gzis buf 0 buf-size)]
+    (.close gzis)
+    (when (>= read-len buf-size)
+      (throw ( Exception. "Hit max buf size! Fix my lazy work!")))
+    (Arrays/copyOfRange buf 0 read-len)))
 
 (defn encode-msg
-  "Encodes a message using SMILE"
-  [type body]
-  (chesh/encode-smile {:type type :body body}))
+    "Encodes a message using SMILE and GZIP"
+    [type body]
+    (compress-byte-array (chesh/encode-smile {:type type :body body})))
 
 (defn decode-msg
-  "Parses a SIMLE msg, ensures it's properly formatted as well"
+  "Parses a GZIPed SIMLE msg, ensures it's properly formatted as well"
   [msg]
   {:post [(not= nil (first %))]}
-  (let [{:strs [type body]} (chesh/parse-smile msg)]
-    [type (keywordize-keys body)]))
+  (let [{:strs [type body]} (chesh/parse-smile (decompress-byte-array msg))]
+    [type body]))
 
 ;; Simple int32 prefixed frames
 (def wire-protocol

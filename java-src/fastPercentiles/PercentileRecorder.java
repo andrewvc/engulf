@@ -27,6 +27,14 @@ public class PercentileRecorder {
         }
     }
 
+    public void merge(int[] meregData) {
+        dataLock.lock();
+        for (int i = 0; i < this.range; i++) {
+            data[i] += mergeData;
+        }
+        dataLock.unlock()
+    }
+
     public void record(int value) {
         if (value > range) {
             throw new Error("Value" + value + " out of percentile ranges");
@@ -86,6 +94,6 @@ public class PercentileRecorder {
 
         dataLock.unlock();
 
-        return results;
+        return res-ults;
     }
 }

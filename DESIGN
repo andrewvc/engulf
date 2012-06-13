@@ -1,0 +1,40 @@
+                           JS Frontend
+                            HTTP-API
+                            /       \
+                   node-server  <-> job-store <-> stat-reducer
+                       ^v
+                   node-client  <-> stat-reducer
+                    worker(s)
+
+Message Types:
+
+# Ping 'heartbeat' are used to ensure nodes are still responsive and determine system latency
+# Path: node-server <-> 
+["ping", UUID]
+["pong", UUID]
+
+# Starts a job, nodes are expected to stop any clients running other jobs
+# Path: HTTP-API -> node-server(UUID added) -> node-client -> worker
+["job-start" 
+ {"type"   "http-test",
+  "uuid"   UUID
+  "params" {"url" "http://...",
+           "method" "GET"
+           "headers" {"X-Something" "Foo"}
+           "body"    "..."}}]
+
+# Stop the currently running job.
+["job-stop", nil]
+
+# A packet of reduced stats from a time period
+["results",
+ {"runtime" integer,
+  "runs"    integer,
+  "errors"  integer,
+  "recent-errors", ["e1", "e2", "e3"] # Limited to 3 errors per node
+  job {
+    "percentiles" [20, 30, 40, ...],
+    "percentile-range" [low, high],
+    "status-code-counts" {200 20, 404, 2, 500 1},
+    "avg-runtime-by-time" {112312312132231 200, 12398123123 230, ...}
+  }]

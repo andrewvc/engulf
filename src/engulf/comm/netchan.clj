@@ -62,18 +62,18 @@
 
 (defn encode-frame
   "Encodes a msg into a buffer-seq suitable for gloss framing"
-  [type body]
+  [[type body]]
   (to-buf-seq (encode-msg type body)))
 
 (defn formatted-channel
   "Takes a channel from a tcp server or client, and returns a new channel that automatically
    decodes and encodes values"
   [conn]
-  (let [tx (channel)
-        rx (channel)]
-    (receive-all conn (fn fmtd-rx [frame] (enqueue rx (decode-frame frame))))
-    (receive-all tx (fn fmtd-tx [[type body]] (enqueue conn (encode-frame type body))))
-    (splice rx tx)))
+  (let [tx (channel)]
+    (siphon (map* encode-frame tx) conn)
+    (splice
+     (map* decode-frame conn)
+     tx)))
 
 (defn start-server
   "Starts a TCP server. Returns an aleph server"

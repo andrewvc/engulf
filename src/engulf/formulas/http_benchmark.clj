@@ -1,9 +1,9 @@
-(ns engulf.jobs.http-benchmark
-  (:use engulf.job)
+(ns engulf.formulas.http-benchmark
+  (:use engulf.formula)
   (:import fastPercentiles.PercentileRecorder))
 
 (defrecord HttpBenchmark []
-  EngulfJob
+  Formula
   (empty-results [this]
     {:runtime nil
      :runs-sec nil

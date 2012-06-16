@@ -1,12 +1,12 @@
-(ns engulf.node-server
-  (:require [engulf.comm.control :as ctrl]
+(ns engulf.control
+  (:require [engulf.comm.node-manager :as n-manager]
             [lamina.core :as lc])
   (:use [clojure.walk :only [keywordize-keys]]))
 
 (defn start-router
   []
   (lc/receive-all
-   engulf.comm.control/emitter
+   n-manager/emitter
    (fn message-router [[name body]]
      (let [name (keyword name)
            body (keywordize-keys body)]
@@ -18,5 +18,8 @@
 (defn start
   []
   (start-router)
-  (ctrl/start-server 3493))
+  (n-manager/start-server 3493))
 
+(defn broadcast
+  [name & body]
+  (lc/enqueue n-manager/receiver [name body]))

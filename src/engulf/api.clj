@@ -1,7 +1,7 @@
 (ns engulf.api
   (:require
    [engulf.job-manager :as jmgr]
-   [engulf.comm.control :as ctrl])
+   [engulf.control :as ctrl])
   (:use
    lamina.core))
 
@@ -17,13 +17,13 @@
     (let [job (jmgr/register-job :http-benchmark params)
           serializable-job (dissoc job :results)]
       (stop-current-job)
-      (enqueue ctrl/receiver [:job-start serializable-job])
+      (ctrl/broadcast :job-start serializable-job)
       job)))
 
 (defn stop-current-job
   []
   (jmgr/stop-job)
-  (enqueue ctrl/receiver [:job-stop]))
+  (ctrl/broadcast :job-stop))
 
 (defn get-job
   [uuid])

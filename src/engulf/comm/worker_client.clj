@@ -2,7 +2,7 @@
   (:require
    [clojure.tools.logging :as log]
    [engulf.comm.netchan :as nc]
-   [engulf.job :as ejob])
+   [engulf.formula :as formula])
   (:use lamina.core
         [clojure.walk :only [keywordize-keys]])
   (:import java.util.UUID
@@ -12,10 +12,10 @@
 
 (def current-job (atom nil))
 
-(defn start-job [type params]
-  (let [])
-  (reset! state (ejob/lookup type))
-  (bench/perform params))
+(defn start-job [job]
+  (reset! current-job job)
+  (let [job-formula (formula/lookup (:formula-name job))]
+    (formula/perform job-formula (:params job))))
 
 (defn handle-message
   [[name body]]
@@ -23,7 +23,7 @@
     (let [name (keyword name)
           body (keywordize-keys body)]
       (condp = name
-        :job-start (start-job ( :type body) (:params body))
+        :job-start (start-job body)
         (log/warn (str "Client Received Unexpected Message" name " : " body))))
     (catch Exception e (log/warn e "Could not handle message!" name body))))
     

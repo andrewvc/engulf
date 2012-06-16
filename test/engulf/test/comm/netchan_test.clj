@@ -1,4 +1,4 @@
-(ns engulf.test.comm.netchan
+(ns engulf.test.comm.netchan-test
   (:require [engulf.comm.netchan :as nc])
   (:use midje.sweet
         lamina.core
@@ -39,4 +39,4 @@
       (fact
        "it should receive sent messages back"
        (enqueue conn ["ohai" "there"])
-       @(read-channel* conn :timeout 1000) => ["ohai" "there"] )))))
+       @(read-channel* conn :timeout 2000) => ["ohai" "there"] )))))

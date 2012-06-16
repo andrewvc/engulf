@@ -1,5 +1,5 @@
 (ns engulf.job-manager
-  (require [engulf.job :as ejob])
+  (require [engulf.formula :as forumla])
   (:import java.util.UUID))
 
 (def jobs (ref {}))
@@ -7,10 +7,10 @@
 (def current-job (ref nil))
 
 (defn job
-  [type params]
+  [formula-name params]
   (ref
    {:uuid (str (UUID/randomUUID))
-    :type type
+    :formula-name formula-name
     :started-at (System/currentTimeMillis)
     :ended-at   nil
     :params params
@@ -35,4 +35,4 @@
 (defn record-results
   [uuid results]
   (send (:results  (get jobs uuid))
-        '(fn rec-res-reduce [] (ejob/result-reduce results))))
+        '(fn rec-res-reduce [] (formula/result-reduce results))))

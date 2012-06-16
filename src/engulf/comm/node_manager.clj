@@ -1,4 +1,4 @@
-(ns engulf.comm.control
+(ns engulf.comm.node-manager
   (:require [lamina.core :as lc]
             [engulf.comm.netchan :as nc]
             [clojure.tools.logging :as log]))
@@ -29,9 +29,9 @@
   (@nodes uuid))
 
 (defn register-node
-  [uuid conn]
   "Create a new node and adds it the global list of available nodes.
    Returns nil if the node already exists"
+  [uuid conn]
   (let [new-node (dosync
                   (if-let [n (get-node uuid)]
                     nil
@@ -39,7 +39,7 @@
                       (get (alter nodes assoc uuid n)
                            uuid))))]
     (when (not (nil? new-node))
-      (lc/enqueue emitter [ :system {:type :new-node :node uuid}]))
+      (lc/enqueue emitter [:system :new-node {:uuid uuid :conn conn}]))
     new-node))
           
 (defn deregister-node
@@ -48,11 +48,13 @@
   (lc/close (:conn node))
   (dosync (alter nodes dissoc (:uuid node))))
 
-(defn handle-message
-  [node name body]
-  )
+(defn deregister-node-by-uuid
+  [uuid]
+  (if-let [n (get @nodes uuid)]
+    (deregister-node n)
+    (log/warn (str "Not deregistering node " uuid " not in list!"))))
 
-(defn server-handler
+(defn conn-handler
   [[name body] uuid-atom conn]
   (try
     (cond
@@ -66,17 +68,18 @@
      :else (log/warn (str "Unexpected non-identity message received" name body)))
     (catch Exception e (log/warn e "Error Handling Message"))))
 
+(defn server-handler
+  [conn client-info]
+  (let [uuid (atom nil)]
+    ;; Send broadcast messages to the client
+    (lc/receive-all receiver (fn [m] (lc/enqueue conn m)))
+    (lc/receive-all conn (fn [m] (conn-handler m uuid conn)))
+    (lc/on-error    conn (fn [e] (log/warn e "Server Channel Error!") ))
+    (lc/on-closed   conn (fn []  (deregister-node-by-uuid @uuid)))))
+
 (defn start-server
   [port]
-  (let [nc (nc/start-server
-            port
-            (fn [conn client-info]
-              (let [uuid (atom nil)]
-                (lc/receive-all receiver
-                               (fn [m]
-                                 (lc/enqueue conn m)))
-                (lc/on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
-                (lc/receive-all conn (fn [m] (server-handler m uuid conn))))))]
+  (let [nc (nc/start-server port server-handler)]
     ;; Stop the server when this is called
     (fn []
       (dosync

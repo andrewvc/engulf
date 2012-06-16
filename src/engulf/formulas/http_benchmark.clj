@@ -18,5 +18,5 @@
     [this params]
     (println "!!!HTTP BENCHMARK!!! JOB START")))
 
-(register :http-benchmark (fn init-benchmark [] (HttpBenchmark.)))
+(register :http-benchmark (fn init-benchmark [_] (HttpBenchmark.)))
               

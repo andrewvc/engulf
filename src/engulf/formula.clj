@@ -13,4 +13,5 @@
 
 (defn lookup
   [name]
-  (get registry name))
+  (when-let [formula (get @registry (keyword name))]
+    (formula nil))) ; this may get extra args one day

@@ -1,13 +1,14 @@
 (ns engulf.control
   (:require [engulf.comm.node-manager :as n-manager]
             [engulf.job-manager :as jmgr]
+            engulf.formulas.http-benchmark
             [lamina.core :as lc])
   (:use [clojure.walk :only [keywordize-keys]]))
 
 (declare stop-current-job)
 
 (defn broadcast
-  [name & body]
+  [name body]
   (lc/enqueue n-manager/receiver [name body]))
 
 ;; We probably don't need the lock here but it's easier than designing weird UI
@@ -26,7 +27,7 @@
 (defn stop-current-job
   []
   (jmgr/stop-job)
-  (broadcast :job-stop))
+  (broadcast :job-stop nil))
 
 (defn get-job
   [uuid])

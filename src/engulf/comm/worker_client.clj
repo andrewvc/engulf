@@ -12,10 +12,11 @@
 
 (def current-job (atom nil))
 
-(defn start-job [job]
+(defn start-job
+  [job]
   (reset! current-job job)
-  (if-let [job-formula (formula/lookup (:formula-name job))]
-    (formula/perform job-formula (:params job))
+  (if-let [job-formula-constructor (formula/lookup (:formula-name job))]
+    (formula/perform (job-formula-constructor (:params job)))
     (log/warn (str "Could not find formula for job!" job " in " @formula/registry))))
 
 (defn handle-message

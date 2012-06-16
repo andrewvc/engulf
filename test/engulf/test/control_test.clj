@@ -1,6 +1,5 @@
-(ns engulf.test.api-test
+(ns engulf.test.control-test
   (:require
-   [engulf.api :as api]
    [engulf.control :as ctrl]
    [engulf.comm.worker-client :as wc])
   (:use midje.sweet))
@@ -10,7 +9,7 @@
  (let [srv (ctrl/start)
        wc (wc/client-connect "localhost" 3493)]
    (Thread/sleep 1)
-   (api/start-job
+   (ctrl/start-job
     {:url "http://localhost/test"
      :method "POST"
      :headers {"X-Foo" "Bar"}

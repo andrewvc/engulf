@@ -1,4 +1,4 @@
-(ns engulf.test.comm.worker-control-integration-test
+(ns engulf.test.comm.worker-node-manager-integration-test
   (:require [engulf.comm.node-manager :as n-manager]
             [engulf.comm.worker-client :as wc]
             [lamina.core :as lc]

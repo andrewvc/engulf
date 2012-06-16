@@ -1,7 +1,41 @@
 (ns engulf.control
   (:require [engulf.comm.node-manager :as n-manager]
+            [engulf.job-manager :as jmgr]
             [lamina.core :as lc])
   (:use [clojure.walk :only [keywordize-keys]]))
+
+(declare stop-current-job)
+
+(defn broadcast
+  [name & body]
+  (lc/enqueue n-manager/receiver [name body]))
+
+;; We probably don't need the lock here but it's easier than designing weird UI
+;; Failure states
+(def start-lock (Object.))
+
+(defn start-job
+  [params]
+  (locking start-lock
+    (let [job (jmgr/register-job :http-benchmark params)
+          serializable-job (dissoc job :results)]
+      (stop-current-job)
+      (broadcast :job-start serializable-job)
+      job)))
+
+(defn stop-current-job
+  []
+  (jmgr/stop-job)
+  (broadcast :job-stop))
+
+(defn get-job
+  [uuid])
+
+(defn list-jobs
+  [])
+
+(defn del-job
+  [uuid])
 
 (defn start-router
   []
@@ -19,7 +53,3 @@
   []
   (start-router)
   (n-manager/start-server 3493))
-
-(defn broadcast
-  [name & body]
-  (lc/enqueue n-manager/receiver [name body]))

@@ -90,6 +90,6 @@
         fmtd-conn (result-channel)]
     (on-realized
      raw-conn
-     (fn client-conn-succ [ch] (enqueue fmtd-conn (formatted-channel ch)))
+     (fn client-conn-succ [ch] (enqueue fmtd-conn (let [c (formatted-channel ch)] (receive-all c #(println "CGOT" %)) c)))
      (fn client-conn-err [t] (error fmtd-conn t)))
     fmtd-conn))

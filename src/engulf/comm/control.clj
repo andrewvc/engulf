@@ -39,7 +39,7 @@
                       (get (alter nodes assoc uuid n)
                            uuid))))]
     (when (not (nil? new-node))
-      (lc/enqueue emitter [ :system "new-node" new-node]))
+      (lc/enqueue emitter [ :system {:type :new-node :node uuid}]))
     new-node))
           
 (defn deregister-node
@@ -72,7 +72,9 @@
             port
             (fn [conn client-info]
               (let [uuid (atom nil)]
-                (lc/siphon receiver conn)
+                (lc/receive-all receiver
+                               (fn [m]
+                                 (lc/enqueue conn m)))
                 (lc/on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
                 (lc/receive-all conn (fn [m] (server-handler m uuid conn))))))]
     ;; Stop the server when this is called

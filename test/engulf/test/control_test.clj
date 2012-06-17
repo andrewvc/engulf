@@ -6,7 +6,7 @@
 
 (facts
  "about starting jobs"
- (let [srv (ctrl/start)
+ (let [srv (ctrl/start 3493)
        wc (wc/client-connect "localhost" 3493)]
    (Thread/sleep 1)
    (ctrl/start-job

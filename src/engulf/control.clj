@@ -51,6 +51,6 @@
          (println "Got something unexpected!" name body))))))
 
 (defn start
-  []
+  [port]
   (start-router)
-  (n-manager/start-server 3493))
+  (n-manager/start-server port))

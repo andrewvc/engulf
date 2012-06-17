@@ -26,7 +26,7 @@
 
 (defn run-request
   [params callback]
-  (let [res (http-request {:url (:url params)})]
+  (let [res (lc/success-result true)] ; (http-request {:url (:url params)})
     (lc/on-realized res #(callback %1) #(callback %1))))
 
 (defprotocol IHttpBenchmark

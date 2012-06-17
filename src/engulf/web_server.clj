@@ -1,9 +1,10 @@
 (ns engulf.web-server
   (:use aleph.http
-        noir.core
-        lamina.core)
-  (:require
-    [noir.server :as nr-server] ))
+   noir.core
+   lamina.core)
+  (:require [noir.server :as nr-server]
+            engulf.web-views.index
+            engulf.web-views.control))
 
 (defn start-webserver [port]
   (let [noir-handler (nr-server/gen-handler :dev)]

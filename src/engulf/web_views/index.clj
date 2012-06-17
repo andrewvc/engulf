@@ -1,5 +1,5 @@
-(ns engulf.views.index
-  (:require [engulf.views.common :as common])
+(ns engulf.web-views.index
+  (:require [engulf.web-views.common :as common])
   (:use [noir.core :only [defpage]]
         [hiccup.core :only [html]]
         [hiccup.element :only [link-to]]))

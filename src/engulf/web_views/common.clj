@@ -1,4 +1,4 @@
-(ns engulf.views.common
+(ns engulf.web-views.common
   (:use [noir.core :only [defpartial]]
         [hiccup.element :only [javascript-tag link-to]]
         [hiccup.page :only [include-css html5 include-js]]))

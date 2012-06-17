@@ -1,6 +1,10 @@
 (ns engulf.job-manager
-  (require [engulf.formula :as forumla])
+  (require [engulf.formula :as forumla]
+           [lamina.core :as lc])
   (:import java.util.UUID))
+
+(def emitter (lc/permanent-channel))
+(lc/ground emitter)
 
 (def jobs (ref {}))
 

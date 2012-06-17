@@ -15,7 +15,7 @@
 (defn parse-args
   [args]
   (cli args
-       ["-p" "--http-port" "Listen on this por for HTTP"
+       ["-p" "--http-port" "Listen on this port for the HTTP UI"
         :parse-fn #(Integer. %) :default (:http-port settings)]
        ["-n" "--manager-port" "Port for manager to listen on"
         :parse-fn #(Integer. %) :default (:manager-port settings)]

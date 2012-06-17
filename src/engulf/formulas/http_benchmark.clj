@@ -1,8 +1,17 @@
 (ns engulf.formulas.http-benchmark
-  (:require [aleph.http :as http]
-            [lamina.core :as lc])
-  (:use engulf.formula)
+  (:require [lamina.core :as lc]
+            [clojure.tools.logging :as log])
+  (:use engulf.formula
+        [aleph.http :only [http-client http-request]])
   (:import fastPercentiles.PercentileRecorder))
+
+(defn increment-keys
+  "Given a map and a list of keys, this will return an identical map with those keys
+   with those keys incremented.
+    
+   Keys with a null value will be set to 1."
+  [src-map & xs]
+  (into src-map (map #(vector %1 (inc (get src-map %1 0))) xs)))
 
 (defn empty-aggregation
   [params]
@@ -17,16 +26,23 @@
 
 (defn run-request
   [params callback]
-  (println "RUN"))
+  (let [res (http-request {:url (:url params)})]
+    (lc/on-realized res #(callback %1) #(callback %1))))
 
 (defprotocol IHttpBenchmark
-  (init-com-listener [this]))
+  (init-listeners [this]))
 
 (defrecord HttpBenchmark [state params results res-ch com-ch]
   IHttpBenchmark
-  (init-com-listener
+  (init-listeners
     [this]
     (when (= :initialized @state)
+      (lc/receive-all
+       res-ch
+       (fn res-listener [res]
+         (dosync
+          (alter results increment-keys :runs-total)
+          (println "RES!" @results))))
       (lc/receive-all
        com-ch
        (fn com-handler [command]
@@ -50,7 +66,7 @@
     (reset! state :stopped))
   (perform
     [this]
-    (init-com-listener this)
+    (init-listeners this)
     (when (compare-and-set! state :initialized :started)
       (dotimes [t (int (:concurrency params))]
         (lc/enqueue com-ch :run)))))

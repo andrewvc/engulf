@@ -1,7 +1,7 @@
 (ns engulf.control
   (:require [engulf.comm.node-manager :as n-manager]
             [engulf.job-manager :as jmgr]
-            engulf.formulas.http-benchmark
+            [engulf.formulas.http-benchmark :as http-benchmark]
             [lamina.core :as lc])
   (:use [clojure.walk :only [keywordize-keys]]))
 

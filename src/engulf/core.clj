@@ -17,11 +17,11 @@
   (cli args
        ["-p" "--http-port" "Listen on this port for the HTTP UI"
         :parse-fn #(Integer. %) :default (:http-port settings)]
-       ["-n" "--manager-port" "Port for manager to listen on"
+       ["-n" "--manager-port" "TCP Port for manager to listen on"
         :parse-fn #(Integer. %) :default (:manager-port settings)]
        ["-m" "--mode" "{combined:master:worker}"
         :parse-fn keyword :default (:mode settings)]
-       ["-c" "--connect-to" "When in worker mode, connect to this master host:port"
+       ["-c" "--connect-to" "When in worker mode, connect to this TCP host:port"
         :parse-fn #(let [[h p] (split % #":")] [h (Integer/valueOf p)]) :default (:connect-to settings)]
        ["-h" "--help" "Show help, then exit" :default false :flag true]))
   
@@ -39,7 +39,7 @@
     (println "Starting manager on port" (:manager-port settings))
     (ctrl/start (:manager-port settings)))
 
-  (when (#{:combined :client} (:mode settings))
+  (when (#{:combined :worker} (:mode settings))
     (println "Connecting worker to" (join ":"  (:connect-to settings)))
     (apply w-client/client-connect (:connect-to settings)))
   

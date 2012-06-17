@@ -33,11 +33,11 @@
   (println "Initializing in" (:mode settings) " mode")
 
   (when (#{:combined :server} (:mode settings))
-    (println "Starting manager on port" (:manager-port settings))
-    (ctrl/start (:manager-port settings))
-
     (println "Starting webserver on port" (:http-port settings))
-    (w-server/start-webserver (:http-port settings)))
+    (w-server/start-webserver (:http-port settings))
+    
+    (println "Starting manager on port" (:manager-port settings))
+    (ctrl/start (:manager-port settings)))
 
   (when (#{:combined :client} (:mode settings))
     (println "Connecting worker to" (join ":"  (:connect-to settings)))

@@ -39,14 +39,16 @@
                       (get (alter nodes assoc uuid n)
                            uuid))))]
     (when (not (nil? new-node))
-      (lc/enqueue emitter [:system :new-node {:uuid uuid :conn conn}]))
+      (lc/enqueue emitter [:system :node-connect {:uuid uuid :conn conn}]))
     new-node))
           
 (defn deregister-node
   "Removes a node from the global list of nodes"
   [node]
   (lc/close (:conn node))
-  (dosync (alter nodes dissoc (:uuid node))))
+  (when-let [r (dosync (alter nodes dissoc (:uuid node)))]
+    (lc/enqueue emitter [:system :node-disconnect {:uuid (:uuid node)}])
+    r))
 
 (defn deregister-node-by-uuid
   [uuid]

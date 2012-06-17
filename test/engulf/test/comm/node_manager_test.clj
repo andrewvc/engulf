@@ -31,7 +31,7 @@
       "the node should have enqueued a creation message"
       (lc/receive n-manager/emitter
                   (fn [msg]
-                    msg => [:system :new-node n] )))))
+                    msg => [:system :node-connect n] )))))
  (facts
    "for nodes that do currently exist"
    (let [ident "some-unique-id"

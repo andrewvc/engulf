@@ -38,17 +38,24 @@
 (defn del-job
   [uuid])
 
+(defn handle-system-message
+  [name body]
+  (condp = name
+    :node-connect (println "New Node (" (:uuid body) ") connected." (n-manager/count-nodes) " total nodes.")
+    :node-disconnect (println "Node (" (:uuid body) ") disconnected." (n-manager/count-nodes) " total nodes.")
+    (println "Unknown system message: " name body)))
+
 (defn start-router
   []
   (lc/receive-all
    n-manager/emitter
-   (fn message-router [[name body]]
+   (fn message-router [[entity name body]]
      (let [name (keyword name)
            body (keywordize-keys body)]
-       (condp = name
+       (condp = entity
          :results (println "Got results!")
-         :system (println "System message: " body)
-         (println "Got something unexpected!" name body))))))
+         :system (handle-system-message name body)
+         (println "Got something unexpected!" entity name body))))))
 
 (defn start
   [port]

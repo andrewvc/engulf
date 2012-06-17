@@ -1,8 +1,10 @@
 (ns engulf.web-views.control
   (:use engulf.utils
         noir.core
-        lamina.core)
+        lamina.core
+        aleph.formats)
   (:require [noir-async.core :as na]
+            [noir.request :as noir-req]
             [cheshire.core :as json]
             [engulf.control :as ctrl]
             [engulf.bus :as bus]
@@ -24,8 +26,11 @@
 (defpage [:get "/control/current-job"]  {}
   (json/generate-string @job-manager/current-job))
 
-(defpage [:post "/control/current-job"] {}
-  "")
+(na/defpage-async [:post "/control/current-job"] {} conn
+  (ctrl/start-job (:params (:ring-request conn)))
+  (na/async-push conn {:status 200
+                       :content-type "application/json"
+                       :body (json/generate-string {:status "OK"})}))
 
 (na/defpage-async "/control/stream" {} conn
-  (receive-all json-socket-ch(fn [m] (na/async-push conn m))))
+  (receive-all json-socket-ch (fn [m] (na/async-push conn m))))

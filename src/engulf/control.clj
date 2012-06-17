@@ -2,7 +2,8 @@
   (:require [engulf.comm.node-manager :as n-manager]
             [engulf.job-manager :as jmgr]
             [engulf.formulas.http-benchmark :as http-benchmark]
-            [lamina.core :as lc])
+            [lamina.core :as lc]
+            [clojure.tools.logging :as log])
   (:use [clojure.walk :only [keywordize-keys]]))
 
 (declare stop-current-job)
@@ -18,6 +19,7 @@
 (defn start-job
   [params]
   (locking start-lock
+    (log/info (str "Starting job with params" params))
     (let [job (jmgr/register-job :http-benchmark params)
           serializable-job (dissoc job :results)]
       (stop-current-job)

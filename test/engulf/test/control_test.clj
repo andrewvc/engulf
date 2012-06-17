@@ -12,6 +12,7 @@
    (ctrl/start-job
     {:url "http://localhost/test"
      :method "POST"
+     :concurrency 3
      :headers {"X-Foo" "Bar"}
      :body "Ohai!"})
    (Thread/sleep 1)

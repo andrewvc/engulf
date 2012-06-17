@@ -19,6 +19,11 @@
     (formula/perform (job-formula-constructor (:params job)))
     (log/warn (str "Could not find formula for job!" job " in " @formula/registry))))
 
+(defn stop-job
+  []
+  )
+  
+
 (defn handle-message
   [[name body]]
   (try

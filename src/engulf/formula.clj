@@ -3,8 +3,10 @@
 (def registry (atom {}))
 
 (defprotocol Formula
-  (empty-results [this] "Return an empty result-set for starting a new job")
-  (result-reduce [this result] "Take the result of perform, reduce onto current results")
+  (reduce-aggregate [this agg])
+  (get-and-reset-aggregate [this])
+  (get-aggregate [this])
+  (stop [this])
   (perform [this] "Takes a map of params, starts a job run"))
 
 (defn register

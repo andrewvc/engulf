@@ -27,7 +27,8 @@
   (json/generate-string @job-manager/current-job))
 
 (na/defpage-async [:post "/control/current-job"] {} conn
-  (ctrl/start-job (:params (:ring-request conn)))
+  (let [parsed (json/parse-string (bytes->string (:body (:ring-request conn))))]
+    (ctrl/start-job parsed))
   (na/async-push conn {:status 200
                        :content-type "application/json"
                        :body (json/generate-string {:status "OK"})}))

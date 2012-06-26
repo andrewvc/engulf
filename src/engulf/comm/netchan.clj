@@ -27,7 +27,7 @@
   [^bytes ba]
   (let [bais (ByteArrayInputStream. ba)
         gzis (GZIPInputStream. bais)
-        buf-size (* 100 1024)
+        buf-size 4096
         baos (ByteArrayOutputStream.)]
     (loop []
       (let [buf (byte-array buf-size)

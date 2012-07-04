@@ -16,12 +16,12 @@
 (defn empty-aggregation
   [params]
   {:runtime nil
-     :runs-sec nil
-     :runs-total 0
-     :runs-succeeded 0
-     :runs-failed 0
-     :response-code-counts {}
-     :by-start-time {}
+   :runs-sec nil
+   :runs-total 0
+   :runs-succeeded 0
+   :runs-failed 0
+   :response-code-counts {}
+   :by-start-time {}
    :runtime-percentiles-recorder (PercentileRecorder. (or (:timeout params) 10000))})
 
 (defn run-request
@@ -29,52 +29,32 @@
   (let [res (lc/success-result true)] ; (http-request {:url (:url params)})
     (lc/on-realized res #(callback %1) #(callback %1))))
 
+(defn aggregate
+  [params results]
+  (-> (empty-aggregation params)
+      (assoc :runs-total (count results))))
+
 (defprotocol IHttpBenchmark
-  (init-listeners [this]))
+  (run-repeatedly [this]))
 
-(defrecord HttpBenchmark [state params results res-ch com-ch]
+(defrecord HttpBenchmark [state params res-ch]
   IHttpBenchmark
-  (init-listeners
-    [this]
-    (when (= :initialized @state)
-      (lc/receive-all
-       res-ch
-       (fn res-listener [res]
-         (dosync
-          (alter results increment-keys :runs-total)
-          (println "RES!" @results))))
-      (lc/receive-all
-       com-ch
-       (fn com-handler [command]
-         (when (and  (= :run command) (= :started @state))
-           (run-request params
-                        (fn run-cb [res]
-                          (lc/enqueue res-ch res)
-                          (lc/enqueue com-ch :run))))))))
+  (run-repeatedly [this]
+    (run-request
+     params
+     (fn req-resp [res]
+       (when (= @state :started) ; Discard results and don't recur when stopped
+         (lc/enqueue res-ch res)
+         (run-repeatedly this)))))
   Formula
-  (get-and-reset-aggregate
-    [this]
-    (dosync
-     (let [snapshot @results]
-       (ref-set results assoc (empty-aggregation params))
-       @results)))
-  (get-aggregate
-    [this]
-    @results)
-  (stop
-    [this]
-    (reset! state :stopped))
-  (perform
-    [this]
-    (init-listeners this)
+  (start-relay [this]
+    
+    )
+  (start-edge [this]
     (when (compare-and-set! state :initialized :started)
-      (dotimes [t (int (:concurrency params))]
-        (lc/enqueue com-ch :run)))))
+      (dotimes [t (:concurrency params)] (run-repeatedly this))
+      (lc/map* (lc/partition-every 250 res-ch) (partial params aggregate))))
+  (stop [this]
+    (reset! state :stopped)))
 
-(register :http-benchmark (fn init-benchmark [params]
-                            (HttpBenchmark.
-                             (atom :initialized)
-                             params
-                             (ref (empty-aggregation params))
-                             (lc/channel)
-                             (lc/channel))))
+(register :http-benchmark #(HttpBenchmark. (atom :initialized) %1 (lc/channel)))

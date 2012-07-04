@@ -3,11 +3,10 @@
 (def registry (atom {}))
 
 (defprotocol Formula
-  (reduce-aggregate [this agg])
-  (get-and-reset-aggregate [this])
-  (get-aggregate [this])
+  (start-relay [this])
+  (start-edge [this])
   (stop [this])
-  (perform [this] "Takes a map of params, starts a job run"))
+  (relay [this]))
 
 (defn register
   [name constructor]

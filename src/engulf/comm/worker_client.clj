@@ -16,13 +16,12 @@
   [job]
   (reset! current-job job)
   (if-let [job-formula-constructor (formula/lookup (:formula-name job))]
-    (formula/perform (job-formula-constructor (:params job)))
+    ;(formula/perform (job-formula-constructor (:params job)))
     (log/warn (str "Could not find formula for job!" job " in " @formula/registry))))
 
 (defn stop-job
   []
   )
-  
 
 (defn handle-message
   [[name body]]

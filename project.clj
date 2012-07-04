@@ -3,7 +3,7 @@
   :main engulf.core
   :jvm-opts ["-server", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
   :extra-classpath-dirs ["/usr/lib/jvm/java-6-sun/lib/tools.jar"]
-  :java-source-path "java-src"
+  :java-source-paths "java-src"
   :jar-exclusions [#"\.DS_Store"]
   :repositories {"Sonatype" "https://oss.sonatype.org/content/repositories/releases/"}
   ;; :warn-on-reflection true

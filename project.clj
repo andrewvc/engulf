@@ -9,7 +9,7 @@
   ;; :warn-on-reflection true
   :dependencies [[org.clojure/clojure "1.3.0"]
                  [org.clojure/tools.cli "0.2.1"]
-                 [noir-async "1.1.0-SNAPSHOT"]
+                 [noir-async "1.1.0-beta2"]
                  [cheshire "4.0.0"]
                  [log4j/log4j "1.2.16"]
                  [org.slf4j/slf4j-simple "1.6.4"]

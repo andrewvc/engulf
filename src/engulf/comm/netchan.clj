@@ -69,9 +69,10 @@
   "Takes a channel from a tcp server or client, and returns a new channel that automatically
    decodes and encodes values"
   [conn]
-  (let [tx (channel)]
-    (siphon (map* encode-frame tx) conn)
-    (splice (map* decode-frame conn) tx)))
+  (let [receiver (channel)
+        emitter (map* decode-frame conn)]
+    (siphon (map* encode-frame receiver) conn)
+    (splice emitter receiver)))
 
 (defn start-server
   "Starts a TCP server. Returns an aleph server"

@@ -1,5 +1,6 @@
 (ns engulf.test.formulas.http-benchmark-test
   (:require
+   [lamina.core :as lc]
    [engulf.formulas.http-benchmark :as htb]
    [engulf.formula :as fla])
   (:use midje.sweet))
@@ -27,7 +28,13 @@
        res-ch (fla/start-edge b)]
    (fact
     "it should throw an exception if start-edge is invoked twice"
-    (fla/start-edge b) => (throws Exception))))
+    (fla/start-edge b) => (throws Exception))
+   (fact
+    "it should change state to started"
+    @(:state b) => :started)
+   (fact
+    "it should return aggregate data in short order"
+    (:type @(lc/read-channel* res-ch :timeout 400)) => :aggregate)))
 
 (facts
  "about aggregation"

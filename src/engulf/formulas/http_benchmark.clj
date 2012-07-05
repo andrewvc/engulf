@@ -17,7 +17,8 @@
 
 (defn empty-aggregation
   [params]
-  {:runtime nil
+  {:type :aggregate
+   :runtime nil
    :runs-sec nil
    :runs-total 0
    :runs-succeeded 0
@@ -67,7 +68,8 @@
         (dotimes [t (Integer/valueOf (:concurrency params))] (run-repeatedly this))
         (lc/map* (partial aggregate params) (lc/partition-every 250 res-ch)))))
   (stop [this]
-    (reset! state :stopped)))
+    (reset! state :stopped)
+    (lc/close res-ch)))
 
 (defn init-benchmark
   [params]

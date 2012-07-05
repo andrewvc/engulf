@@ -1,7 +1,7 @@
 (ns engulf.formulas.http-benchmark
   (:require [lamina.core :as lc]
             [clojure.tools.logging :as log])
-  (:use engulf.formula
+  (:use [engulf.formula :only [Formula register]]
         [aleph.http :only [http-client http-request]])
   (:import fastPercentiles.PercentileRecorder))
 
@@ -51,10 +51,18 @@
     
     )
   (start-edge [this]
-    (when (compare-and-set! state :initialized :started)
-      (dotimes [t (:concurrency params)] (run-repeatedly this))
-      (lc/map* (lc/partition-every 250 res-ch) (partial params aggregate))))
+    (if (not (compare-and-set! state :initialized :started))
+      (throw (Exception. (str "Attempted to start an edge from non-initialized state") @state))
+      (do
+        (dotimes [t (:concurrency params)] (run-repeatedly this))
+        (lc/map* (lc/partition-every 250 res-ch) (partial params aggregate)))))
   (stop [this]
     (reset! state :stopped)))
 
-(register :http-benchmark #(HttpBenchmark. (atom :initialized) %1 (lc/channel)))
+(defn init-benchmark
+  [params]
+  (HttpBenchmark. (atom :initialized)
+                  params
+                  (lc/channel)))
+
+(register :http-benchmark init-benchmark)

@@ -1,12 +1,14 @@
 (ns engulf.test.formulas.http-benchmark-test
   (:require
-   [engulf.formulas.http-benchmark :as htb])
+   [engulf.formulas.http-benchmark :as htb]
+   [engulf.formula :as fla])
   (:use midje.sweet))
 
 (def test-params
   {:url "http://localhost:8282"
    :method "POST"
    :headers {"X-Bender" "Jimmy crack corn, and I don't care"}
+   :concurrency "1"
    :body "a new, shiny metal body!"})
 
 (facts
@@ -22,10 +24,10 @@
 (facts
  "about running a benchmark on an edge"
  (let [b (htb/init-benchmark test-params)
-       res-ch (htb/start-edge b)]
+       res-ch (fla/start-edge b)]
    (fact
     "it should throw an exception if start-edge is invoked twice"
-    (htb/start-edge b) => (throws Exception))))
+    (fla/start-edge b) => (throws Exception))))
 
 (facts
  "about aggregation"

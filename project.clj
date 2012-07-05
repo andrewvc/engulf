@@ -15,7 +15,7 @@
   :repositories {"Sonatype"
                  "https://oss.sonatype.org/content/repositories/releases/"}
   :java-source-paths ["java-src"]
-  :main engulf.core
+  ;:main engulf.core
   :min-lein-version "2.0.0"
   :jvm-opts ["-server"
              "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]

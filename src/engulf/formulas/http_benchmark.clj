@@ -1,7 +1,9 @@
 (ns engulf.formulas.http-benchmark
   (:require [lamina.core :as lc]
-            [clojure.tools.logging :as log])
+            [clojure.tools.logging :as log]
+            [clojure.set :as cset])
   (:use [engulf.formula :only [Formula register]]
+        [engulf.utils :only [set-timeout]]
         [aleph.http :only [http-client http-request]])
   (:import fastPercentiles.PercentileRecorder))
 
@@ -26,13 +28,20 @@
 
 (defn run-request
   [params callback]
-  (let [res (lc/success-result true)] ; (http-request {:url (:url params)})
+  (let [res (lc/result-channel)] ; (http-request {:url (:url params)})
+    (set-timeout 1 #(lc/success res {}))
     (lc/on-realized res #(callback %1) #(callback %1))))
 
 (defn aggregate
   [params results]
   (-> (empty-aggregation params)
       (assoc :runs-total (count results))))
+
+(defn validate-params [params]
+  (let [diff (cset/difference #{:url :method :concurrency} params)]
+    (when (not (empty? diff))
+      (throw (Exception. "Invalid parameters! Missing keys: " diff))
+      )))
 
 (defprotocol IHttpBenchmark
   (run-repeatedly [this]))
@@ -45,17 +54,18 @@
      (fn req-resp [res]
        (when (= @state :started) ; Discard results and don't recur when stopped
          (lc/enqueue res-ch res)
-         (run-repeatedly this)))))
+         (run-repeatedly this)))))  
   Formula
   (start-relay [this]
     
     )
   (start-edge [this]
+    (validate-params params)
     (if (not (compare-and-set! state :initialized :started))
-      (throw (Exception. (str "Attempted to start an edge from non-initialized state") @state))
+      (throw (Exception. (str "Expected state :initialized, not: ") @state))
       (do
-        (dotimes [t (:concurrency params)] (run-repeatedly this))
-        (lc/map* (lc/partition-every 250 res-ch) (partial params aggregate)))))
+        (dotimes [t (Integer/valueOf (:concurrency params))] (run-repeatedly this))
+        (lc/map* (partial params aggregate) (lc/partition-every 250 res-ch)))))
   (stop [this]
     (reset! state :stopped)))
 

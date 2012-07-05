@@ -71,9 +71,7 @@
   [conn]
   (let [tx (channel)]
     (siphon (map* encode-frame tx) conn)
-    (splice
-     (map* decode-frame conn)
-     tx)))
+    (splice (map* decode-frame conn) tx)))
 
 (defn start-server
   "Starts a TCP server. Returns an aleph server"

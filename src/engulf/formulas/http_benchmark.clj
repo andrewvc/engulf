@@ -41,8 +41,7 @@
 (defn validate-params [params]
   (let [diff (cset/difference #{:url :method :concurrency} params)]
     (when (not (empty? diff))
-      (throw (Exception. "Invalid parameters! Missing keys: " diff))
-      )))
+      (throw (Exception. (str "Invalid parameters! Missing keys: " diff))))))
 
 (defprotocol IHttpBenchmark
   (run-repeatedly [this]))

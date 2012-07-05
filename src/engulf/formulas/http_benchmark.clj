@@ -65,7 +65,7 @@
       (throw (Exception. (str "Expected state :initialized, not: ") @state))
       (do
         (dotimes [t (Integer/valueOf (:concurrency params))] (run-repeatedly this))
-        (lc/map* (partial params aggregate) (lc/partition-every 250 res-ch)))))
+        (lc/map* (partial aggregate params) (lc/partition-every 250 res-ch)))))
   (stop [this]
     (reset! state :stopped)))
 

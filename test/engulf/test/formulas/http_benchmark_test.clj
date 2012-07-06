@@ -41,7 +41,7 @@
 
 (facts
  "about aggregation"
- (let [agg (htb/aggregate {:timeout 200}
+ (let [agg (htb/aggregate {:timeout 500}
                           [(htb/success-result 0 10 200)
                            (htb/success-result 0 10 200)
                            (htb/success-result 0 20 404)
@@ -58,6 +58,11 @@
    (fact
     "it should add up times correctly"
     (agg :runtime) => 80
+    (fact
+     "it should properly aggregate the status codes"
+     (agg :status-codes) => {200 2
+                             404 1
+                             :thrown 1})
     )))
 
 (println "done")

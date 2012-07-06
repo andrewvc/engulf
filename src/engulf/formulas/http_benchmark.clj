@@ -35,7 +35,7 @@
    :runs-total 0
    :runs-succeeded 0
    :runs-failed 0
-   :response-code-counts {}
+   :status-codes {}
    :by-start-time {}
    :runtime-percentiles-recorder (PercentileRecorder. (or (:timeout params) 10000))})
 
@@ -53,14 +53,14 @@
   (filter #(not= :thrown (get %1 :status))
           results))
 
-(defn count-successes
+(defn agg-successes
   [{:keys [runs-total runs-failed runs-succeeded] :as stats} results]
   (let [total (+ runs-total (count results))
         succeeded (+ runs-succeeded (count (successes results)))
         failed (- total succeeded)]
     (assoc stats :runs-total total :runs-failed failed :runs-succeeded succeeded)))
 
-(defn count-times
+(defn agg-times
   [{runtime :runtime :as stats} results]
   (assoc stats :runtime
          (reduce
@@ -68,12 +68,20 @@
           runtime
           results)))
 
+(defn agg-statuses
+  [{scounts :status-codes :as stats} results]
+  (assoc stats :status-codes
+         (reduce (fn  [m {s :status}] (assoc m s (+ 1 (get m s 0))))
+                 scounts
+                 results)))
+
 (defn aggregate
   [params results]
   (let [stats (empty-aggregation params)]
     (-> stats
-        (count-successes results)
-        (count-times results))))
+        (agg-successes results)
+        (agg-times results)
+        (agg-statuses results))))
 
 (defn validate-params [params]
   (let [diff (cset/difference #{:url :method :concurrency} params)]

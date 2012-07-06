@@ -15,21 +15,23 @@
   [src-map & xs]
   (into src-map (map #(vector %1 (inc (get src-map %1 0))) xs)))
 
-(defn http-result
-  [status & opts]
-  (assoc {:status status} opts))
-
 (defn error-result
-  [throwable]
-  (http-result :thrown :throwable throwable))
+  [started-at ended-at throwable]
+  {:started-at started-at
+   :ended-at ended-at
+   :status :thrown
+   :throwable throwable})
 
 (defn success-result
-  [])
+  [started-at ended-at status]
+  {:started-at started-at
+   :ended-at ended-at
+   :status status})
 
 (defn empty-aggregation
   [params]
   {:type :aggregate
-   :runtime nil
+   :runtime 0
    :runs-total 0
    :runs-succeeded 0
    :runs-failed 0
@@ -48,18 +50,23 @@
 
 (defn successes
   [results]
-  (filter #(not (isa? (class %1) Throwable)) results))
+  (filter #(not= :thrown (get %1 :status))
+          results))
 
 (defn count-successes
   [{:keys [runs-total runs-failed runs-succeeded] :as stats} results]
   (let [total (+ runs-total (count results))
         succeeded (+ runs-succeeded (count (successes results)))
-        failed (+ runs-failed (- runs-total runs-succeeded))]
+        failed (- total succeeded)]
     (assoc stats :runs-total total :runs-failed failed :runs-succeeded succeeded)))
 
 (defn count-times
   [{runtime :runtime :as stats} results]
-  (reduce #(- (:ended-at %1) (:started-at %1)) (successes results)))
+  (assoc stats :runtime
+         (reduce
+          (fn [m r] (+ m (- (:ended-at r) (:started-at r))))
+          runtime
+          results)))
 
 (defn aggregate
   [params results]

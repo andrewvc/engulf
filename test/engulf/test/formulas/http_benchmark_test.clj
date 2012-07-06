@@ -38,8 +38,15 @@
 
 (facts
  "about aggregation"
- (fact
-  "it should set the runs-total to the length of the dataset"
-  (:runs-total (htb/aggregate {:timeout 200} [1 2 3])) => 3))
+ (let [agg (htb/aggregate {:timeout 200} [{} {} {} ])]
+   (fact
+    "it should set the runs-total to the length of the dataset"
+    (:runs-total agg)  => 4)
+   (fact
+    "it should count successes correctly"
+    (agg :runs-succeeded) => 3)
+   (fact
+    "it should count failures correctly"
+    (agg :runs-failed) => 1)))
 
 (println "done")

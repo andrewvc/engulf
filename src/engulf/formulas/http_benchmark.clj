@@ -15,11 +15,21 @@
   [src-map & xs]
   (into src-map (map #(vector %1 (inc (get src-map %1 0))) xs)))
 
+(defn http-result
+  [status & opts]
+  (assoc {:status status} opts))
+
+(defn error-result
+  [throwable]
+  (http-result :thrown :throwable throwable))
+
+(defn success-result
+  [])
+
 (defn empty-aggregation
   [params]
   {:type :aggregate
    :runtime nil
-   :runs-sec nil
    :runs-total 0
    :runs-succeeded 0
    :runs-failed 0
@@ -29,14 +39,34 @@
 
 (defn run-request
   [params callback]
-  (let [res (lc/result-channel)] ; (http-request {:url (:url params)})
-    (set-timeout 1 #(lc/success res {}))
+  (let [res (lc/result-channel)
+        started-at (System/currentTimeMillis)] ; (http-request {:url (:url params)})
+    (set-timeout 1 #(lc/success res {:started-at started-at
+                                     :status 200
+                                     :ended-at (System/currentTimeMillis)}))
     (lc/on-realized res #(callback %1) #(callback %1))))
+
+(defn successes
+  [results]
+  (filter #(not (isa? (class %1) Throwable)) results))
+
+(defn count-successes
+  [{:keys [runs-total runs-failed runs-succeeded] :as stats} results]
+  (let [total (+ runs-total (count results))
+        succeeded (+ runs-succeeded (count (successes results)))
+        failed (+ runs-failed (- runs-total runs-succeeded))]
+    (assoc stats :runs-total total :runs-failed failed :runs-succeeded succeeded)))
+
+(defn count-times
+  [{runtime :runtime :as stats} results]
+  (reduce #(- (:ended-at %1) (:started-at %1)) (successes results)))
 
 (defn aggregate
   [params results]
-  (-> (empty-aggregation params)
-      (assoc :runs-total (count results))))
+  (let [stats (empty-aggregation params)]
+    (-> stats
+        (count-successes results)
+        (count-times results))))
 
 (defn validate-params [params]
   (let [diff (cset/difference #{:url :method :concurrency} params)]

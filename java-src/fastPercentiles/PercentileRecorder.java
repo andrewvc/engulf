@@ -60,6 +60,10 @@ public class PercentileRecorder {
         }
     }
 
+    @Override public String toString() {
+        return "Percentile Recorder(" + range + "). Min: " + minVal + " Max:" + maxVal;
+    }
+
     public Percentile[] percentiles() throws Exception {
         dataLock.lock();
         

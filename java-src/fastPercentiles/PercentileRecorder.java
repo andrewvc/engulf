@@ -19,6 +19,10 @@ public class PercentileRecorder {
         return count;
     }
 
+    public int[] getRawData() {
+        return data;
+    }
+
     public PercentileRecorder(int range) {
         this.range = range;
         this.data = new int[this.range];

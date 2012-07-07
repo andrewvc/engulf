@@ -36,8 +36,8 @@
    :runs-succeeded 0
    :runs-failed 0
    :status-codes {}
-   :by-start-time {}
-   :runtime-percentiles-recorder (PercentileRecorder. (or (:timeout params) 10000))})
+   :status-codes-by-start-time {}
+   :runtime-percentiles (PercentileRecorder. (or (:timeout params) 10000))})
 
 (defn run-request
   [params callback]
@@ -53,14 +53,14 @@
   (filter #(not= :thrown (get %1 :status))
           results))
 
-(defn agg-successes
+(defn edge-agg-successes
   [{:keys [runs-total runs-failed runs-succeeded] :as stats} results]
   (let [total (+ runs-total (count results))
         succeeded (+ runs-succeeded (count (successes results)))
         failed (- total succeeded)]
     (assoc stats :runs-total total :runs-failed failed :runs-succeeded succeeded)))
 
-(defn agg-times
+(defn edge-agg-times
   [{runtime :runtime :as stats} results]
   (assoc stats :runtime
          (reduce
@@ -68,20 +68,26 @@
           runtime
           results)))
 
-(defn agg-statuses
+(defn edge-agg-statuses
   [{scounts :status-codes :as stats} results]
   (assoc stats :status-codes
          (reduce (fn  [m {s :status}] (assoc m s (+ 1 (get m s 0))))
                  scounts
                  results)))
 
+(defn edge-agg-percentiles
+  [{rps :runtime-percentiles :as stats} results]
+  (doseq [{e :ended-at s :started-at} results] (.record rps (- e s)))
+  stats)
+
 (defn aggregate
   [params results]
   (let [stats (empty-aggregation params)]
     (-> stats
-        (agg-successes results)
-        (agg-times results)
-        (agg-statuses results))))
+        (edge-agg-successes results)
+        (edge-agg-times results)
+        (edge-agg-statuses results)
+        (edge-agg-percentiles results))))
 
 (defn validate-params [params]
   (let [diff (cset/difference #{:url :method :concurrency} params)]

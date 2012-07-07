@@ -63,6 +63,14 @@
      (agg :status-codes) => {200 2
                              404 1
                              :thrown 1})
-    )))
+    (fact
+     "it should record as many samples as given"
+     (.getCount (agg :runtime-percentiles)) => 4)
+    (fact
+     "it should the individual values correctly in the percentiles"
+     (let [raw (.getRawData (agg :runtime-percentiles))]
+       (aget raw 10) => 2
+       (aget raw 20) => 1
+       (aget raw 40) => 1)))))
 
 (println "done")

@@ -155,10 +155,14 @@
         (edge-agg-statuses results)
         (edge-agg-time-slices results))))
 
-(defn validate-params [params]
-  (let [diff (cset/difference #{:url :method :concurrency} params)]
+(defn clean-params [params]
+  (let [diff (cset/difference #{:url :method :concurrency :timeout} params)]
     (when (not (empty? diff))
-      (throw (Exception. (str "Invalid parameters! Missing keys: " diff))))))
+      (throw (Exception. (str "Invalid parameters! Missing keys: " diff)))))
+  (reduce (fn params-integerify [params p]
+            (update-in params [p] #(Integer/valueOf %1)))
+   params
+   [:concurrency :timeout]))
 
 (defprotocol IHttpBenchmark
   (run-repeatedly [this]))
@@ -177,7 +181,6 @@
     
     )
   (start-edge [this]
-    (validate-params params)
     (if (not (compare-and-set! state :initialized :started))
       (throw (Exception. (str "Expected state :initialized, not: ") @state))
       (do
@@ -191,7 +194,7 @@
 (defn init-benchmark
   [params]
   (HttpBenchmark. (atom :initialized)
-                  params
+                  (clean-params params)
                   (lc/channel)))
 
 (register :http-benchmark init-benchmark)

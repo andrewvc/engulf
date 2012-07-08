@@ -10,6 +10,7 @@
    :method "POST"
    :headers {"X-Bender" "Jimmy crack corn, and I don't care"}
    :concurrency "1"
+   :timeout 10000
    :body "a new, shiny metal body!"})
 
 (facts

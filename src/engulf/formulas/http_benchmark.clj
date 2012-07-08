@@ -53,7 +53,7 @@
   (filter #(not= :thrown (get %1 :status))
           results))
 
-(defn edge-agg-successes
+(defn edge-agg-totals
   [{:keys [runs-total runs-failed runs-succeeded] :as stats} results]
   (let [total (+ runs-total (count results))
         succeeded (+ runs-succeeded (count (successes results)))
@@ -68,15 +68,10 @@
           runtime
           results)))
 
-(defn count-statuses
-  ([results]
-     (count-statuses results {}))
-  ([results initial]
-     (reduce (fn  [m {s :status}] (assoc m s (+ 1 (get m s 0)))) initial results)))
-
 (defn edge-agg-statuses
   [{scounts :status-codes :as stats} results]
-  (assoc stats :status-codes (count-statuses results scounts)))
+  (assoc stats :status-codes
+         (into scounts (map (fn [[k v]] [k (count v)]) (group-by :status results)))))
 
 (defn edge-agg-percentiles
   [{rps :runtime-percentiles :as stats} results]
@@ -96,11 +91,42 @@
           (:time-slices stats)
           results)))
 
-(defn aggregate
+(defn relay-agg-totals
+  [stats aggs]
+  (assoc stats
+    :runs-total (reduce + (map :runs-total aggs))
+    :runs-succeeded (reduce + (map :runs-succeeded aggs))
+    :runs-failed (reduce + (map :runs-failed aggs))))
+
+(defn relay-agg-times
+  [stats aggs]
+  (assoc stats :runtime (reduce + (map :runtime aggs))))
+
+(defn relay-agg-statuses
+  [stats aggs]
+  (assoc stats :status-codes
+         (reduce
+          (fn [m agg]
+            (reduce (fn [mm [status count]]
+                      (update-in mm [status] #(if %1 (+ %1 count) count)))
+                    m
+                    agg))
+          {}
+          (map :status-codes aggs))))
+
+(defn relay-aggregate
+  [params aggs]
+  (let [stats (empty-aggregation params)]
+    (-> stats
+        (relay-agg-totals aggs)
+        (relay-agg-times aggs)
+        (relay-agg-statuses aggs))))
+
+(defn edge-aggregate
   [params results]
   (let [stats (empty-aggregation params)]
     (-> stats
-        (edge-agg-successes results)
+        (edge-agg-totals results)
         (edge-agg-times results)
         (edge-agg-statuses results)
         (edge-agg-percentiles results)

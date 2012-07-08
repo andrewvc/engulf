@@ -39,13 +39,37 @@
     "it should stop cleanly"
     (fla/stop b) => truthy)))
 
-(facts
- "about aggregation"
- (let [agg (htb/aggregate {:timeout 500}
+(defn eagg
+  []
+  (htb/edge-aggregate {:timeout 500}
                           [(htb/success-result 0 10 200)
                            (htb/success-result 0 10 200)
                            (htb/success-result 0 20 404)
-                           (htb/error-result 0 40 (Exception. "wtf"))])]
+                           (htb/error-result 0 40 (Exception. "wtf"))]))
+
+(facts
+ "about relay aggregation"
+ (let [agg (htb/relay-aggregate {:timeout 500} (repeatedly 2 eagg))]
+   (fact
+    "it should sum run totals"
+    (agg :runs-total) => 8)
+   (fact
+    "it should sum success totals"
+    (agg :runs-succeeded) => 6)
+   (fact
+    "it should sum failure totals"
+    (agg :runs-failed) => 2)
+   (fact
+    "it should sum runtimes"
+    (agg :runtime) => 160)
+   (fact
+    "it should sum aggregated statuses"
+    (agg :status-codes) => {:thrown 2, 404 2, 200 4}
+    )))
+
+(facts
+ "about edge aggregation"
+ (let [agg (eagg)]
    (fact
     "it should set the runs-total to the length of the dataset"
     (:runs-total agg)  => 4)
@@ -64,7 +88,8 @@
                              404 1
                              :thrown 1})
     (fact
-     "it should record as many samples as given"
+     "it should record as many samples as given"111
+     
      (.getCount (agg :runtime-percentiles)) => 4)
     (fact
      "it should the individual values correctly in the percentiles"

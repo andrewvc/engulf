@@ -1,5 +1,7 @@
 package fastPercentiles;
 
+import java.util.List;
+import java.util.Iterator;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -42,22 +44,47 @@ public class PercentileRecorder {
         }
     }
 
-    public void record(int value) {
+    public void record(int value) {        
+        dataLock.lock();
+        
+        try {
+            recordUnsafe(value);
+        } finally {
+            dataLock.unlock();
+        }
+    }
+
+    public void record(List<Long> values) {
+        dataLock.lock();
+        
+        try {
+            Iterator<Long> it = values.iterator();
+            while (it.hasNext()) {
+                recordUnsafe(it.next());
+            }
+        } finally {
+            dataLock.unlock();
+        }
+    }
+
+    /* Non locking way to record. Not threadsafe. You *must* aquire dataLock first */
+    private void recordUnsafe(int value) {
         if (value > range) {
             throw new Error("Value" + value + " out of percentile ranges");
         }
         
-        dataLock.lock();
+        if (minVal == -1 || value < minVal) minVal = value;
+        if (maxVal == -1 || value > maxVal) maxVal = value;
         
-        try {
-            if (minVal == -1 || value < minVal) minVal = value;
-            if (maxVal == -1 || value > maxVal) maxVal = value;
-            
-            this.data[value]++;
-            this.count++;
-        } finally {
-            dataLock.unlock();
+        data[value]++;
+        count++;
+    }
+
+    public void recordUnsafe (long value) {
+        if (value > Integer.MAX_VALUE) {
+            throw new Error("Cannot record values > Integer.MAX_VALUE!");
         }
+        recordUnsafe((int) value);
     }
 
     @Override public String toString() {

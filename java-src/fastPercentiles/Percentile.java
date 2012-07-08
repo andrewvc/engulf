@@ -1,12 +1,5 @@
 package fastPercentiles;
 
-/**
- * Created by IntelliJ IDEA.
- * User: andrewcholakian
- * Date: 2/16/12
- * Time: 7:49 PM
- * To change this template use File | Settings | File Templates.
- */
 public class Percentile {
     public int max = -1;
     public int min = -1;

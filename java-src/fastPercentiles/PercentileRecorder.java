@@ -80,7 +80,7 @@ public class PercentileRecorder {
         count++;
     }
 
-    public void recordUnsafe (long value) {
+    private void recordUnsafe (long value) {
         if (value > Integer.MAX_VALUE) {
             throw new Error("Cannot record values > Integer.MAX_VALUE!");
         }

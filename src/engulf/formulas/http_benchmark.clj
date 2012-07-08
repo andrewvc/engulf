@@ -32,7 +32,7 @@
 
 (defn empty-edge-aggregation
   [params]
-  {:type :aggregate
+  {:type :aggregate-edge
    :runtime 0
    :runs-total 0
    :runs-succeeded 0
@@ -43,7 +43,7 @@
 
 (defn empty-relay-aggregation
   [params]
-  {:type :aggregate
+  {:type :aggregate-relay
    :runtime 0
    :runs-total 0
    :runs-succeeded 0
@@ -138,13 +138,12 @@
   stats)
 
 (defn relay-aggregate
-  [params aggs]
-  (let [stats (empty-relay-aggregation params)]
-    (-> stats
-        (relay-agg-totals aggs)
-        (relay-agg-times aggs)
-        (relay-agg-statuses aggs)
-        (relay-agg-percentiles aggs))))
+  [params initial aggs]
+  (-> initial
+      (relay-agg-totals aggs)
+      (relay-agg-times aggs)
+      (relay-agg-statuses aggs)
+      (relay-agg-percentiles aggs)))
 
 (defn edge-aggregate
   [params results]
@@ -165,26 +164,43 @@
    [:concurrency :timeout]))
 
 (defprotocol IHttpBenchmark
-  (run-repeatedly [this]))
+  (run-repeatedly [this ch]))
 
-(defrecord HttpBenchmark [state params res-ch]
+(defrecord HttpBenchmark [state params res-ch mode]
   IHttpBenchmark
-  (run-repeatedly [this]
+  (run-repeatedly [this ch]
     (run-request
      params
      (fn req-resp [res]
        (when (= @state :started) ; Discard results and don't recur when stopped
-         (lc/enqueue res-ch res)
-         (run-repeatedly this)))))
+         (lc/enqueue ch res)
+         (run-repeatedly this ch)))))
   Formula
   (start-relay [this ingress]
     (when (compare-and-set! state :initialized :started)
-      
-      ))
+      (reset! mode :relay)
+      (lc/siphon
+       @(lc/run-pipeline
+         ingress
+         (partial lc/reductions*
+                  (partial relay-aggregate params)
+                  (empty-relay-aggregation params))
+         (partial lc/sample-every 250))
+       res-ch)
+      res-ch))
   (start-edge [this]
     (when (compare-and-set! state :initialized :started)
-     (dotimes [t (Integer/valueOf (:concurrency params))] (run-repeatedly this))
-     (lc/map* (partial edge-aggregate params) (lc/partition-every 250 res-ch))))
+      (reset! mode :edge)
+      (let [http-res-ch (lc/channel)]
+        ;; Kick off the async workers
+        (dotimes [t (Integer/valueOf (:concurrency params))]
+          (run-repeatedly this http-res-ch))
+        ;; Every 250ms siphon out a chunk of the output to the res-ch
+        (lc/siphon 
+         (lc/map* (partial edge-aggregate params)
+                  (lc/partition-every 250 http-res-ch))
+         res-ch)
+        res-ch)))
   (stop [this]
     (reset! state :stopped)
     (lc/close res-ch)
@@ -194,6 +210,7 @@
   [params]
   (HttpBenchmark. (atom :initialized)
                   (clean-params params)
-                  (lc/channel)))
+                  (lc/channel)
+                  (atom :unknown)))
 
 (register :http-benchmark init-benchmark)

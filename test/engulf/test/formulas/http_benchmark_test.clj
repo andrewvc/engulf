@@ -23,23 +23,47 @@
     "it should have a state of :initialized"
     @(:state b) => :initialized)))
 
-(let [b (htb/init-benchmark test-params)
+(facts
+ "about starting an edge"
+ (let [b (htb/init-benchmark test-params)
        res-ch (fla/start-edge b)]
    (fact
-    "it should throw an exception if start-edge is invoked twice"
-    (fla/start-edge b) => (throws Exception))
+    "it should return nil if it's already started"
+    (fla/start-edge b) => nil)
    (fact
     "it should change state to started"
     @(:state b) => :started)
    (fact
     "it should return aggregate data in short order"
-    (:type @(lc/read-channel* res-ch :timeout 300)) => :aggregate)
+    (:type @(lc/read-channel* res-ch :timeout 300)) => :aggregate-edge)
    (fact
     "it should stop cleanly"
     (fla/stop b) => truthy)
    (fact
     "blah"
-    (:res-ch b) => lc/closed?))
+    (:res-ch b) => lc/closed?)))
+
+(facts
+ "about starting a relay"
+ (let [b (htb/init-benchmark test-params)
+       res-ch (fla/start-relay b (lc/channel))]
+   (fact
+    "it should return nil if it's already started"
+    (fla/start-relay b (lc/channel)) => nil)
+   (fact
+    "it should change state to started"
+    @(:state b) => :started)
+   (fact
+    "it should return aggregate data in short order"
+    (:type @(lc/read-channel* res-ch :timeout 300)) => :aggregate-relay)
+   (fact
+    "it should stop cleanly"
+    (fla/stop b) => truthy)
+   (fact
+    "blah"
+    (:res-ch b) => lc/closed?)))
+
+
 
 (defn eagg
   []
@@ -51,7 +75,9 @@
 
 (facts
  "about relay aggregation"
- (let [agg (htb/relay-aggregate {:timeout 500} (repeatedly 2 eagg))]
+ (let [params {:timeout 500}
+       agg (htb/relay-aggregate
+            params (htb/empty-relay-aggregation params) (repeatedly 2 eagg))]
    (fact
     "it should sum run totals"
     (agg :runs-total) => 8)

@@ -3,7 +3,7 @@
 (def registry (atom {}))
 
 (defprotocol Formula
-  (start-relay [this])
+  (start-relay [this ingress])
   (start-edge [this])
   (stop [this])
   (relay [this]))

@@ -7,28 +7,22 @@
         [aleph.http :only [http-client http-request]])
   (:import fastPercentiles.PercentileRecorder))
 
-(defn increment-keys
-  "Given a map and a list of keys, this will return an identical map with those keys
-   with those keys incremented.
-    
-   Keys with a null value will be set to 1."
-  [src-map & xs]
-  (into src-map (map #(vector %1 (inc (get src-map %1 0))) xs)))
+(defn result
+  [started-at ended-at]
+  {:started-at started-at
+   :ended-at ended-at
+   :runtime (- ended-at started-at)})
 
 (defn error-result
   [started-at ended-at throwable]
-  {:started-at started-at
-   :ended-at ended-at
-   :runtime (- ended-at started-at)
-   :status :thrown
-   :throwable throwable})
+  (assoc (result started-at ended-at)
+    :status :thrown
+    :throwable throwable))
 
 (defn success-result
   [started-at ended-at status]
-  {:started-at started-at
-   :ended-at ended-at
-   :runtime (- ended-at started-at)
-   :status status})
+  (assoc (result started-at ended-at)
+    :status status))
 
 (defn empty-edge-aggregation
   [params]
@@ -51,7 +45,6 @@
    :status-codes {}
    :time-slices {}
    :percentiles (PercentileRecorder. (or (:timeout params) 10000))})
-
 
 (defn run-request
   [params callback]

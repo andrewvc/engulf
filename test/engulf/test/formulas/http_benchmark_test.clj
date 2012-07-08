@@ -71,6 +71,10 @@
      (let [raw (.getRawData (agg :runtime-percentiles))]
        (aget raw 10) => 2
        (aget raw 20) => 1
-       (aget raw 40) => 1)))))
+       (aget raw 40) => 1))
+    (fact
+     "it should aggregate response codes by time-slice"
+     (agg :time-slices) => {0 {:thrown 1, 404 1, 200 2}}
+     ))))
 
 (println "done")

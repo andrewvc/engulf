@@ -36,7 +36,7 @@
    :runs-succeeded 0
    :runs-failed 0
    :status-codes {}
-   :status-codes-by-start-time {}
+   :time-slices {}
    :runtime-percentiles (PercentileRecorder. (or (:timeout params) 10000))})
 
 (defn run-request
@@ -68,17 +68,33 @@
           runtime
           results)))
 
+(defn count-statuses
+  ([results]
+     (count-statuses results {}))
+  ([results initial]
+     (reduce (fn  [m {s :status}] (assoc m s (+ 1 (get m s 0)))) initial results)))
+
 (defn edge-agg-statuses
   [{scounts :status-codes :as stats} results]
-  (assoc stats :status-codes
-         (reduce (fn  [m {s :status}] (assoc m s (+ 1 (get m s 0))))
-                 scounts
-                 results)))
+  (assoc stats :status-codes (count-statuses results scounts)))
 
 (defn edge-agg-percentiles
   [{rps :runtime-percentiles :as stats} results]
   (doseq [{e :ended-at s :started-at} results] (.record rps (- e s)))
   stats)
+
+(defn edge-agg-time-slices
+  "Processes time-slices segmented by status"
+  [stats results]
+  (assoc stats :time-slices
+         (reduce
+          (fn [buckets result]
+            (let [time-slice (long (/ (:started-at result) 250))]
+              (update-in buckets
+                         [time-slice (:status result)]
+                         #(if %1 (inc %1) 1))))
+          (:time-slices stats)
+          results)))
 
 (defn aggregate
   [params results]
@@ -87,7 +103,8 @@
         (edge-agg-successes results)
         (edge-agg-times results)
         (edge-agg-statuses results)
-        (edge-agg-percentiles results))))
+        (edge-agg-percentiles results)
+        (edge-agg-time-slices results))))
 
 (defn validate-params [params]
   (let [diff (cset/difference #{:url :method :concurrency} params)]

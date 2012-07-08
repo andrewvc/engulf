@@ -22,9 +22,7 @@
     "it should have a state of :initialized"
     @(:state b) => :initialized)))
 
-(facts
- "about running a benchmark on an edge"
- (let [b (htb/init-benchmark test-params)
+(let [b (htb/init-benchmark test-params)
        res-ch (fla/start-edge b)]
    (fact
     "it should throw an exception if start-edge is invoked twice"
@@ -34,10 +32,13 @@
     @(:state b) => :started)
    (fact
     "it should return aggregate data in short order"
-    (:type @(lc/read-channel* res-ch :timeout 400)) => :aggregate)
+    (:type @(lc/read-channel* res-ch :timeout 300)) => :aggregate)
    (fact
     "it should stop cleanly"
-    (fla/stop b) => truthy)))
+    (fla/stop b) => truthy)
+   (fact
+    "blah"
+    (:res-ch b) => lc/closed?))
 
 (defn eagg
   []
@@ -81,25 +82,19 @@
     (agg :runs-failed) => 1)
    (fact
     "it should add up times correctly"
-    (agg :runtime) => 80
-    (fact
-     "it should properly aggregate the status codes"
-     (agg :status-codes) => {200 2
-                             404 1
-                             :thrown 1})
-    (fact
-     "it should record as many samples as given"111
-     
-     (.getCount (agg :runtime-percentiles)) => 4)
-    (fact
-     "it should the individual values correctly in the percentiles"
-     (let [raw (.getRawData (agg :runtime-percentiles))]
-       (aget raw 10) => 2
-       (aget raw 20) => 1
-       (aget raw 40) => 1))
-    (fact
-     "it should aggregate response codes by time-slice"
-     (agg :time-slices) => {0 {:thrown 1, 404 1, 200 2}}
-     ))))
+    (agg :runtime) => 80)
+   (fact
+    "it should properly aggregate the status codes"
+    (agg :status-codes) => {200 2
+                            404 1
+                            :thrown 1})
+   (fact
+    "it should record as many samples as given"
+    (count (agg :all-runtimes)) => 4)
+   (fact
+    "it should aggregate response codes by time-slice"
+    (agg :time-slices) => {0 {:thrown 1, 404 1, 200 2}}
+    )))
+
 
 (println "done")

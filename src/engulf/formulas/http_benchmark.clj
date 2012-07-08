@@ -175,17 +175,16 @@
      (fn req-resp [res]
        (when (= @state :started) ; Discard results and don't recur when stopped
          (lc/enqueue res-ch res)
-         (run-repeatedly this)))))  
+         (run-repeatedly this)))))
   Formula
-  (start-relay [this]
-    
-    )
+  (start-relay [this ingress]
+    (when (compare-and-set! state :initialized :started)
+      
+      ))
   (start-edge [this]
-    (if (not (compare-and-set! state :initialized :started))
-      (throw (Exception. (str "Expected state :initialized, not: ") @state))
-      (do
-        (dotimes [t (Integer/valueOf (:concurrency params))] (run-repeatedly this))
-        (lc/map* (partial edge-aggregate params) (lc/partition-every 250 res-ch)))))
+    (when (compare-and-set! state :initialized :started)
+     (dotimes [t (Integer/valueOf (:concurrency params))] (run-repeatedly this))
+     (lc/map* (partial edge-aggregate params) (lc/partition-every 250 res-ch))))
   (stop [this]
     (reset! state :stopped)
     (lc/close res-ch)

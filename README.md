@@ -1,4 +1,4 @@
-# engulf (formerly parbench)
+# engulf
 
 Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
@@ -18,7 +18,10 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 ## Hacking
 
-Engulf is a work in progresss and is rough around the edges in a number of places. Contributions are greatly appreciated, if you have any questions about contributing, just hit the message button on my github profile.
+Engulf is a work in progresss. The currently released version is the 2.x branch.
+Master represents the upcoming 3.0 version, which will feature distributed operation,
+JDBC saved results, and numerous other improvements. It's currently only 40% done
+and not runnable in any significant sense.
 
 ## Legacy
 

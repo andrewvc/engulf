@@ -11,7 +11,8 @@
    :headers {"X-Bender" "Jimmy crack corn, and I don't care"}
    :concurrency "1"
    :timeout 10000
-   :body "a new, shiny metal body!"})
+   :body "a new, shiny metal body!"
+   :mock true})
 
 (facts
  "about initializing a benchmark"
@@ -62,8 +63,6 @@
    (fact
     "blah"
     (:res-ch b) => lc/closed?)))
-
-
 
 (defn eagg
   []

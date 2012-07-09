@@ -7,7 +7,7 @@
         [aleph.http :only [http-client http-request]]
         [clojure.string :only [lower-case]])
   (:import fastPercentiles.PercentileRecorder))
-0
+
 (load "http_benchmark_aggregations")
 (load "http_benchmark_runner")
 

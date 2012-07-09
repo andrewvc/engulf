@@ -121,6 +121,3 @@
     "it should aggregate response codes by time-slice"
     (agg :time-slices) => {0 {:thrown 1, 404 1, 200 2}}
     )))
-
-
-(println "done")

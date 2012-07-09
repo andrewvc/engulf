@@ -14,29 +14,32 @@
 (def current-job (atom nil))
 
 (defn start-job
-  [job conn]
+  "Bridge the streaming results from the job-formula to the connection
+   They get routed through a permanent channel to prevent close events from
+   propagating"
+  [job job-constructor conn]
   (reset! current-job job)
-  (if-let [job-formula-constructor (formula/lookup (:formula-name job))]
-    ;; Bridge the streaming results from the job-formula to the connection
-    ;; They get routed through a permanent channel to prevent close events from
-    ;; propagating
-    (lc/run-pipeline
-     (formula/start-edge (job-formula-constructor (:params job)))
-     #(let [pc (permanent-channel)] (siphon %1 pc) pc)
-     #(siphon %1 conn))
+  (let [pc (permanent-channel)]
+    (siphon (formula/start-edge (job-constructor (:params job))) pc)
+    (siphon pc conn)))
+
+(defn locate-and-start-job
+  [job conn]
+  "Lookup the job in the registry, start it if possible"
+  (if-let [job-constructor (formula/lookup (:formula-name job))]
+    (start-job job job-constructor conn)
     (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
 
 (defn stop-job
-  []
-  )
+  [])
 
 (defn handle-message
-  [[conn name body]]
+  [conn [name body]]
   (try
     (let [name (keyword name)
           body (keywordize-keys body)]
       (condp = name
-        :job-start (start-job body conn)
+        :job-start (locate-and-start-job body conn)
         (log/warn (str "Client Received Unexpected Message" name " : " body))))
     (catch Exception e (log/warn e "Could not handle message!" name body))))
     

@@ -14,5 +14,4 @@
 
 (defn lookup
   [name]
-  (println "REGISTRY" @registry)
   (@registry (keyword name)))

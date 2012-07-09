@@ -23,7 +23,6 @@
     (let [job (jmgr/register-job job-name params)
           serializable-job (dissoc job :results)]
       (stop-current-job)
-      (println "BROADCAST!")
       (broadcast :job-start serializable-job)
       job)))
 
@@ -44,9 +43,13 @@
 (defn handle-system-message
   [name body]
   (condp = name
-    :node-connect (println "Node" (:uuid body) "connected." (n-manager/count-nodes) "total nodes.")
-    :node-disconnect (println "Node" (:uuid body) "disconnected." (n-manager/count-nodes) "total nodes.")
-    (println "Unknown system message: " name body)))
+    :node-connect
+    (log/info (str "Node" (:uuid body) "connected. "
+                   (n-manager/count-nodes) "total nodes."))
+    :node-disconnect
+    (log/info (str  "Node" (:uuid body) "disconnected. "
+                    (n-manager/count-nodes) "total nodes."))
+    (log/warn (str "Unknown system message: " name " " body))))
 
 (def router-state (atom :idle))
 

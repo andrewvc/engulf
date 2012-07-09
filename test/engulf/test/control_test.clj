@@ -13,7 +13,7 @@
   (start-edge [this]
     (when on-start-edge (on-start-edge this)))
   (start-relay [this ingress]
-    (when on-start-relay (on-start-relay this))))
+    (when on-start-relay (on-start-relay this ingress))))
 
 (facts
  "about starting jobs"
@@ -23,9 +23,9 @@
    (formula/register :mock-job
                      (fn [params]
                        (MockJob.
-                        (fn [mj] (swap! seen #(assoc :start-edge true)))
-                        (fn [mj] (swap! seen #(assoc :start-relay true)))
-                        (fn [mj] (swap! swap! seen #(assoc :stop true))))))
+                        (fn mse [mj] (swap! seen #(assoc %1 :start-edge true)))
+                        (fn msr [mj _] (swap! seen #(assoc %1 :start-relay true)))
+                        (fn mss [mj] (swap! swap! seen #(assoc %1 :stop true))))))
    (ctrl/start-job
     {:url "http://localhost/test"
      :method "POST"
@@ -36,7 +36,7 @@
    (Thread/sleep 1000)
    (fact
     "the start-edge method should be executed"
-    @seen => 2)
+    (:start-edge @seen) => truthy)
    ;; Disconnect server and client
    (srv)
    (lc/close wc)))

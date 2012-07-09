@@ -17,12 +17,13 @@
 (def start-lock (Object.))
 
 (defn start-job
-  [params]
+  [{job-name :job-name :as params}]
   (locking start-lock
-    (log/info (str "Starting job with params" params))
-    (let [job (jmgr/register-job :http-benchmark params)
+    (log/info (str "Starting job with params: " params))
+    (let [job (jmgr/register-job job-name params)
           serializable-job (dissoc job :results)]
       (stop-current-job)
+      (println "BROADCAST!")
       (broadcast :job-start serializable-job)
       job)))
 
@@ -47,17 +48,20 @@
     :node-disconnect (println "Node" (:uuid body) "disconnected." (n-manager/count-nodes) "total nodes.")
     (println "Unknown system message: " name body)))
 
+(def router-state (atom :idle))
+
 (defn start-router
   []
-  (lc/receive-all
-   n-manager/emitter
-   (fn message-router [[entity name body]]
-     (let [name (keyword name)
-           body (keywordize-keys body)]
-       (condp = entity
-         :results (println "Got results!")
-         :system (handle-system-message name body)
-         (println "Got something unexpected!" entity name body))))))
+  (when (compare-and-set! router-state :idle :started)
+    (lc/receive-all
+     n-manager/emitter
+     (fn message-router [[entity name body]]
+       (let [name (keyword name)
+             body (keywordize-keys body)]
+         (condp = entity
+           :results (println "Got results!")
+           :system (handle-system-message name body)
+           (println "Got something unexpected!" entity name body)))))))
 
 (defn start
   [port]

@@ -61,3 +61,5 @@
                   (clean-params params)
                   (lc/channel)
                   (atom :unknown)))
+
+(register :http-benchmark init-benchmark)

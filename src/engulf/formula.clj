@@ -5,8 +5,8 @@
 (defprotocol Formula
   (start-relay [this ingress])
   (start-edge [this])
-  (stop [this])
-  (relay [this]))
+  (stop [this]))
+
 
 (defn register
   [name constructor]
@@ -14,5 +14,5 @@
 
 (defn lookup
   [name]
-  (when-let [formula (get @registry (keyword name))]
-    formula)) ; this may get extra args one day
+  (println "REGISTRY" @registry)
+  (@registry (keyword name)))

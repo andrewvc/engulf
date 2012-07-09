@@ -61,5 +61,3 @@
         succ-cb #(lc/success res (success-result started-at (System/currentTimeMillis) 200))]
     (set-timeout 1 succ-cb)
     (lc/on-realized res #(callback %1) #(callback %1))))
-
-(register :http-benchmark init-benchmark)

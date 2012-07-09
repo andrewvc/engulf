@@ -37,6 +37,12 @@
    (fact
     "the start-edge method should be executed"
     (:start-edge @seen) => truthy)
+   (fact
+    "the start-relay method should be executed"
+    (:start-relay @seen) => truthy)
+   (fact
+    "the stop method should be executed"
+    (:start-relay @seen) => truthy)
    ;; Disconnect server and client
    (srv)
    (lc/close wc)))

@@ -2,7 +2,8 @@
   (:require
    [clojure.tools.logging :as log]
    [engulf.comm.netchan :as nc]
-   [engulf.formula :as formula])
+   [engulf.formula :as formula]
+   [lamina.core :as lc])
   (:use lamina.core
         [clojure.walk :only [keywordize-keys]])
   (:import java.util.UUID
@@ -13,10 +14,16 @@
 (def current-job (atom nil))
 
 (defn start-job
-  [job]
+  [job conn]
   (reset! current-job job)
   (if-let [job-formula-constructor (formula/lookup (:formula-name job))]
-    (formula/start-edge (job-formula-constructor (:params job)))
+    ;; Bridge the streaming results from the job-formula to the connection
+    ;; They get routed through a permanent channel to prevent close events from
+    ;; propagating
+    (lc/run-pipeline
+     (formula/start-edge (job-formula-constructor (:params job)))
+     #(let [pc (permanent-channel)] (siphon %1 pc) pc)
+     #(siphon %1 conn))
     (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
 
 (defn stop-job
@@ -24,12 +31,12 @@
   )
 
 (defn handle-message
-  [[name body]]
+  [[conn name body]]
   (try
     (let [name (keyword name)
           body (keywordize-keys body)]
       (condp = name
-        :job-start (start-job body)
+        :job-start (start-job body conn)
         (log/warn (str "Client Received Unexpected Message" name " : " body))))
     (catch Exception e (log/warn e "Could not handle message!" name body))))
     
@@ -39,7 +46,8 @@
     (let [conn @(nc/client-connect host port)]
       (on-closed conn (fn [] (log/warn "Connection to master closed!")))
       (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
-      (receive-all conn handle-message)
+      
+      (receive-all conn (partial handle-message conn))
       ;; Send identity immediately
       (enqueue conn ["uuid" uuid])
       conn)

@@ -4,7 +4,7 @@
    [lamina.core :as lc])
   (:use midje.sweet))
 
-(defrecord MockJob [on-start-edge on-start-relay on-stop]
+(defrecord MockFormula [on-start-edge on-start-relay on-stop]
   formula/Formula
   (stop [this]
     (when on-stop (on-stop this)))

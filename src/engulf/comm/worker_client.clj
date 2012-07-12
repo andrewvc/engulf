@@ -17,11 +17,12 @@
   "Bridge the streaming results from the job-formula to the connection
    They get routed through a permanent channel to prevent close events from
    propagating"
-  [job job-constructor conn]
+  [job formula-constructor conn]
   (reset! current-job job)
   (let [pc (permanent-channel)]
-    (siphon (formula/start-edge (job-constructor (:params job))) pc)
-    (siphon pc conn)))
+    (siphon pc conn)
+    (siphon (formula/start-edge (formula-constructor (:params job))) pc)))
+    
 
 (defn locate-and-start-job
   [job conn]

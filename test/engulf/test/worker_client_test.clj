@@ -1,6 +1,6 @@
-(ns engulf.test.comm.worker-client-test
+(ns engulf.test.worker-client-test
   (:require [engulf.test.helpers :as helpers]
-            [engulf.comm.worker-client :as wc]
+            [engulf.worker-client :as wc]
             [lamina.core :as lc]
             [cheshire.core :as chesh])
   (:use midje.sweet

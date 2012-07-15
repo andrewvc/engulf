@@ -1,6 +1,6 @@
 (ns engulf.core
   (:require [engulf.control :as ctrl]
-            [engulf.comm.worker-client :as w-client]
+            [engulf.worker-client :as w-client]
             [engulf.web-server :as w-server])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.string :only [split join]]))

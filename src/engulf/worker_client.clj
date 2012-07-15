@@ -1,4 +1,4 @@
-(ns engulf.comm.worker-client
+(ns engulf.worker-client
   (:require
    [clojure.tools.logging :as log]
    [engulf.comm.netchan :as nc]

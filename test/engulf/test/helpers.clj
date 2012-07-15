@@ -1,8 +1,6 @@
 (ns engulf.test.helpers
   (:require
    [engulf.formula :as formula]
-   [engulf.control :as ctrl]
-   [engulf.comm.worker-client :as wc]
    [lamina.core :as lc])
   (:use midje.sweet))
 

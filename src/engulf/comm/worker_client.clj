@@ -19,10 +19,11 @@
    propagating"
   [job formula-constructor conn]
   (reset! current-job job)
-  (let [pc (permanent-channel)]
+  (let [pc (permanent-channel)
+        edge-chan (formula/start-edge (formula-constructor (:params job)))]
     (siphon pc conn)
-    (siphon (formula/start-edge (formula-constructor (:params job))) pc)))
-    
+    (siphon edge-chan pc)
+    pc))
 
 (defn locate-and-start-job
   [job conn]

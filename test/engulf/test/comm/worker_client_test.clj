@@ -16,7 +16,7 @@
                                   nil
                                   nil)
        job {}
-       conn-ch (lc/channel 1 2 3)
+       conn-ch (lc/channel :conn-first-ch)
        res (wc/start-job job (fn [_] mock-formula) conn-ch)]
    (fact
     "it should start cleanly"
@@ -29,6 +29,6 @@
     @started => true)
    (fact
     "it should enqueue messages from start edge onto the connection"
-    @(lc/read-channel* conn-ch :timeout 1000) => :first-msg)))
+    @(lc/read-channel* conn-ch :timeout 1000) => :conn-first-ch)))
 
 (println "done")

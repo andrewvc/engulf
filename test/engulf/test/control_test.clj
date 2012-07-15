@@ -6,7 +6,7 @@
    [engulf.comm.worker-client :as wc]
    [lamina.core :as lc])
   (:use midje.sweet)
-  (import engulf.test.helpers.MockJob))
+  (import engulf.test.helpers.MockFormula))
 
 (facts
  "about starting jobs"
@@ -15,7 +15,7 @@
        seen (atom {})]
    (formula/register :mock-job
                      (fn [params]
-                       (MockJob.
+                       (MockFormula.
                         (fn mse [mj] (swap! seen #(assoc %1 :start-edge true)))
                         (fn msr [mj _] (swap! seen #(assoc %1 :start-relay true)))
                         (fn mss [mj] (swap! swap! seen #(assoc %1 :stop true))))))

@@ -1,6 +1,8 @@
 (ns engulf.test.helpers
   (:require
    [engulf.formula :as formula]
+   [engulf.control :as ctrl]
+   [engulf.comm.worker-client :as wc]
    [lamina.core :as lc])
   (:use midje.sweet))
 
@@ -9,10 +11,6 @@
   (stop [this]
     (when on-stop (on-stop this)))
   (start-edge [this]
-    (if on-start-edge
-      (on-start-edge this)
-      (lc/channel)))
+    (when on-start-edge (on-start-edge this)))
   (start-relay [this ingress]
-    (if on-start-relay
-      (on-start-relay this ingress)
-      (lc/channel))))
+    (when on-start-relay (on-start-relay this ingress))))

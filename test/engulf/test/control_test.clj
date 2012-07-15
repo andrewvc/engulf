@@ -44,7 +44,8 @@
    "the start-edge method should be executed"
    (:start-edge @seen) => truthy)))
 
-(facts "about starting relay jobs"
+(facts
+ "about starting relay jobs"
  (watched-run
   seen
   (ctrl/start-job

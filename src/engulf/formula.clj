@@ -15,3 +15,7 @@
 (defn lookup
   [name]
   (@registry (keyword name)))
+
+(defn init-job
+  [{:keys [formula-name params]}]
+  ((formula/lookup name) params))

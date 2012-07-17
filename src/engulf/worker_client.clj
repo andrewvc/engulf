@@ -28,8 +28,8 @@
 (defn locate-and-start-job
   [job conn]
   "Lookup the job in the registry, start it if possible"
-  (if-let [job-constructor (formula/lookup (:formula-name job))]
-    (start-job job job-constructor conn)
+  (if-let [formula-constructor (formula/lookup (:formula-name job))]
+    (start-job job formula-constructor conn)
     (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
 
 (defn stop-job

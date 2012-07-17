@@ -1,5 +1,6 @@
 (ns engulf.relay
   (:require
+   [engulf.control :as ctrl]
    [clojure.tools.logging :as log]
    [engulf.formula :as formula]
    [lamina.core :as lc]))

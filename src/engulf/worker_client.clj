@@ -18,11 +18,11 @@
    They get routed through a permanent channel to prevent close events from
    propagating"
   [job formula-constructor conn]
-  (reset! current-job job)
   (let [pc (permanent-channel)
-        edge-chan (formula/start-edge (formula-constructor (:params job)))]
+        formula (formula-constructor (:params job))]
+    (reset! current-job (assoc job :formula formula))
     (siphon pc conn)
-    (siphon edge-chan pc)
+    (siphon (formula/start-edge formula) pc)
     pc))
 
 (defn locate-and-start-job
@@ -33,7 +33,10 @@
     (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
 
 (defn stop-job
-  [])
+  []
+  (when-let [job @current-job]
+    (formula/stop (:formula job))
+    (compare-and-set! current-job job nil)))
 
 (defn handle-message
   [conn [name body]]
@@ -42,6 +45,7 @@
           body (keywordize-keys body)]
       (condp = name
         :job-start (locate-and-start-job body conn)
+        :job-stop (stop-job)
         (log/warn (str "Client Received Unexpected Message" name " : " body))))
     (catch Exception e (log/warn e "Could not handle message!" name body))))
     

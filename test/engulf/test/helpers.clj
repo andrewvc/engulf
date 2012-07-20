@@ -1,6 +1,7 @@
 (ns engulf.test.helpers
   (:require
    [engulf.formula :as formula]
+   [engulf.job-manager :as job-manager]
    [lamina.core :as lc])
   (:use midje.sweet))
 
@@ -21,3 +22,6 @@
    :timeout 10000
    :body "a new, shiny metal body!"
    :mock true})
+
+(def test-http-job
+  (job-manager/job :http-benchmark test-http-job-params))

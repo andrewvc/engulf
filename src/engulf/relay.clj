@@ -11,6 +11,22 @@
 (def state (atom :stopped))
 (def receive-cb (atom nil))
 
+(def current-job (agent nil))
+
+(defn start-job
+  [job]
+  (send current-job
+        (fn relay-frmla-start [formula-inst]
+          (when formula-inst (formula/stop formula-inst))
+          (formula/start-relay (formula/init-job-formula job) receiver))))
+
+(defn stop-job
+  []
+  (send current-job
+        (fn relay-frmla-stop [formula-inst]
+          (when formula-inst (formula/stop formula-inst))
+          )))
+
 (defn handle-message
   [[name body]]
   (condp = name

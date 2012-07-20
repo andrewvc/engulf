@@ -3,9 +3,15 @@
 (def registry (atom {}))
 
 (defprotocol Formula
-  (start-relay [this ingress])
-  (start-edge [this])
-  (stop [this]))
+  (start-relay
+    [this ingress]
+    "Starts a formula in relay mode. Ingress is expected to be a channel of edge or other relay results")
+  (start-edge
+    [this]
+    "Starts a formula in edge mode.")
+  (stop
+    [this]
+    "Stops the currently running formula regardless of mode"))
 
 
 (defn register
@@ -16,6 +22,8 @@
   [name]
   (@registry (keyword name)))
 
-(defn init-job
-  [{:keys [formula-name params]}]
-  ((lookup name) params))
+(defn init-job-formula
+  [{:keys [formula-name params] :as job}]
+  (if-let [constructor (lookup formula-name)]
+    (constructor params)
+    (throw "Could not find formula for job!" job)))

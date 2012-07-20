@@ -17,20 +17,13 @@
   "Bridge the streaming results from the job-formula to the connection
    They get routed through a permanent channel to prevent close events from
    propagating"
-  [job formula-constructor conn]
+  [job conn]
   (let [pc (permanent-channel)
-        formula (formula-constructor (:params job))]
+        formula (formula/init-job-formula job)]
     (reset! current-job (assoc job :formula formula))
     (siphon pc conn)
     (siphon (formula/start-edge formula) pc)
     pc))
-
-(defn locate-and-start-job
-  [job conn]
-  "Lookup the job in the registry, start it if possible"
-  (if-let [formula-constructor (formula/lookup (:formula-name job))]
-    (start-job job formula-constructor conn)
-    (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
 
 (defn stop-job
   []
@@ -44,7 +37,7 @@
     (let [name (keyword name)
           body (keywordize-keys body)]
       (condp = name
-        :job-start (locate-and-start-job body conn)
+        :job-start (start-job body conn)
         :job-stop (stop-job)
         (log/warn (str "Client Received Unexpected Message" name " : " body))))
     (catch Exception e (log/warn e "Could not handle message!" name body))))

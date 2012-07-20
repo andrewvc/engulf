@@ -18,13 +18,14 @@
 (defn agg-pipeline
   [job]
   (let []
-    (sink->>
+    (lc/sink->>
      n-manager/emitter
      (lc/filter* (fn [[node name body]] (not= node :system)))
      (lc/map* (fn [[node name body]] body))
-     (formula/start-relay (formula/init-job job)))
-    (receive-all n-manager/emitter)
-    (formula/start-relay (formula-constructor (:params job)))
+     ;(formula/start-relay (formula/init-job-formula job))
+     )
+    ;(receive-all n-manager/emitter)
+    ;(formula/start-relay (formula-constructor (:params job)))
     (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
 
 ;; We probably don't need the lock here but it's easier than designing weird UI

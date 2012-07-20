@@ -1,4 +1,4 @@
-(ns engulf.relay-test
+(ns engulf.test.relay-test
   (:require
    [engulf.relay :as relay]
    [engulf.test.helpers :as helpers]

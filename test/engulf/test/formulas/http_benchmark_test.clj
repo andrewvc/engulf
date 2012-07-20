@@ -2,21 +2,15 @@
   (:require
    [lamina.core :as lc]
    [engulf.formulas.http-benchmark :as htb]
+   [engulf.test.helpers :as helpers]
    [engulf.formula :as fla])
   (:use midje.sweet))
 
-(def test-params
-  {:url "http://localhost:8282"
-   :method "POST"
-   :headers {"X-Bender" "Jimmy crack corn, and I don't care"}
-   :concurrency "1"
-   :timeout 10000
-   :body "a new, shiny metal body!"
-   :mock true})
+
 
 (facts
  "about initializing a benchmark"
- (let [b (htb/init-benchmark test-params)]
+ (let [b (htb/init-benchmark helpers/test-http-job-params)]
    (fact
     "it should be an engulf benchmark"
     (class b) => engulf.formulas.http_benchmark.HttpBenchmark)
@@ -26,7 +20,7 @@
 
 (facts
  "about starting an edge"
- (let [b (htb/init-benchmark test-params)
+ (let [b (htb/init-benchmark helpers/test-http-job-params)
        res-ch (fla/start-edge b)]
    (fact
     "it should return nil if it's already started"
@@ -46,7 +40,7 @@
 
 (facts
  "about starting a relay"
- (let [b (htb/init-benchmark test-params)
+ (let [b (htb/init-benchmark helpers/test-http-job-params)
        res-ch (fla/start-relay b (lc/channel))]
    (fact
     "it should return nil if it's already started"
@@ -119,5 +113,4 @@
     (count (agg :all-runtimes)) => 4)
    (fact
     "it should aggregate response codes by time-slice"
-    (agg :time-slices) => {0 {:thrown 1, 404 1, 200 2}}
-    )))
+    (agg :time-slices) => {0 {:thrown 1, 404 1, 200 2}})))

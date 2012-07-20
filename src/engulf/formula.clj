@@ -18,4 +18,4 @@
 
 (defn init-job
   [{:keys [formula-name params]}]
-  ((formula/lookup name) params))
+  ((lookup name) params))

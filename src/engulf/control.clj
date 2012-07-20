@@ -1,5 +1,6 @@
 (ns engulf.control
   (:require [engulf.comm.node-manager :as n-manager]
+            [engulf.relay :as relay]
             [engulf.job-manager :as jmgr]
             [engulf.formulas.http-benchmark :as http-benchmark]
             [engulf.formula :as formula]
@@ -11,7 +12,8 @@
 
 (defn broadcast
   [name body]
-  (lc/enqueue n-manager/receiver [name body]))
+  (lc/enqueue n-manager/receiver [name body])
+  (lc/enqueue relay/receiver [name body]))
 
 (defn agg-pipeline
   [job]

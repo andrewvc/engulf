@@ -1,25 +1,27 @@
 (ns engulf.relay
   (:require
-   [engulf.control :as ctrl]
    [clojure.tools.logging :as log]
    [engulf.formula :as formula]
+   [engulf.job-manager :as job-mgr]
    [lamina.core :as lc]))
 
-(def start-cb (agent nil))
+(def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
+(def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
+
+(def state (atom :stopped))
+(def receive-cb (atom nil))
+
+(defn handle-message
+  [[name body]]
+  (condp = name
+    :job-start (start-job body)
+    :job-stop (stop-job)
+    (log/error (str "Got unknown message " name body))))
 
 (defn start
+  "Startup the relay"
   []
-  (send start-cb
-        (fn [v]
-          (when v
-            (lc/cancel-callback v))
-          (lc/receive-all
-           ctrl/broadcast
-           (fn [m] (println "GOT M!" m))))))
-
-(defn stop
-  []
-  (send start-cb
-        (fn [v]
-          (when v
-            (lc/cancel-callback v)))))
+  (if (compare-and-set! state :stopped :started)
+    (let [cb (lc/receive-all receiver handle-message)]
+      #(fn relay-stop [] (lc/cancel-callback cb)))
+    (log/warn "Double relay start detected! Ignoring.")))

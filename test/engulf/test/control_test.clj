@@ -12,7 +12,7 @@
   `(let [srv# (ctrl/start 3493)
          wc# (wc/client-connect "localhost" 3493)
          ~watch-binding (atom {})]
-     (formula/register :mock-job
+     (formula/register :mock-formula
                      (fn [params#]
                        (MockFormula.
                         (fn mf-edge [mj#]
@@ -36,7 +36,7 @@
    {:url "http://localhost/test"
     :method "POST"
     :concurrency 3
-    :job-name :mock-job
+    :job-name :mock-formula
     :headers {"X-Foo" "Bar"}
     :body "Ohai!"})
   (Thread/sleep 1000)
@@ -52,7 +52,7 @@
    {:url "http://localhost/test"
     :method "POST"
     :concurrency 3
-    :job-name :mock-job
+    :job-name :mock-formula
     :headers {"X-Foo" "Bar"}
     :body "Ohai!"})
   (Thread/sleep 1000)

@@ -8,9 +8,7 @@
                  [com.ning/async-http-client "1.7.4"]
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
-             {:resource-paths
-              ["/usr/lib/jvm/java-6-sun/lib/tools.jar"],
-              :dependencies
+             {:dependencies
               [[org.clojure/tools.trace "0.7.3"] [midje "1.4.0"]]}}
   :repositories {"Sonatype"
                  "https://oss.sonatype.org/content/repositories/releases/"}

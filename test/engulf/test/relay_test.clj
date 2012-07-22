@@ -3,6 +3,7 @@
    [engulf.relay :as relay]
    [engulf.test.helpers :as helpers]
    [engulf.formula :as formula]
+   [engulf.utils :as utils]
    [lamina.core :as lc])
   (:use midje.sweet)
   (import engulf.test.helpers.MockFormula))
@@ -21,7 +22,7 @@
                      (reset! stopped true)))]
   (formula/register :http-benchmark (fn [_] fla))
   (relay/start)
-  (lc/enqueue relay/receiver [:job-start job])
+  (lc/enqueue relay/receiver {:name :job-start, :body job})
   (Thread/sleep 20)
   (fact
    "it should start the relay on the job formula"
@@ -37,7 +38,7 @@
    ingress => lc/channel?)
   (fact
    "it should receive messages delivered over the receiver at its point of ingress"
-   (let [m [:mock-name :mock-mody]]
+   (let [m {:job-uuid (:uuid job) :name :job-result :body "ohai"}]
      (lc/enqueue relay/receiver m)
      (Thread/sleep 20)
      @(lc/read-channel* ingress :timeout 500) => m))

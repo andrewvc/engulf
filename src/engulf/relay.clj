@@ -15,27 +15,39 @@
 
 (def current (agent nil))
 
+(defn job-ingress-channel
+  [{uuid :uuid :as job}]
+  (when (not uuid)
+    (throw (Exception. (str "Missing UUID for job!" job))))
+  (lc/filter*
+   (fn [msg]
+     (and (= :job-result (:name msg)) (= uuid (:job-uuid msg))))
+   receiver))
+
 (defn start-job
   [job]
   (utils/safe-send-off-with-result current res state
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
-    (let [fla (formula/init-job-formula job)]
-      (lc/enqueue res (formula/start-relay fla receiver))
-      {:job job :formula fla})))
+    (let [fla (formula/init-job-formula job)
+          in-ch (job-ingress-channel job)]
+      (lc/enqueue res (formula/start-relay fla in-ch))
+      {:job job :formula fla :ingress-channel in-ch})))
 
 
 (defn stop-job
   []
   (utils/safe-send-off-with-result current res state
     (when state (lc/enqueue res (formula/stop (:formula state))))
+    (lc/close (:ingress-channel state))
     nil))
 
 (defn handle-message
-  [[name body]]
+  [{:keys [name body] :as msg}]
   (condp = name
     :job-start (start-job body)
     :job-stop (stop-job)
-    (log/error (str "Got unknown message " name body))))
+    :job-result nil ;; These are handled straight off the receiver
+    (log/error (str "Got unknown message " msg))))
 
 (defn start
   "Startup the relay"

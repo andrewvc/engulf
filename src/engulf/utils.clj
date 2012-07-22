@@ -1,5 +1,5 @@
 (ns engulf.utils
-  (:import [java.util Timer TimerTask concurrent.TimeUnit]))
+  (:import [java.util Timer TimerTask concurrent.TimeUnit UUID]))
 
 (def default-timer (Timer. true))
 
@@ -36,3 +36,7 @@
                      (lc/error ~res-binding e#)
                      nil))))
      ~res-binding))
+
+(defn rand-uuid-str
+  []
+  (.toString (UUID/randomUUID)))

@@ -13,22 +13,24 @@
        stopped (atom false)
        job {:formula-name :mock-formula}
        conn-ch (lc/channel :conn-first-ch)
-       res (wc/start-job job conn-ch)]
-   (formula/register
-    :mock-formula
-    (fn [params]
-      (MockFormula. (fn wc-start [_]
-                      (reset! started true)
-                      (lc/channel :first-msg))
-                    nil
-                    (fn wc-stop [_]
-                      (reset! stopped true)))))
+       fla (MockFormula. (fn wc-start [_]
+                           (reset! started true)
+                           (lc/channel :first-msg))
+                         nil
+                         (fn wc-stop [_]
+                           (reset! stopped true)))
+       _ (formula/register :mock-formula (fn [_] fla ))
+       res @(wc/start-job job conn-ch)
+       ]
    (fact
     "it should start cleanly"
     res => truthy)
    (fact
     "it should update the current job"
-    @wc/current-job => job)
+    (:job @wc/current) => job)
+   (fact
+    "it should update the current formula"
+    (:formula @wc/current) => fla)
    (fact
     "it should start the mock job"
     @started => true)
@@ -39,5 +41,3 @@
     "it should stop correctly"
     (wc/stop-job)
     @stopped => true)))
-
-(println "done")

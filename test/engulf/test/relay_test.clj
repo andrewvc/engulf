@@ -27,6 +27,6 @@
    @started => truthy)
   (fact
    "it should stop cleanly"
-   (relay/stop-job) => truthy
-   (Thread/sleep 200)
+   @(relay/stop-job) => truthy
+   (Thread/sleep 20)
    @stopped => truthy))

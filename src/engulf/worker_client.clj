@@ -32,7 +32,8 @@
          (catch Exception e
            (log/warn e "Could not start job")
            (lc/error res e)
-           nil))))))
+           nil))))
+    res))
 
 (defn- stop-job-derefed
   "Stops the job indicated by a derefereced version of current"

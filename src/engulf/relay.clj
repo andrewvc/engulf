@@ -12,38 +12,35 @@
 (def state (atom :stopped))
 (def receive-cb (atom nil))
 
-(def current-job (agent nil))
+(def current (agent nil))
 
-(defn- stop-job-val
-  "Stops a dereferenced job value based on its :formula"
-  [job-val]
-  (try
-    (when-let [formula-inst (and job-val (:formula job-val))]
-      (formula/stop formula-inst))))
+(defmacro safe-send-off-with-result
+  "Convenience utility for managing stateful transitions returning a result channel over an agent"
+  [state-agent res-binding bindings & body]
+  `(let [~res-binding (lc/result-channel)]
+     (send-off ~state-agent
+               (fn ssowr-cb [~bindings]
+                 (try
+                   ~@body
+                   (catch Exception e#
+                     (log/warn e# "Exception during safe-send-off!")
+                     (lc/error ~res-binding e#)
+                     nil))))))
 
 (defn start-job
   [job]
-  (send-off
-   current-job
-   (fn relay-frmla-start [current-job-val]
-     (try
-       (stop-job-val current-job-val)
-       (let [formula-inst (formula/init-job-formula job)]
-         (formula/start-relay (formula/init-job-formula job) receiver)
-         (assoc job :formula formula-inst))
-       (catch Exception e
-         (log/warn e "Could not start job!"))))))
+  (safe-send-off-with-result current res state
+    (let [fla (formula/init-job-formula job)]
+      (when-let [{old-fla :formula} state] (formula/stop old-fla))
+      (lc/enqueue res (formula/start-relay fla receiver))
+      {:job job :formula fla})))
+
 
 (defn stop-job
   []
-  (send-off
-   current-job
-   (fn relay-frmla-stop [current-job-val]
-     (try
-       (stop-job-val current-job-val)
-       (catch Throwable t
-         (log/warn t (str  "Could not stop job in relay: " current-job-val))
-         (strace/print-stack-trace t))))))
+  (safe-send-off-with-result current res state
+    (when state (formula/stop (:formula state)))
+    nil))
 
 (defn handle-message
   [[name body]]

@@ -31,8 +31,7 @@
    (keys @n-manager/nodes) => [wc/uuid])
   ;; stop the server
   (server)
-  (Thread/sleep 300)
+  (Thread/sleep 500)
   (fact
    "There should no longer be any nodes"
-   @n-manager/nodes => empty?)
-  (Thread/sleep 200))
+   @n-manager/nodes => empty?))

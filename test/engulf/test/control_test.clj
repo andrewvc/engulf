@@ -15,38 +15,36 @@
          ~watch-binding (atom {})
          relay-stop# (relay/start)]
      (formula/register :mock-formula
-                     (fn [params#]
-                       (MockFormula.
-                        (fn mf-edge [mj#]
-                          (swap! ~watch-binding #(assoc %1 :start-edge true))
-                          (lc/channel))
-                        (fn mf-relay [mj# _#]
-                          (swap! ~watch-binding #(assoc %1 :start-relay true))
-                          (lc/channel))
-                        (fn mf-stop [mj#]
-                          (swap! ~watch-binding #(assoc %1 :stop true))
-                          (lc/channel)))))
+                       (fn [params#]
+                         (MockFormula.
+                          (fn mf-edge [mj#]
+                            (swap! ~watch-binding #(assoc %1 :start-edge true))
+                            (lc/channel))
+                          (fn mf-relay [mj# _#]
+                            (swap! ~watch-binding #(assoc %1 :start-relay true))
+                            (lc/channel))
+                          (fn mf-stop [mj#]
+                            (swap! ~watch-binding #(assoc %1 :stop true))
+                            (lc/channel)))))
 
      ~@body
      (srv#)
      (lc/close wc#)
      (relay-stop#)))
 
-(facts
- "starting jobs"
- (watched-run
-  seen
-  (ctrl/start-job
-   {:url "http://localhost/test"
-    :method "POST"
-    :concurrency 3
-    :job-name :mock-formula
-    :headers {"X-Foo" "Bar"}
-    :body "Ohai!"})
-  (Thread/sleep 500)
-  (fact
-   "the start-edge method should be executed"
-   (:start-edge @seen) => truthy)
-  (fact
-   "the start-relay method should be executed"
-   (:start-relay @seen) => truthy)))
+(watched-run
+ seen
+ (ctrl/start-job
+  {:url "http://localhost/test"
+   :method "POST"
+   :concurrency 3
+   :job-name :mock-formula
+   :headers {"X-Foo" "Bar"}
+   :body "Ohai!"})
+ (Thread/sleep 500)
+ (fact
+  "the start-edge method should be executed"
+  (:start-edge @seen) => truthy)
+ (fact
+  "the start-relay method should be executed"
+  (:start-relay @seen) => truthy)))

@@ -1,8 +1,9 @@
 (ns engulf.worker-client
   (:require
-   [clojure.tools.logging :as log]
+   [engulf.utils :as utils]
    [engulf.comm.netchan :as nc]
    [engulf.formula :as formula]
+   [clojure.tools.logging :as log]
    [lamina.core :as lc])
   (:use lamina.core
         [clojure.walk :only [keywordize-keys]])
@@ -18,35 +19,22 @@
    They get routed through a permanent channel to prevent close events from
    propagating"
   [job conn]
-  (let [res (lc/result-channel)]
-    (send-off
-     current
-     (fn [current]
-       (try
-         (let [pc (permanent-channel)
-               fla (formula/init-job-formula job)]
-           (siphon pc conn)
-           (siphon (formula/start-edge fla) pc)
-           (lc/enqueue res pc)
-           {:job job :formula fla})
-         (catch Exception e
-           (log/warn e "Could not start job")
-           (lc/error res e)
-           nil))))
-    res))
+  (utils/safe-send-off-with-result current res state
+    (when-let [{old-fla :formula} state] (formula/stop old-fla))
+    (let [pc (permanent-channel)
+          fla (formula/init-job-formula job)]
+      (siphon pc conn)
+      (siphon (formula/start-edge fla) pc)
+      (lc/enqueue res pc)
+      {:job job :formula fla})))
 
-(defn- stop-job-derefed
-  "Stops the job indicated by a derefereced version of current"
-  [{f :formula j :job}]
-  (try
-    (when f (formula/stop f))
-    (catch Exception e
-      (log/warn e "Could not stop job!"))))
 
 (defn stop-job
   "Stop the current job, setting current to nil"
   []
-  (send-off current stop-job-derefed))
+  (utils/safe-send-off-with-result current res state
+    (when-let [{old-fla :formula} state] (lc/enqueue res (formula/stop old-fla)))
+    nil))
 
 (defn handle-message
   [conn [name body]]

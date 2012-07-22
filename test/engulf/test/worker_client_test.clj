@@ -20,11 +20,11 @@
                          (fn wc-stop [_]
                            (reset! stopped true)))
        _ (formula/register :mock-formula (fn [_] fla ))
-       res @(wc/start-job job conn-ch)
+       res (wc/start-job job conn-ch)
        ]
    (fact
     "it should start cleanly"
-    res => truthy)
+    @res => truthy)
    (fact
     "it should update the current job"
     (:job @wc/current) => job)

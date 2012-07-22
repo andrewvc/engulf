@@ -8,16 +8,14 @@
                  [com.ning/async-http-client "1.7.4"]
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
-             {:dependencies
+             {:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+              :dependencies
               [[org.clojure/tools.trace "0.7.3"]
-               [midje "1.4.0"]
-               [lein-midje "2.0.0-SNAPSHOT"]]}}
-  :repositories {"Sonatype"
-                 "https://oss.sonatype.org/content/repositories/releases/"}
+               [midje "1.4.0"]]
+              :plugins [[lein-midje "2.0.0-SNAPSHOT"]
+                        [lein-swank "1.4.4"]]}}
   :java-source-paths ["java-src"]
-  ;:main engulf.core
+  :main ^{:skip-aot true} engulf.core
   :min-lein-version "2.0.0"
-  :jvm-opts ["-server"
-             "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-  :plugins [[lein-midje "1.0.9"] [lein-swank "1.4.4"]]
+  :jvm-opts ["-server"]
   :description "HTTP Benchmarker/Visualizer")

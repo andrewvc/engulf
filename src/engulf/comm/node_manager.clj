@@ -39,9 +39,9 @@
                       (get (alter nodes assoc uuid n)
                            uuid))))]
     (when (not (nil? new-node))
-      (lc/enqueue emitter {:entity :system
-                           :name :node-connect
-                           :body {:uuid uuid :conn conn}}))
+      (lc/enqueue emitter {"entity" "system"
+                           "name" "node-connect"
+                           "body" {"uuid" uuid "conn" conn}}))
     new-node))
           
 (defn deregister-node
@@ -49,9 +49,9 @@
   [node]
   (lc/close (:conn node))
   (when-let [r (dosync (alter nodes dissoc (:uuid node)))]
-    (lc/enqueue emitter {:entity :system
-                         :name :node-disconnect
-                         :body {:uuid (:uuid node)}})
+    (lc/enqueue emitter {"entity" "system"
+                         "name" "node-disconnect"
+                         "body" {"uuid" (:uuid node)}})
     r))
 
 (defn deregister-node-by-uuid
@@ -65,9 +65,9 @@
   (try
     (cond
      ;; Handle the initial UUID message
-     (and (nil? @uuid-atom) (= "uuid" name)) (reset! uuid-atom (register-node body conn))
+     (and (nil? @uuid-atom) (= "uuid" name)) (reset! uuid-atom (:uuid (register-node body conn)))
      ;; Handle all subsequent messages
-     @uuid-atom (lc/enqueue emitter [node name body])
+     @uuid-atom (lc/enqueue emitter {:entity @uuid-atom :name name :body body})
      ;; Send warnings when normal messages sent before a UUID
      :else (log/warn (str "Unexpected non-identity message received: " msg)))
     (catch Exception e

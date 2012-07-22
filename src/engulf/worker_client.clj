@@ -21,7 +21,7 @@
     (throw (Exception. (str "Missing UUID for job!" job))))
   (let [ch (channel* :permanent? true :grounded? true)]
     (siphon
-     (map* (fn jres-map [res] {:job-uuid uuid :result res}) ch )
+     (map* (fn jres-map [res] {:name :result :job-uuid uuid :body res}) ch )
      conn)
     ch))
 

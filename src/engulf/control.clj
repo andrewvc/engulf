@@ -47,13 +47,13 @@
   [uuid])
 
 (defn handle-system-message
-  [name body]
+  [{:strs [name {uuid "uuid" :as body}]}]
   (condp = name
-    :node-connect
-    (log/info (str "Node" (:uuid body) "connected. "
+    "node-connect"
+    (log/info (str "Node " uuid " connected. "
                    (n-manager/count-nodes) " total nodes."))
-    :node-disconnect
-    (log/info (str  "Node" (:uuid body) "disconnected. "
+    "node-disconnect"
+    (log/info (str  "Node " uuid " disconnected. "
                     (n-manager/count-nodes) "total nodes."))
     (log/warn (str "Unknown system message: " name " " body))))
 
@@ -62,13 +62,9 @@
 (defn start-router
   []
   (when (compare-and-set! router-state :idle :started)
-    (lc/receive-all
-     n-manager/emitter
-     (fn message-router [{:keys [entity name body] :as msg}]
-       (let [name (keyword name) ]
-         (condp = entity
-           :system (handle-system-message name body)
-           (println "Control router got something unexpected!" msg)))))))
+    (lc/receive-all n-manager/emitter #(log/info (str "CMS: " %)))
+    (lc/siphon (lc/filter* (fn [{n :name}] (= n :job-result)) n-manager/emitter) relay/receiver)
+    (lc/receive-all (lc/filter* (fn [{e :entity}] (= :system e)) n-manager/emitter) handle-system-message)))
 
 (defn start
   [port]

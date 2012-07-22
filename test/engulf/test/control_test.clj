@@ -37,7 +37,7 @@
   {:url "http://localhost/test"
    :method "POST"
    :concurrency 3
-   :job-name :mock-formula
+   :formula-name :mock-formula
    :headers {"X-Foo" "Bar"}
    :body "Ohai!"})
  (Thread/sleep 500)

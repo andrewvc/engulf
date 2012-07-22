@@ -25,4 +25,4 @@
    :mock true})
 
 (def test-http-job
-  @(job-manager/job :http-benchmark test-http-job-params))
+  (job-manager/job :http-benchmark test-http-job-params))

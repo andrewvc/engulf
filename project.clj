@@ -9,9 +9,11 @@
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
              {:dependencies
-              [[org.clojure/tools.trace "0.7.3"] [midje "2.0.0-SNAPSHOT"]]}}
-  ;;:repositories {"Sonatype"
-  ;;               "https://oss.sonatype.org/content/repositories/releases/"}
+              [[org.clojure/tools.trace "0.7.3"]
+               [midje "1.4.0"]
+               [lein-midje "2.0.0-SNAPSHOT"]]}}
+  :repositories {"Sonatype"
+                 "https://oss.sonatype.org/content/repositories/releases/"}
   :java-source-paths ["java-src"]
   ;:main engulf.core
   :min-lein-version "2.0.0"

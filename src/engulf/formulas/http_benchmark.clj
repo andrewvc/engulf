@@ -5,8 +5,13 @@
   (:use [engulf.formula :only [Formula register]]
         [engulf.utils :only [set-timeout]]
         [aleph.http :only [http-client http-request]]
-        [clojure.string :only [lower-case]])
-  (:import fastPercentiles.PercentileRecorder))
+        [clojure.string :only [lower-case]]
+        [clojure.walk :only [keywordize-keys]])
+  (:import fastPercentiles.PercentileRecorder
+           java.util.concurrent.Executors))
+
+(def callbacks-pool (Executors/newSingleThreadExecutor))
+(def requests-pool (Executors/newSingleThreadExecutor))
 
 (load "http_benchmark_aggregations")
 (load "http_benchmark_runner")
@@ -22,7 +27,7 @@
      (fn req-resp [res]
        (when (= @state :started) ; Discard results and don't recur when stopped
          (lc/enqueue ch res)
-         (run-repeatedly this ch runner)))))
+         (.submit requests-pool #(run-repeatedly this ch runner))))))
   Formula
   (start-relay [this ingress]
     (when (compare-and-set! state :initialized :started)

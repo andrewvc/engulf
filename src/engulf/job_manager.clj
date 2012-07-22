@@ -11,29 +11,37 @@
 
 (def current-job (ref nil))
 
+(defn job-snapshot
+  [j]
+  (assoc j :results @(:results j)))
+
+(defn current-job-snapshot
+  "A version of the current job with all concurrency references dereferenced"
+  []
+  (when-let [j @current-job] (job-snapshot j)))
+
 (defn job
   [formula-name params]
-  (ref
    {:uuid (utils/rand-uuid-str)
     :formula-name formula-name
-    :started-at (System/currentTimeMillis)
+    :started-at (utils/now)
     :ended-at   nil
-    :params params}))
+    :params params
+    :results (agent nil)})
 
 (defn register-job
-  [type params]
-  (let [j (job type params)]
+  [formula-name params]
+  (let [j (job formula-name params)]
     (dosync
-     (alter jobs assoc (:uuid @j) j)
      (ref-set current-job j)
-     @j)))
+     j)))
 
 (defn stop-job
   []
   (let [stop-time (System/currentTimeMillis)]
     (dosync
      (when @current-job
-       (alter @current-job assoc :ended-at stop-time)
+       (alter current-job assoc :ended-at stop-time)
        (ref-set current-job nil)))))
 
 (defn record-results

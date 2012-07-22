@@ -31,6 +31,7 @@
    propagating"
   [job conn]
   (utils/safe-send-off-with-result current res state
+    (log/info (str "Starting job on worker: " job))
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     (let [res-ch (job-results-channel job conn)
           fla (formula/init-job-formula job)]
@@ -57,8 +58,8 @@
         :job-start (start-job body conn)
         :job-stop (stop-job)
         (log/warn (str "Worker received unexpected msg" msg))))
-    (catch Exception e
-      (log/warn e (str "Worker could not handle message!" msg)))))
+    (catch Throwable t
+      (log/warn t (str "Worker could not handle message!" msg)))))
 
 (defn client-connect
   [host port]
@@ -66,7 +67,6 @@
     (let [conn @(nc/client-connect host port)]
       (on-closed conn (fn [] (log/warn "Connection to master closed!")))
       (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
-      
       (receive-all conn (partial handle-message conn))
       ;; Send identity immediately
       (enqueue conn {:name "uuid" :body uuid})

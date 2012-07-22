@@ -11,6 +11,11 @@
             [clojure.tools.logging :as log])
   (:import java.net.URL))
 
+(defn json-resp [status body]
+  {:status status
+   :content-type "application/json"
+   :body (json/generate-string body)})
+
 (receive-all ctrl/emitter (fn [m] "ctrl received" m))
 (def json-socket-ch (channel))
 
@@ -22,15 +27,19 @@
      (catch Exception e
        (log/warn "Could not jsonify" m)))))
 
-(defpage [:get "/control/current-job"]  {}
-  (json/generate-string @job-manager/current-job))
-
-(na/defpage-async [:post "/control/current-job"] {} conn
-  (let [parsed (json/parse-string (bytes->string (:body (:ring-request conn))))]
-    (ctrl/start-job parsed))
-  (na/async-push conn {:status 200
-                       :content-type "application/json"
-                       :body (json/generate-string {:status "OK"})}))
-
 (na/defpage-async "/control/stream" {} conn
   (receive-all json-socket-ch (fn [m] (na/async-push conn m))))
+
+
+(defpage [:get "/jobs/current"]  {}
+  (if-let [job @job-manager/current-job]
+    (json-resp 200 (job-manager/current-job-snapshot))
+    (json-resp 404 {:message "No current job!"})))
+
+(na/defpage-async [:post "/jobs/current14"] {:as params} conn
+    (try
+      (let [job (ctrl/start-job params)]
+        (na/async-push conn (json-resp 200 (job-manager/job-snapshot job))))
+      (catch Exception e
+        (log/warn e "Error starting job!")
+        (na/async-push conn (json-resp 500 {:message (str e)})))))

@@ -1,6 +1,7 @@
 (ns engulf.core
   (:require [engulf.control :as ctrl]
             [engulf.worker-client :as w-client]
+            [engulf.relay :as relay]
             [engulf.web-server :as w-server]
             [clojure.tools.logging :as log])
   (:use [clojure.tools.cli :only [cli]]
@@ -37,8 +38,11 @@
     (log/info "Starting webserver on port" (:http-port settings))
     (w-server/start-webserver (:http-port settings))
     
-    (log/info "Starting relay/manager on port" (:manager-port settings))
-    (ctrl/start (:manager-port settings)))
+    (log/info "Starting control on port" (:manager-port settings))
+    (ctrl/start (:manager-port settings))
+
+    (log/info "Starting relay")
+    (relay/start))
 
   (when (#{:combined :worker} (:mode settings))
     (log/info "Connecting worker to" (join ":"  (:connect-to settings)))

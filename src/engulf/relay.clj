@@ -27,6 +27,7 @@
 (defn start-job
   [job]
   (utils/safe-send-off-with-result current res state
+    (log/info (str "Starting job on relay: " job))
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     (let [fla (formula/init-job-formula job)
           in-ch (job-ingress-channel job)]

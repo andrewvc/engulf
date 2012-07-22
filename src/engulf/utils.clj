@@ -31,12 +31,18 @@
                (fn ssowr-cb [~bindings]
                  (try
                    ~@body
-                   (catch Exception e#
-                     (log/warn e# "Exception during safe-send-off!")
-                     (lc/error ~res-binding e#)
+                   (catch Throwable t#
+                     (log/warn t# "Exception during safe-send-off!")
+                     (lc/error ~res-binding t#)
                      nil))))
      ~res-binding))
 
 (defn rand-uuid-str
+  "Shorthand to create a stringified random UUID"
   []
   (.toString (UUID/randomUUID)))
+
+(defn now
+  "Shorthand for System/currentTimeMillis"
+  []
+  (System/currentTimeMillis))

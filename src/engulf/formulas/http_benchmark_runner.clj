@@ -1,4 +1,6 @@
 
+
+
 (defn now [] (System/currentTimeMillis))
 
 (defn result
@@ -18,40 +20,43 @@
   (assoc (result started-at ended-at)
     :status status))
 
-
 (def valid-methods #{:get :post :put :delete :patch})
 
 (defn int-val [i] (Integer/valueOf i))
 
-(defn clean-params [params]
-  ;; Ensure required keys
-  (let [diff (cset/difference #{:url :method :concurrency :timeout} params)]
-    (when (not (empty? diff))
-      (throw (Exception. (str "Invalid parameters! Missing keys: " diff)))))
-  (let [method (keyword (lower-case (:method params)))]
-    ;; Ensure only valid methods are used
-    (when (not (method valid-methods))
-      (throw (Exception. (str "Invalid method: " method " expected one of " valid-methods))))
-    ;; Transform the types of vals that need it
-    (-> params
-        (update-in [:concurrency] int-val)
-        (update-in [:timeout] int-val)
-        (assoc :method method))))
+(defn clean-params [str-params]
+  (let [params (keywordize-keys str-params)]
+    ;; Ensure required keys
+    (let [diff (cset/difference #{:url :method :concurrency :timeout} params)]
+      (when (not (empty? diff))
+        (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
+    (let [method (keyword (lower-case (:method params)))]
+      ;; Ensure only valid methods are used
+      (when (not (method valid-methods))
+        (throw (Exception. (str "Invalid method: " method " expected one of " valid-methods))))
+      ;; Transform the types of vals that need it
+      (-> params
+          (update-in [:concurrency] int-val)
+          (update-in [:timeout] int-val)
+          (assoc :method method)))))
 
 (defn run-real-request
   [params callback]
-  (let [started-at (now)]
+  (let [started-at (now)
+        req-params (into {} (filter (fn [[k v]] (#{:method :url :timeout} k))
+                                    params))]
     (letfn
         [(succ-cb [response]
            (callback (success-result started-at (now) (:status response))))
          (error-cb [throwable]
+           (log/warn throwable "Got error in http request")
            (callback (error-result started-at (now) throwable)))]
       (try
-        (lc/on-realized (http-request (juxt [:method :url :timeout] params))
-                     succ-cb
-                     error-cb)
+        (lc/on-realized (http-request req-params)
+                        #(.submit callbacks-pool (partial succ-cb %))
+                        #(.submit callbacks-pool (partial error-cb %)))
         (catch Exception e
-          (error-cb e))))))
+          (.submit callbacks-pool (partial error-cb e)))))))
 
 (defn run-mock-request
   "Fake HTTP response for testing"

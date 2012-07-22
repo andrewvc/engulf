@@ -26,7 +26,6 @@
                           (fn mf-stop [mj#]
                             (swap! ~watch-binding #(assoc %1 :stop true))
                             (lc/channel)))))
-
      ~@body
      (srv#)
      (lc/close wc#)
@@ -47,4 +46,4 @@
   (:start-edge @seen) => truthy)
  (fact
   "the start-relay method should be executed"
-  (:start-relay @seen) => truthy)))
+  (:start-relay @seen) => truthy))

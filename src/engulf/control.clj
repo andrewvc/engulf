@@ -19,31 +19,14 @@
     (lc/enqueue n-manager/receiver m)
     (lc/enqueue relay/receiver m)))
 
-(defn agg-pipeline
-  [job]
-  (let []
-    (lc/sink->>
-     n-manager/emitter
-     (lc/filter* (fn [[node name body]] (not= node :system)))
-     (lc/map* (fn [[node name body]] body))
-     ;(formula/start-relay (formula/init-job-formula job))
-     )
-    ;(receive-all n-manager/emitter)
-    ;(formula/start-relay (formula-constructor (:params job)))
-    (log/warn (str "Could not find formula for job! " (:formula-name job) " in " @formula/registry))))
-
-;; We probably don't need the lock here but it's easier than designing weird UI
-;; Failure states
-(def start-lock (Object.))
 
 (defn start-job
   [{job-name :job-name :as params}]
-  (locking start-lock
-    (log/info (str "Starting job with params: " params))
-    (let [job (jmgr/register-job job-name params)]
+  (log/info (str "Starting job with params: " params))
+  (let [job (jmgr/register-job job-name params)]
       (stop-current-job)
       (broadcast :job-start job)
-      job)))
+      job))
 
 (defn stop-current-job
   []

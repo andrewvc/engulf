@@ -15,7 +15,7 @@
 
 (defn broadcast
   [name body & optional]
-  (let [m (merge {:name name :body body} optional)]
+  (let [m (merge {"name" name "body" body} optional)]
     (lc/enqueue n-manager/receiver m)
     (lc/enqueue relay/receiver m)))
 
@@ -29,13 +29,13 @@
     (throw (Exception. "Missing formula name!")))
   (log/info (str "Starting job with params: " params))
   (let [job (jmgr/register-job formula-name params)]
-    (broadcast :job-start (dissoc job :results))
+    (broadcast "job-start" (dissoc job :results))
     job))
 
 (defn stop-current-job
   []
   (jmgr/stop-job)
-  (broadcast :job-stop nil))
+  (broadcast "job-stop" nil))
 
 (defn get-job
   [uuid])
@@ -62,8 +62,7 @@
 (defn start-router
   []
   (when (compare-and-set! router-state :idle :started)
-    (lc/receive-all n-manager/emitter #(log/info (str "CMS: " %)))
-    (lc/siphon (lc/filter* (fn [{n :name}] (= n :job-result)) n-manager/emitter) relay/receiver)
+    (lc/siphon (lc/filter* #(= "job-result" (get % "name")) n-manager/emitter) relay/receiver)
     (lc/receive-all (lc/filter* (fn [{e :entity}] (= :system e)) n-manager/emitter) handle-system-message)))
 
 (defn start

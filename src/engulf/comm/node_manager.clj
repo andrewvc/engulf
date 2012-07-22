@@ -67,7 +67,7 @@
      ;; Handle the initial UUID message
      (and (nil? @uuid-atom) (= "uuid" name)) (reset! uuid-atom (:uuid (register-node body conn)))
      ;; Handle all subsequent messages
-     @uuid-atom (lc/enqueue emitter {:entity @uuid-atom :name name :body body})
+     @uuid-atom (lc/enqueue emitter {"entity" @uuid-atom "name" name "body" body})
      ;; Send warnings when normal messages sent before a UUID
      :else (log/warn (str "Unexpected non-identity message received: " msg)))
     (catch Exception e

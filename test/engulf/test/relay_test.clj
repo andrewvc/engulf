@@ -22,7 +22,7 @@
                      (reset! stopped true)))]
   (formula/register :http-benchmark (fn [_] fla))
   (relay/start)
-  (lc/enqueue relay/receiver {:name :job-start, :body job})
+  (lc/enqueue relay/receiver {"name" "job-start", "body" job})
   (Thread/sleep 20)
   (fact
    "it should start the relay on the job formula"
@@ -38,10 +38,11 @@
    ingress => lc/channel?)
   (fact
    "it should receive messages delivered over the receiver at its point of ingress"
-   (let [m {:job-uuid (:uuid job) :name :job-result :body "ohai"}]
+   (let [results "a-fake-result"
+         m {"name" "job-result" "body" {"results" results, "job-uuid" (:uuid job) }}]
      (lc/enqueue relay/receiver m)
      (Thread/sleep 20)
-     @(lc/read-channel* ingress :timeout 500) => m))
+     @(lc/read-channel* ingress :timeout 500) => results))
   (fact
    "it should stop cleanly"
    @(relay/stop-job) => truthy

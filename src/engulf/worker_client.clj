@@ -21,7 +21,7 @@
     (throw (Exception. (str "Missing UUID for job!" job))))
   (let [ch (channel* :permanent? true :grounded? true)]
     (siphon
-     (map* (fn jres-map [res] {:name :result :job-uuid uuid :body res}) ch )
+     (map* (fn jres-map [res] {"name" "job-result" "job-uuid" uuid "body" res}) ch )
      conn)
     ch))
 
@@ -35,7 +35,10 @@
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     (let [res-ch (job-results-channel job conn)
           fla (formula/init-job-formula job)]
-      (siphon (formula/start-edge fla) res-ch)
+      (siphon
+       (map* #(hash-map "job-uuid" (:uuid job)"results" %)
+             (formula/start-edge fla))
+       res-ch)
       (lc/enqueue res res-ch)
       {:job job :formula fla :results-channel res-ch})))
 
@@ -52,11 +55,10 @@
 (defn handle-message
   [conn {:strs [name body] :as msg}]
   (try
-    (let [name (keyword name)
-          body (keywordize-keys body)]
+    (let [body (keywordize-keys body)] ;FIXME Keywordizing = bad
       (condp = name
-        :job-start (start-job body conn)
-        :job-stop (stop-job)
+        "job-start" (start-job body conn)
+        "job-stop" (stop-job)
         (log/warn (str "Worker received unexpected msg" msg))))
     (catch Throwable t
       (log/warn t (str "Worker could not handle message!" msg)))))
@@ -69,7 +71,7 @@
       (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
       (receive-all conn (partial handle-message conn))
       ;; Send identity immediately
-      (enqueue conn {:name "uuid" :body uuid})
+      (enqueue conn {"name" "uuid" "body" uuid})
       conn)
     (catch java.net.ConnectException e
       (log/warn e "Could not connect to control server!"))))

@@ -1,6 +1,3 @@
-
-
-
 (defn now [] (System/currentTimeMillis))
 
 (defn result
@@ -12,7 +9,7 @@
 (defn error-result
   [started-at ended-at throwable]
   (assoc (result started-at ended-at)
-    :status :thrown
+    :status "thrown"
     :throwable throwable))
 
 (defn success-result

@@ -15,14 +15,19 @@
 
 (def current (agent nil))
 
+(defn job-results-filter
+  "Returns a function that will only let results through for a given job UUID"
+  [uuid]
+  (fn [{name "name" {job-uuid "job-uuid"} "body" :as m}]
+    (and (= "job-result" name) (= uuid job-uuid))))
+
 (defn job-ingress-channel
   [{uuid :uuid :as job}]
   (when (not uuid)
     (throw (Exception. (str "Missing UUID for job!" job))))
-  (lc/filter*
-   (fn [msg]
-     (and (= :job-result (:name msg)) (= uuid (:job-uuid msg))))
-   receiver))
+  (->> receiver
+       (lc/filter* (job-results-filter uuid))
+       (lc/map* (fn [{{results "results"} "body"}] results))))
 
 (defn start-job
   [job]
@@ -44,11 +49,11 @@
     nil))
 
 (defn handle-message
-  [{:keys [name body] :as msg}]
+  [{:strs [name body] :as msg}]
   (condp = name
-    :job-start (start-job body)
-    :job-stop (stop-job)
-    :job-result nil ;; These are handled straight off the receiver
+    "job-start" (start-job body)
+    "job-stop" (stop-job)
+    "job-result" nil ;; These are handled straight off the receiver
     (log/error (str "Got unknown message " msg))))
 
 (defn start

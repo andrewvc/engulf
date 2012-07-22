@@ -39,16 +39,15 @@
     (.toByteArray baos)))
 
 (defn encode-msg
-    "Encodes a message using SMILE and GZIP"
-    [type body]
-    (compress-byte-array (chesh/encode-smile {:type type :body body})))
+  "Encodes a message using SMILE and GZIP"
+  [msg]
+  (compress-byte-array (chesh/encode-smile msg)))
 
 (defn decode-msg
   "Parses a GZIPed SIMLE msg, ensures it's properly formatted as well"
   [msg]
   {:post [(not= nil (first %))]}
-  (let [{:strs [type body]} (chesh/parse-smile (decompress-byte-array msg))]
-    [type body]))
+  (chesh/parse-smile (decompress-byte-array msg)))
 
 ;; Simple int32 prefixed frames
 (def wire-protocol
@@ -62,8 +61,8 @@
 
 (defn encode-frame
   "Encodes a msg into a buffer-seq suitable for gloss framing"
-  [[type body]]
-  (to-buf-seq (encode-msg type body)))
+  [msg]
+  (to-buf-seq (encode-msg msg)))
 
 (defn formatted-channel
   "Takes a channel from a tcp server or client, and returns a new channel that automatically

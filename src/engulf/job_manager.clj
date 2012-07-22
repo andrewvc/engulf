@@ -1,5 +1,6 @@
 (ns engulf.job-manager
   (require [engulf.formula :as forumla]
+           [engulf.utils :as utils]
            [lamina.core :as lc])
   (:import java.util.UUID))
 
@@ -13,12 +14,11 @@
 (defn job
   [formula-name params]
   (ref
-   {:uuid (str (UUID/randomUUID))
+   {:uuid (utils/rand-uuid-str)
     :formula-name formula-name
     :started-at (System/currentTimeMillis)
     :ended-at   nil
-    :params params
-    :results (agent {})}))
+    :params params}))
 
 (defn register-job
   [type params]

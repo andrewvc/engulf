@@ -11,9 +11,10 @@
 (declare stop-current-job)
 
 (defn broadcast
-  [name body]
-  (lc/enqueue n-manager/receiver [name body])
-  (lc/enqueue relay/receiver [name body]))
+  [name body & optional]
+  (let [m (merge {:name name :body body} optional)]
+    (lc/enqueue n-manager/receiver m)
+    (lc/enqueue relay/receiver m)))
 
 (defn agg-pipeline
   [job]
@@ -36,10 +37,9 @@
   [{job-name :job-name :as params}]
   (locking start-lock
     (log/info (str "Starting job with params: " params))
-    (let [job (jmgr/register-job job-name params)
-          serializable-job (dissoc job :results)]
+    (let [job (jmgr/register-job job-name params)]
       (stop-current-job)
-      (broadcast :job-start serializable-job)
+      (broadcast :job-start job)
       job)))
 
 (defn stop-current-job
@@ -61,7 +61,7 @@
   (condp = name
     :node-connect
     (log/info (str "Node" (:uuid body) "connected. "
-                   (n-manager/count-nodes) "total nodes."))
+                   (n-manager/count-nodes) " total nodes."))
     :node-disconnect
     (log/info (str  "Node" (:uuid body) "disconnected. "
                     (n-manager/count-nodes) "total nodes."))
@@ -74,13 +74,11 @@
   (when (compare-and-set! router-state :idle :started)
     (lc/receive-all
      n-manager/emitter
-     (fn message-router [[entity name body]]
-       (let [name (keyword name)
-             body (keywordize-keys body)]
+     (fn message-router [{:keys [entity name body] :as msg}]
+       (let [name (keyword name) ]
          (condp = entity
-           :results (println "Got results!")
            :system (handle-system-message name body)
-           (println "Got something unexpected!" entity name body)))))))
+           (println "Control router got something unexpected!" msg)))))))
 
 (defn start
   [port]

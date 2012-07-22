@@ -45,5 +45,3 @@
     "it should stop correctly"
     (wc/stop-job)
     @stopped => true)))
-
-(println "DONE")

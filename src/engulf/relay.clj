@@ -37,8 +37,9 @@
 (defn stop-job
   []
   (utils/safe-send-off-with-result current res state
-    (when state (lc/enqueue res (formula/stop (:formula state))))
-    (lc/close (:ingress-channel state))
+    (when state
+      (lc/enqueue res (formula/stop (:formula state)))
+      (lc/close (:ingress-channel state)))
     nil))
 
 (defn handle-message

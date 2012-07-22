@@ -49,16 +49,17 @@
     nil))
 
 (defn handle-message
-  [conn [name body]]
+  [conn {:strs [name body] :as msg}]
   (try
     (let [name (keyword name)
           body (keywordize-keys body)]
       (condp = name
         :job-start (start-job body conn)
         :job-stop (stop-job)
-        (log/warn (str "Client Received Unexpected Message" name " : " body))))
-    (catch Exception e (log/warn e "Could not handle message!" name body))))
-    
+        (log/warn (str "Worker received unexpected msg" msg))))
+    (catch Exception e
+      (log/warn e (str "Worker could not handle message!" msg)))))
+
 (defn client-connect
   [host port]
   (try
@@ -68,7 +69,7 @@
       
       (receive-all conn (partial handle-message conn))
       ;; Send identity immediately
-      (enqueue conn ["uuid" uuid])
+      (enqueue conn {:name "uuid" :body uuid})
       conn)
     (catch java.net.ConnectException e
       (log/warn e "Could not connect to control server!"))))

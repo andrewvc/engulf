@@ -10,6 +10,9 @@
 
 (declare stop-current-job)
 
+(def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
+(def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
+
 (defn broadcast
   [name body & optional]
   (let [m (merge {:name name :body body} optional)]

@@ -1,7 +1,8 @@
 (ns engulf.core
   (:require [engulf.control :as ctrl]
             [engulf.worker-client :as w-client]
-            [engulf.web-server :as w-server])
+            [engulf.web-server :as w-server]
+            [clojure.tools.logging :as log])
   (:use [clojure.tools.cli :only [cli]]
         [clojure.string :only [split join]]))
 
@@ -30,17 +31,17 @@
     (when (:help opts) (println banner) (System/exit 0))
     ;; These really will only change *once*
     (alter-var-root (var settings) (fn [s] (merge s opts))))
-  (println "Initializing in" (:mode settings) " mode")
+  (log/info "Initializing in" (:mode settings) " mode")
 
   (when (#{:combined :server} (:mode settings))
-    (println "Starting webserver on port" (:http-port settings))
+    (log/info "Starting webserver on port" (:http-port settings))
     (w-server/start-webserver (:http-port settings))
     
-    (println "Starting manager on port" (:manager-port settings))
+    (log/info "Starting relay/manager on port" (:manager-port settings))
     (ctrl/start (:manager-port settings)))
 
   (when (#{:combined :worker} (:mode settings))
-    (println "Connecting worker to" (join ":"  (:connect-to settings)))
+    (log/info "Connecting worker to" (join ":"  (:connect-to settings)))
     (apply w-client/client-connect (:connect-to settings)))
   
-  (println "Done initializing!"))
+  (log/info "Done initializing!"))

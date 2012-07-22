@@ -7,16 +7,15 @@
             [noir.request :as noir-req]
             [cheshire.core :as json]
             [engulf.control :as ctrl]
-            [engulf.bus :as bus]
             [engulf.job-manager :as job-manager]
             [clojure.tools.logging :as log])
   (:import java.net.URL))
 
-(receive-all bus/global (fn [m] "global bus received" m))
+(receive-all ctrl/emitter (fn [m] "ctrl received" m))
 (def json-socket-ch (channel))
 
 (receive-all
- bus/global-json-safe
+ ctrl/emitter
  (fn jsonifier [m]
    (try
      (enqueue json-socket-ch (json/generate-string m))

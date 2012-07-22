@@ -5,13 +5,14 @@
             [lamina.core :as lc]
             [cheshire.core :as chesh])
   (:use midje.sweet)
-  (import engulf.test.helpers.MockFormula))
+  (:import engulf.test.helpers.MockFormula
+           java.util.UUID))
 
 (facts
  "about starting/stopping jobs"
  (let [started (atom false)
        stopped (atom false)
-       job {:formula-name :mock-formula}
+       job {:formula-name :mock-formula :uuid (str (UUID/randomUUID))}
        conn-ch (lc/channel :conn-first-ch)
        fla (MockFormula. (fn wc-start [_]
                            (reset! started true)
@@ -32,6 +33,9 @@
     "it should update the current formula"
     (:formula @wc/current) => fla)
    (fact
+    "it should setup the results ch"
+    (:results-channel @wc/current) => lc/channel?)
+   (fact
     "it should start the mock job"
     @started => true)
    (fact
@@ -41,3 +45,5 @@
     "it should stop correctly"
     (wc/stop-job)
     @stopped => true)))
+
+(println "DONE")

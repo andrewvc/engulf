@@ -9,22 +9,38 @@
 
 (reset! relay/state :stopped)
 (let [started (atom false)
-      stopped (atom false)]
-  (relay/start)
-  (formula/register
-   :http-benchmark
-   (fn [params]
-     (MockFormula. nil
-                   (fn rly-start [_ __]
+      ingress (lc/channel)
+      stopped (atom false)
+      job helpers/test-http-job
+      fla (MockFormula. nil
+                   (fn rly-start [_ inst-ingress]
                      (reset! started true)
+                     (lc/siphon inst-ingress ingress)
                      (lc/channel :first-msg))
                    (fn rly-stop [_]
-                     (reset! stopped true)))))
-  (lc/enqueue relay/receiver [:job-start helpers/test-http-job])
+                     (reset! stopped true)))]
+  (formula/register :http-benchmark (fn [_] fla))
+  (relay/start)
+  (lc/enqueue relay/receiver [:job-start job])
   (Thread/sleep 20)
   (fact
    "it should start the relay on the job formula"
    @started => truthy)
+  (fact
+   "it should update the current job"
+    (:job @relay/current) => job)
+  (fact
+   "it should update the current formula"
+   (:formula @relay/current) => fla)
+  (fact
+   "it should provide a channel as ingress (2nd arg) to start-relay"
+   ingress => lc/channel?)
+  (fact
+   "it should receive messages delivered over the receiver at its point of ingress"
+   (let [m [:mock-name :mock-mody]]
+     (lc/enqueue relay/receiver m)
+     (Thread/sleep 20)
+     @(lc/read-channel* ingress :timeout 500) => m))
   (fact
    "it should stop cleanly"
    @(relay/stop-job) => truthy

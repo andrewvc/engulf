@@ -99,11 +99,12 @@
 
 (defn relay-aggregate
   [params initial aggs]
-  (-> initial
-      (relay-agg-totals aggs)
-      (relay-agg-times aggs)
-      (relay-agg-statuses aggs)
-      (relay-agg-percentiles aggs)))
+  (let [all-aggs (conj aggs initial)]
+    (-> initial
+        (relay-agg-totals all-aggs)
+        (relay-agg-times all-aggs)
+        (relay-agg-statuses all-aggs)
+        (relay-agg-percentiles aggs))))
 
 (defn edge-aggregate
   [params results]

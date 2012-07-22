@@ -36,7 +36,7 @@
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     (let [fla (formula/init-job-formula job)
           in-ch (job-ingress-channel job)]
-      (lc/enqueue res (formula/start-relay fla in-ch))
+      (lc/siphon (formula/start-relay fla in-ch) emitter)
       {:job job :formula fla :ingress-channel in-ch})))
 
 

@@ -33,12 +33,10 @@
     (when (compare-and-set! state :initialized :started)
       (reset! mode :relay)
       (lc/siphon
-       @(lc/run-pipeline
-         ingress
-         (partial lc/reductions*
-                  (partial relay-aggregate params)
-                  (empty-relay-aggregation params))
-         (partial lc/sample-every 250))
+       (lc/reductions*
+        (fn [initial aggs] (relay-aggregate params initial aggs))
+        (empty-relay-aggregation params)
+        (lc/partition-every 250 ingress))
        res-ch)
       res-ch))
   (start-edge [this]

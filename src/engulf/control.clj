@@ -13,6 +13,9 @@
 (def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
 (def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
 
+(lc/siphon relay/emitter emitter)
+(lc/receive-all emitter #(log/info (str "EMIT! " %)))
+
 (defn broadcast
   [name body & optional]
   (let [m (merge {"name" name "body" body} optional)]

@@ -18,10 +18,10 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 ## Hacking
 
-Engulf is a work in progresss. The currently released version is the 2.x branch.
+Engulf is a work in progresss. The *currently released version is the 2.x branch.*
 Master represents the upcoming 3.0 version, which will feature distributed operation,
-JDBC saved results, and numerous other improvements. It's currently only 40% done
-and not runnable in any significant sense.
+ saved results, a REST API, and numerous other improvements. It's currently only 70% done
+and barely runnable (with no UI). If you're interested in helping out, just ping me!
 
 ## Legacy
 

@@ -29,18 +29,24 @@
        (lc/filter* (job-results-filter uuid))
        (lc/map* (fn [{{results "results"} "body"}] results))))
 
+(defn broadcast-job-stop
+  [job]
+  lc/enqueue emitter {"entity" "system" "name" "job-stop" "body" (job-mgr/serializable job)})
+
 (defn start-job
   [job]
   (utils/safe-send-off-with-result current res state
     (log/info (str "Starting job on relay: " job))
+    
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
+    
     (let [fla (formula/init-job-formula job)
           in-ch (job-ingress-channel job)
           res-ch (formula/start-relay fla in-ch)]
-      (lc/on-closed res-ch
-       #(lc/enqueue emitter {"entity" "system" "name" "job-stop" "body" job}))
+      (lc/on-closed res-ch (partial broadcast-job-stop job))
       (lc/siphon res-ch emitter)
-      {:job job :formula fla :ingress-channel in-ch})))
+      (log/info "GOT HERE")
+      (lc/enqueue res {:job job :formula fla :ingress-channel in-ch :results-ch res-ch}))))
 
 
 (defn stop-job

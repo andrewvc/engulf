@@ -15,8 +15,6 @@
 
 (lc/siphon relay/emitter emitter)
 
-(lc/receive-all emitter #(log/info (str "EMIT! " %)))
-
 (lc/siphon
  (lc/filter* (fn [{name "name"}] (= name "job-stop")) relay/emitter)
  n-manager/receiver)
@@ -24,8 +22,7 @@
 (defn broadcast
   [name body & optional]
   (let [m (merge {"name" name "body" body} optional)]
-    (lc/enqueue n-manager/receiver m)
-    (lc/enqueue relay/receiver m)))
+    (lc/enqueue n-manager/receiver m)))
 
 (defn start-job
   [{formula-name :formula-name :as params}]
@@ -33,12 +30,16 @@
   ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
   (formula/init-job-formula {:formula-name formula-name :params params})
   (Thread/sleep 300) ;; This is a courtesy to let the old job spin down
+  
   (when (not formula-name)
     (throw (Exception. "Missing formula name!")))
+  
   (log/info (str "Starting job with params: " params))
-  (let [job (jmgr/register-job formula-name params)]
+  (let [job (jmgr/register-job formula-name params)
+        res-ch (:results-ch @(relay/start-job job))]
     (broadcast "job-start" (dissoc job :results))
-    job))
+    (lc/receive-all res-ch  #(reset! (:results job) %))
+    res-ch))
 
 (defn stop-current-job
   []

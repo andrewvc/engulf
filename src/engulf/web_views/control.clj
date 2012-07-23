@@ -16,20 +16,11 @@
    :content-type "application/json"
    :body (json/generate-string body)})
 
-(receive-all ctrl/emitter (fn [m] "ctrl received" m))
-(def json-socket-ch (channel))
-
-(receive-all
- ctrl/emitter
- (fn jsonifier [m]
-   (try
-     (enqueue json-socket-ch (json/generate-string m))
-     (catch Exception e
-       (log/warn "Could not jsonify" m)))))
-
-(na/defpage-async "/control/stream" {} conn
-  (receive-all json-socket-ch (fn [m] (na/async-push conn m))))
-
+(defn jsonify-results
+  [results]
+  (json/generate-string
+   (assoc results "percentiles"
+          (.toString (results "percentiles")))))
 
 (defpage [:get "/jobs/current"]  {}
   (if-let [job @job-manager/current-job]
@@ -38,8 +29,12 @@
 
 (na/defpage-async [:post "/jobs/current14"] {:as params} conn
     (try
-      (let [job (ctrl/start-job params)]
-        (na/async-push conn (json-resp 200 (job-manager/job-snapshot job))))
+      (let [res-ch (ctrl/start-job params)]
+        ;;(na/async-push conn (json-resp 200 (job-manager/job-snapshot job)))
+        (na/async-push conn {:status 200 :chunked true})
+        (receive-all res-ch #(na/async-push conn (str (jsonify-results %) "\n")))
+        (on-closed res-ch #(log/warn "DID IT CLOSE!!!!"))
+        (on-closed res-ch #(na/close conn)))
       (catch Exception e
         (log/warn e "Error starting job!")
         (na/async-push conn (json-resp 500 {:message (str e)})))))

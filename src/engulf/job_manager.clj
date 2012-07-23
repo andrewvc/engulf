@@ -20,6 +20,10 @@
   []
   (when-let [j @current-job] (job-snapshot j)))
 
+(defn serializable
+  [job]
+  (dissoc job :results))
+
 (defn job
   [formula-name params]
    {:uuid (utils/rand-uuid-str)
@@ -27,7 +31,7 @@
     :started-at (utils/now)
     :ended-at   nil
     :params params
-    :results (agent nil)})
+    :results (atom nil)})
 
 (defn register-job
   [formula-name params]

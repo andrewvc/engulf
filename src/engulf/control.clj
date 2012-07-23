@@ -13,14 +13,9 @@
 
 (lc/siphon relay/emitter emitter)
 
-(lc/siphon
- (lc/filter* (fn [{name "name"}] (= name "job-stop")) relay/emitter)
- n-manager/receiver)
-
 (defn broadcast
-  [name body & optional]
-  (let [m (merge {"name" name "body" body} optional)]
-    (lc/enqueue n-manager/receiver m)))
+  [name body]
+  (lc/enqueue n-manager/receiver {"name" name "body" body}))
 
 (defn stop-job
   []
@@ -42,6 +37,7 @@
         start-res @(relay/start-job job)]
     (broadcast "job-start" (dissoc job :results))
     (jmgr/record-results job (:results-ch start-res))
+    (lc/on-closed (:results-ch start-res) #(stop-job))
     start-res))
 
 (defn get-job
@@ -69,8 +65,12 @@
 (defn start-router
   []
   (when (compare-and-set! router-state :idle :started)
-    (lc/siphon (lc/filter* #(= "job-result" (get % "name")) n-manager/emitter) relay/receiver)
-    (lc/receive-all (lc/filter* (fn [{e :entity}] (= :system e)) n-manager/emitter) handle-system-message)))
+    (lc/siphon
+     (lc/filter* #(= "job-result" (get % "name")) n-manager/emitter)
+     relay/receiver)
+    (lc/receive-all
+     (lc/filter* (fn [{e "entity"}] (= "system" e)) n-manager/emitter)
+     handle-system-message)))
 
 (defn start
   [port]

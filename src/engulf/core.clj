@@ -34,7 +34,7 @@
     (alter-var-root (var settings) (fn [s] (merge s opts))))
   (log/info "Initializing in" (:mode settings) " mode")
 
-  (when (#{:combined :server} (:mode settings))
+  (when (#{:combined :master} (:mode settings))
     (log/info "Starting webserver on port" (:http-port settings))
     (w-server/start-webserver (:http-port settings))
     
@@ -46,6 +46,6 @@
 
   (when (#{:combined :worker} (:mode settings))
     (log/info "Connecting worker to" (join ":"  (:connect-to settings)))
-    (apply w-client/client-connect (:connect-to settings)))
+    (apply w-client/start (:connect-to settings)))
   
   (log/info "Done initializing!"))

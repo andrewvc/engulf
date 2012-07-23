@@ -24,7 +24,6 @@
 
 (defn async-stream
   [conn ch]
-  (log/warn "STREAMING RESPONSE")
   (na/async-push conn {:status 200 :chunked true})
   (receive-all ch #(na/async-push conn (str (json/generate-string %) "\n")))
   (on-closed ch #(na/close conn)))

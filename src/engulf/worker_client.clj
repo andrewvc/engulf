@@ -67,6 +67,8 @@
   [host port]
   (try
     (let [conn @(nc/client-connect host port)]
+      (log/info "Connected to relay!")
+      
       (on-closed conn (fn [] (log/warn "Connection to master closed!")))
       (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
       (receive-all conn (partial handle-message conn))
@@ -75,3 +77,9 @@
       conn)
     (catch java.net.ConnectException e
       (log/warn e "Could not connect to control server!"))))
+
+(defn start
+  "Starts the worker client. Should be done once per process max."
+  [host port]
+  (utils/set-interval 15000 #(log/info (str "Worker State: " @current)))
+  (client-connect host port))

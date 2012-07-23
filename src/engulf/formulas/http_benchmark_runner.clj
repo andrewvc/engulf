@@ -47,7 +47,7 @@
         [(succ-cb [response]
            (callback (success-result started-at (now) (:status response))))
          (error-cb [throwable]
-           (log/warn throwable "Got error in http request")
+           (log/warn throwable "Error executing HTTP Request")
            (callback (error-result started-at (now) throwable)))]
       (try
         (lc/on-realized (http-request req-params)

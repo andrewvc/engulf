@@ -73,7 +73,7 @@
   [conn client-info]
   (let [uuid (atom nil)]
     ;; Send broadcast messages to the client
-    (lc/receive-all receiver (fn [m] (lc/enqueue conn m)))
+    (lc/siphon receiver conn)
     (lc/receive-all conn (fn [m] (conn-handler m uuid conn)))
     (lc/on-error    conn (fn [e] (log/warn e "Server Channel Error!") ))
     (lc/on-closed   conn (fn []  (deregister-node-by-uuid @uuid)))))

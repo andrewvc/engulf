@@ -47,7 +47,7 @@
         ;; Kick off the async workers
         (dotimes [t (Integer/valueOf (:concurrency params))]
           (run-repeatedly this http-res-ch runner))
-        ;; Every 250ms siphon out a chunk of the output to the res-ch
+        ;; Output is time-constrained for efficient messaging
         (lc/siphon 
          (lc/map* (partial edge-aggregate params)
                   (lc/partition-every 250 http-res-ch))

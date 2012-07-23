@@ -43,3 +43,9 @@
     (catch Exception e
       (log/warn e "Error starting job!")
       (na/async-push conn (json-resp 500 {:message (str e)})))))
+
+
+(defpage [:delete "/jobs/current"] {}
+  (if-let [stopped (ctrl/stop-job)]
+    (json-resp 200 {:job (job-manager/serializable )})
+    (json-resp 404 {})))

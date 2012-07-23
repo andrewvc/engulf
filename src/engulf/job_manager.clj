@@ -22,7 +22,7 @@
 
 (defn serializable
   [job]
-  (dissoc job :results))
+  (assoc job :results @(:results job)))
 
 (defn record-results
   "Given a job and a channel, will store the latest value of the channel in the results for that job"
@@ -51,4 +51,5 @@
     (dosync
      (when @current-job
        (alter current-job assoc :ended-at stop-time)
-       (ref-set current-job nil)))))
+       (ref-set current-job nil)
+       @current-job))))

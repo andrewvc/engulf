@@ -8,8 +8,6 @@
             [clojure.tools.logging :as log])
   (:use [clojure.walk :only [keywordize-keys]]))
 
-(declare stop-current-job)
-
 (def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
 (def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
 
@@ -24,9 +22,15 @@
   (let [m (merge {"name" name "body" body} optional)]
     (lc/enqueue n-manager/receiver m)))
 
+(defn stop-job
+  []
+  (broadcast "job-stop" nil)
+  (relay/stop-job)
+  (jmgr/stop-job))
+
 (defn start-job
   [{formula-name :formula-name :as params}]
-  (stop-current-job)
+  (stop-job)
   ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
   (formula/init-job-formula {:formula-name formula-name :params params})
   
@@ -39,11 +43,6 @@
     (broadcast "job-start" (dissoc job :results))
     (jmgr/record-results job (:results-ch start-res))
     start-res))
-
-(defn stop-current-job
-  []
-  (jmgr/stop-job)
-  (broadcast "job-stop" nil))
 
 (defn get-job
   [uuid])

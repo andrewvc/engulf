@@ -66,7 +66,7 @@
          res-ch)
         res-ch)))
   (stop [this]
-    (log/info (str "Stopping job in " @mode))
+    (log/info (str "Stopping job on " @mode))
     (reset! state :stopped)
     (lc/close res-ch)
     (lc/closed? res-ch)))

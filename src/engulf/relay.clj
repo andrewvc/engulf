@@ -45,7 +45,6 @@
           res-ch (formula/start-relay fla in-ch)]
       (lc/on-closed res-ch (partial broadcast-job-stop job))
       (lc/siphon res-ch emitter)
-      (log/info "GOT HERE")
       (lc/enqueue res {:job job :formula fla :ingress-channel in-ch :results-ch res-ch}))))
 
 

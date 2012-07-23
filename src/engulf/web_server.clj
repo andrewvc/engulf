@@ -4,7 +4,7 @@
    lamina.core)
   (:require [noir.server :as nr-server]
             engulf.web-views.index
-            engulf.web-views.control))
+            engulf.web-views.jobs))
 
 (defn start-webserver [port]
   (let [noir-handler (nr-server/gen-handler :dev)]

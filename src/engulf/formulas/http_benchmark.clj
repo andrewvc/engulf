@@ -34,13 +34,13 @@
       (when (not (compare-and-set! mode :unknown :relay))
         (throw (Exception. "Attempted to double-change formula mode!")))
       
-      ;; Set quantized reduction pipeline
-      (lc/siphon
-       (lc/reductions*
-        (fn [initial aggs] (relay-aggregate params initial aggs))
-        (empty-relay-aggregation params)
-        (lc/partition-every 100 ingress))
-       res-ch)
+      ;; Setup quantized reduction pipeline
+      (let [reduced (lc/reductions*
+                     (fn [initial aggs] (relay-aggregate params initial aggs))
+                     (empty-relay-aggregation params)
+                     (lc/partition-every 100 ingress))
+            jsonified (lc/map* relay-agg-jsonify reduced)]
+        (lc/siphon jsonified res-ch))
 
       ;; Monitor for job end
       (lc/receive-all

@@ -29,17 +29,16 @@
   (stop-current-job)
   ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
   (formula/init-job-formula {:formula-name formula-name :params params})
-  (Thread/sleep 300) ;; This is a courtesy to let the old job spin down
   
   (when (not formula-name)
     (throw (Exception. "Missing formula name!")))
   
   (log/info (str "Starting job with params: " params))
   (let [job (jmgr/register-job formula-name params)
-        res-ch (:results-ch @(relay/start-job job))]
+        start-res @(relay/start-job job)]
     (broadcast "job-start" (dissoc job :results))
-    (lc/receive-all res-ch  #(reset! (:results job) %))
-    res-ch))
+    (jmgr/record-results job (:results-ch start-res))
+    start-res))
 
 (defn stop-current-job
   []

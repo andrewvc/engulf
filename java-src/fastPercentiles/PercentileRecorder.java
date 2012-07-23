@@ -101,7 +101,6 @@ public class PercentileRecorder {
             }
 
             if (count == 0) {
-                dataLock.unlock();
                 return results;
             }
             

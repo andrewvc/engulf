@@ -1,4 +1,4 @@
-(ns engulf.web-views.control
+(ns engulf.web-views.jobs
   (:use engulf.utils
         noir.core
         lamina.core
@@ -22,19 +22,24 @@
    (assoc results "percentiles"
           (.toString (results "percentiles")))))
 
+(defn async-stream
+  [conn ch]
+  (log/warn "STREAMING RESPONSE")
+  (na/async-push conn {:status 200 :chunked true})
+  (receive-all ch #(na/async-push conn (str (json/generate-string %) "\n")))
+  (on-closed ch #(na/close conn)))
+
 (defpage [:get "/jobs/current"]  {}
   (if-let [job @job-manager/current-job]
     (json-resp 200 (job-manager/current-job-snapshot))
     (json-resp 404 {:message "No current job!"})))
 
-(na/defpage-async [:post "/jobs/current14"] {:as params} conn
-    (try
-      (let [res-ch (ctrl/start-job params)]
-        ;;(na/async-push conn (json-resp 200 (job-manager/job-snapshot job)))
-        (na/async-push conn {:status 200 :chunked true})
-        (receive-all res-ch #(na/async-push conn (str (jsonify-results %) "\n")))
-        (on-closed res-ch #(log/warn "DID IT CLOSE!!!!"))
-        (on-closed res-ch #(na/close conn)))
-      (catch Exception e
-        (log/warn e "Error starting job!")
-        (na/async-push conn (json-resp 500 {:message (str e)})))))
+(na/defpage-async [:post "/jobs/current"] {:as params} conn
+  (try
+    (let [{:keys [results-ch job]} (ctrl/start-job params)]
+      (if (= (:_stream params) "true")
+        (async-stream conn results-ch)
+        (na/async-push conn (json-resp 200 (job-manager/job-snapshot job)))))
+    (catch Exception e
+      (log/warn e "Error starting job!")
+      (na/async-push conn (json-resp 500 {:message (str e)})))))

@@ -24,6 +24,11 @@
   [job]
   (dissoc job :results))
 
+(defn record-results
+  "Given a job and a channel, will store the latest value of the channel in the results for that job"
+  [job ch]
+  (lc/receive-all ch #(reset! (:results job) %)))
+
 (defn job
   [formula-name params]
    {:uuid (utils/rand-uuid-str)
@@ -47,8 +52,3 @@
      (when @current-job
        (alter current-job assoc :ended-at stop-time)
        (ref-set current-job nil)))))
-
-(defn record-results
-  [uuid results]
-  (send (:results  (get jobs uuid))
-        '(fn rec-res-reduce [] (formula/result-reduce results))))

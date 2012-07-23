@@ -97,6 +97,25 @@
         (.record recorder (int-array (agg "all-runtimes"))))))
   stats)
 
+(defn format-percentiles
+  "Takes a fastPercentiles.Percentile[] and formats it as [{},{},...]"
+  [unformatted]
+  (vec (map (fn [p]
+         {:avg (.getAvg p)
+          :min (.getMin p)
+          :max (.getMax p)
+          :median (.getMedian p)
+          :count (.getCount p)
+          :total (.getTotal p)})
+       unformatted)))
+
+(defn relay-agg-jsonify
+  "Take a relay aggregation and turn it into a structure suitable for JSON"
+  [agg]
+  (assoc agg "percentiles"
+    (format-percentiles
+     (.percentiles ^PercentileRecorder (agg "percentiles")))))
+
 (defn relay-aggregate
   [params initial aggs]
   (let [all-aggs (conj aggs initial)]

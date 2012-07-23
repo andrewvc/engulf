@@ -17,17 +17,24 @@
 (load "http_benchmark_runner")
 
 (defprotocol IHttpBenchmark
-  (run-repeatedly [this ch runner]))
+  (run-repeatedly [this ch runner] [this ch runner client req-params]))
 
 (defrecord HttpBenchmark [state params res-ch mode]
   IHttpBenchmark
-  (run-repeatedly [this ch runner]
-    (runner
-     params
-     (fn req-resp [res]
-       (when (= @state :started) ; Discard results and don't recur when stopped
-         (lc/enqueue ch res)
-         (run-repeatedly this ch runner)))))
+  (run-repeatedly
+    [this ch runner]
+    (let [req-pkeys #{:method :url :timeout :keep-alive?}
+          req-params (into {} (filter (fn [[k v]] (req-pkeys k)) params))
+          client (http-client {:url (:url req-params)})]
+      (run-repeatedly this ch runner client req-params)))
+  (run-repeatedly
+    [this ch runner client req-params]
+    (runner client
+            req-params
+            (fn req-resp [res]
+              (when (= @state :started) 
+                (lc/enqueue ch res)
+                (run-repeatedly this ch runner client req-params)))))
   Formula
   (start-relay [this ingress]
     (when (compare-and-set! state :initialized :started)

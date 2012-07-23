@@ -36,23 +36,24 @@
           (update-in [:concurrency] int-val)
           (update-in [:timeout] int-val)
           (update-in [:limit] int-val)
+          (assoc :keep-alive? #(not= "false" (:keep-alive params)))
           (assoc :method method)))))
 
 (defn run-real-request
-  [params callback]
-  (let [started-at (now)
-        req-params (into {} (filter (fn [[k v]] (#{:method :url :timeout} k))
-                                    params))]
+  [client req-params callback]
+  (let [started-at (now)]
     (letfn
         [(succ-cb [response]
            (callback (success-result started-at (now) (:status response))))
+         (enqueue-succ-cb [response]
+           (.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb response)))
          (error-cb [throwable]
            (log/warn throwable "Error executing HTTP Request")
-           (callback (error-result started-at (now) throwable)))]
+           (callback (error-result started-at (now) throwable)))
+         (enqueue-error-cb [throwable]
+           (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb throwable)))]
       (try
-        (lc/on-realized (http-request req-params)
-                        #(.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb %))
-                        #(.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb %)))
+        (lc/on-realized (http-request req-params) enqueue-succ-cb enqueue-error-cb)
         (catch Exception e
           (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb e)))))))
 

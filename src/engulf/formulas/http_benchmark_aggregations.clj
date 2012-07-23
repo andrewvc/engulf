@@ -48,7 +48,7 @@
 
 (defn edge-agg-percentiles
   [{rps "percentiles" :as stats} results]
-  (doseq [{e :ended-at s :started-at} results] (.record rps (- e s)))
+  (doseq [{e :ended-at s :started-at} results] (.record ^PercentileRecorder rps ^int (int (- e s))))
   stats)
 
 (defn edge-agg-time-slices
@@ -90,7 +90,7 @@
 (defn relay-agg-percentiles
   "Handles both list and PercentileRecorder data"
   [stats aggs]
-  (let [recorder (stats "percentiles")]
+  (let [^PercentileRecorder recorder (stats "percentiles")]
     (doseq [agg aggs]
       (if-let [agg-rec (agg "percentiles")]
         (.merge recorder agg-rec)

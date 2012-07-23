@@ -51,10 +51,10 @@
            (callback (error-result started-at (now) throwable)))]
       (try
         (lc/on-realized (http-request req-params)
-                        #(.submit callbacks-pool (partial succ-cb %))
-                        #(.submit callbacks-pool (partial error-cb %)))
+                        #(.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb %))
+                        #(.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb %)))
         (catch Exception e
-          (.submit callbacks-pool (partial error-cb e)))))))
+          (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb e)))))))
 
 (defn run-mock-request
   "Fake HTTP response for testing"

@@ -1,9 +1,9 @@
 (ns engulf.utils
   (:import [java.util Timer TimerTask concurrent.TimeUnit UUID]))
 
-(def default-timer (Timer. true))
+(def default-timer ^Timer (Timer. true))
 
-(defn- fn->timer-task [func]
+(defn- fn->timer-task ^TimerTask [func]
   (proxy [TimerTask] []
         (run [] (func))))
 
@@ -12,7 +12,7 @@
   ([millis func] (set-timeout default-timer millis func))
   ([timer millis func]
     (let [timer-task (fn->timer-task func)]
-      (.schedule timer timer-task (long millis))
+      (.schedule ^Timer timer ^TimerTask timer-task ^long (long millis))
       timer-task)))
 
 (defn set-interval
@@ -20,7 +20,7 @@
   ([millis func] (set-interval default-timer millis func))
   ([timer millis func]
     (let [timer-task (fn->timer-task func)]
-      (.schedule timer timer-task  (long 0) (long millis))
+      (.schedule ^Timer timer ^TimerTask timer-task  (long 0) (long millis))
       timer-task)))
 
 (defmacro safe-send-off-with-result

@@ -8,10 +8,10 @@
         [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])
   (:import fastPercentiles.PercentileRecorder
-           java.util.concurrent.Executors))
+           java.util.concurrent.Executors
+           java.util.concurrent.ExecutorService))
 
 (def callbacks-pool (Executors/newSingleThreadExecutor))
-(def requests-pool (Executors/newSingleThreadExecutor))
 
 (load "http_benchmark_aggregations")
 (load "http_benchmark_runner")
@@ -27,7 +27,7 @@
      (fn req-resp [res]
        (when (= @state :started) ; Discard results and don't recur when stopped
          (lc/enqueue ch res)
-         (.submit requests-pool #(run-repeatedly this ch runner))))))
+         (run-repeatedly this ch runner)))))
   Formula
   (start-relay [this ingress]
     (when (compare-and-set! state :initialized :started)
@@ -57,12 +57,12 @@
       (let [http-res-ch (lc/channel)
             runner (if (:mock params) run-mock-request run-real-request)]
         ;; Kick off the async workers
-        (dotimes [t (Integer/valueOf (:concurrency params))]
+        (dotimes [t (:concurrency params)]
           (run-repeatedly this http-res-ch runner))
         ;; Output is time-constrained for efficient messaging
         (lc/siphon 
          (lc/map* (partial edge-aggregate params)
-                  (lc/partition-every 250 http-res-ch))
+                  (lc/partition-every 100 http-res-ch))
          res-ch)
         res-ch)))
   (stop [this]

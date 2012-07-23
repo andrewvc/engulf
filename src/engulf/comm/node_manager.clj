@@ -3,13 +3,9 @@
             [engulf.comm.netchan :as nc]
             [clojure.tools.logging :as log]))
 
-;; Permanent channel streaming events from all nodes
-;; Dynamic for testing
-(def ^:dynamic emitter (lc/permanent-channel))
-(lc/ground emitter)
 
-(def ^:dynamic receiver (lc/permanent-channel))
-(lc/ground receiver)
+(def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
+(def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
 
 (def nodes (ref {}))
 

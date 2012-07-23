@@ -35,8 +35,11 @@
     (log/info (str "Starting job on relay: " job))
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     (let [fla (formula/init-job-formula job)
-          in-ch (job-ingress-channel job)]
-      (lc/siphon (formula/start-relay fla in-ch) emitter)
+          in-ch (job-ingress-channel job)
+          res-ch (formula/start-relay fla in-ch)]
+      (lc/on-closed res-ch
+       #(lc/enqueue emitter {"entity" "system" "name" "job-stop" "body" job}))
+      (lc/siphon res-ch emitter)
       {:job job :formula fla :ingress-channel in-ch})))
 
 

@@ -2,7 +2,7 @@
   (:require [lamina.core :as lc]
             [clojure.tools.logging :as log]
             [clojure.set :as cset])
-  (:use [engulf.formula :only [Formula register]]
+  (:use [engulf.formula :only [Formula register stop]]
         [engulf.utils :only [set-timeout]]
         [aleph.http :only [http-client http-request]]
         [clojure.string :only [lower-case]]
@@ -31,17 +31,29 @@
   Formula
   (start-relay [this ingress]
     (when (compare-and-set! state :initialized :started)
-      (reset! mode :relay)
+      (when (not (compare-and-set! mode :unknown :relay))
+        (throw (Exception. "Attempted to double-change formula mode!")))
+      
+      ;; Set quantized reduction pipeline
       (lc/siphon
        (lc/reductions*
         (fn [initial aggs] (relay-aggregate params initial aggs))
         (empty-relay-aggregation params)
-        (lc/partition-every 250 ingress))
+        (lc/partition-every 100 ingress))
        res-ch)
+
+      ;; Monitor for job end
+      (lc/receive-all
+       (lc/fork res-ch)
+       (fn [results]
+         (when (>= (results "runs-total") (:limit params))
+           (stop this))))
+      
       res-ch))
   (start-edge [this]
     (when (compare-and-set! state :initialized :started)
-      (reset! mode :edge)
+      (when (not (compare-and-set! mode :unknown :edge))
+        (throw (Exception. "Attempted to double-change formula mode!")))
       (let [http-res-ch (lc/channel)
             runner (if (:mock params) run-mock-request run-real-request)]
         ;; Kick off the async workers
@@ -54,6 +66,7 @@
          res-ch)
         res-ch)))
   (stop [this]
+    (log/info "Stopping job")
     (reset! state :stopped)
     (lc/close res-ch)
     (lc/closed? res-ch)))

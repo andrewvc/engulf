@@ -24,7 +24,7 @@
 (defn clean-params [str-params]
   (let [params (keywordize-keys str-params)]
     ;; Ensure required keys
-    (let [diff (cset/difference #{:url :method :concurrency :timeout} params)]
+    (let [diff (cset/difference #{:url :method :concurrency :timeout :limit} params)]
       (when (not (empty? diff))
         (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
     (let [method (keyword (lower-case (:method params)))]
@@ -35,6 +35,7 @@
       (-> params
           (update-in [:concurrency] int-val)
           (update-in [:timeout] int-val)
+          (update-in [:limit] int-val)
           (assoc :method method)))))
 
 (defn run-real-request

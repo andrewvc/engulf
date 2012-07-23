@@ -14,7 +14,12 @@
 (def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
 
 (lc/siphon relay/emitter emitter)
+
 (lc/receive-all emitter #(log/info (str "EMIT! " %)))
+
+(lc/siphon
+ (lc/filter* (fn [{name "name"}] (= name "job-stop")) relay/emitter)
+ n-manager/receiver)
 
 (defn broadcast
   [name body & optional]

@@ -4,8 +4,8 @@
             [clojure.tools.logging :as log]))
 
 
-(def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
-(def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
+(def ^:dynamic receiver (lc/channel* :grounded? true :permanent? true))
+(def ^:dynamic emitter (lc/channel* :grounded? true :permanent? true))
 
 (def nodes (ref {}))
 

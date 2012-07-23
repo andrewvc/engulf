@@ -54,13 +54,12 @@ public class PercentileRecorder {
         }
     }
 
-    public void record(List<Integer> values) {
+    public void record(int[] values) {
         dataLock.lock();
         
         try {
-            Iterator<Integer> it = values.iterator();
-            while (it.hasNext()) {
-                recordUnsafe(it.next());
+            for (int i = 0; i < values.length; i++) {
+                recordUnsafe(values[i]);
             }
         } finally {
             dataLock.unlock();

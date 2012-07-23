@@ -94,7 +94,7 @@
     (doseq [agg aggs]
       (if-let [agg-rec (agg "percentiles")]
         (.merge recorder agg-rec)
-        (.record recorder (agg "all-runtimes")))))
+        (.record recorder (int-array (agg "all-runtimes"))))))
   stats)
 
 (defn relay-aggregate

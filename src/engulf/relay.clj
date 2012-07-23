@@ -7,8 +7,8 @@
    [clojure.tools.logging :as log]
    [lamina.core :as lc]))
 
-(def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
-(def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
+(def ^:dynamic receiver (lc/channel* :grounded? true :permanent? true))
+(def ^:dynamic emitter (lc/channel* :grounded? true :permanent? true))
 
 (def state (atom :stopped))
 (def receive-cb (atom nil))

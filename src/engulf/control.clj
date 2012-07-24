@@ -13,13 +13,9 @@
 
 (lc/siphon relay/emitter emitter)
 
-(defn broadcast
-  [name body]
-  (lc/enqueue n-manager/receiver {"name" name "body" body}))
-
 (defn stop-job
   []
-  (broadcast "job-stop" nil)
+  (lc/enqueue n-manager/receiver {"name" "job-stop"})
   (relay/stop-job)
   (jmgr/stop-job))
 
@@ -35,7 +31,8 @@
   (log/info (str "Starting job with params: " params))
   (let [job (jmgr/register-job formula-name params)
         start-res @(relay/start-job job)]
-    (broadcast "job-start" (dissoc job :results))
+    (lc/enqueue n-manager/receiver {"name" "job-start"
+                                    "body" (jmgr/serializable job)})
     (jmgr/record-results job (:results-ch start-res))
     (lc/on-closed (:results-ch start-res) #(stop-job))
     start-res))

@@ -37,7 +37,6 @@
 (na/defpage-async [:post "/jobs/current"] {} conn
   (try
     (let [params (walk/keywordize-keys (json/parse-string (na/request-body-str conn)))
-          _ (println "GOT PARAMS" params)
           {:keys [results-ch job]} (ctrl/start-job params)]
       (if (= (:_stream params) "true")
         (async-stream conn results-ch)

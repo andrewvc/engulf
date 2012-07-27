@@ -25,7 +25,8 @@
     [this ch runner]
     (let [req-pkeys #{:method :url :timeout :keep-alive?}
           req-params (into {} (filter (fn [[k v]] (req-pkeys k)) params))
-          client (http-client {:url (:url req-params)})]
+          client (http-client {:url (:url req-params)
+                               :keep-alive? (:keep-alive? req-params)})]
       (run-repeatedly this ch runner client req-params)))
   (run-repeatedly
     [this ch runner client req-params]

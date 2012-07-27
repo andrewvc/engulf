@@ -53,7 +53,7 @@
          (enqueue-error-cb [throwable]
            (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb throwable)))]
       (try
-        (lc/on-realized (http-request req-params) enqueue-succ-cb enqueue-error-cb)
+        (lc/on-realized (client req-params) enqueue-succ-cb enqueue-error-cb)
         (catch Exception e
           (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb e)))))))
 

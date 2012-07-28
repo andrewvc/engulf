@@ -6,6 +6,10 @@
                  [log4j/log4j "1.2.16"]
                  [org.slf4j/slf4j-simple "1.6.4"]
                  [com.ning/async-http-client "1.7.4"]
+                 [org.xerial/sqlite-jdbc "3.6.16"]
+                 [korma "0.3.0-beta9"]
+                 [ragtime "0.2.1"]
+                 [ragtime/ragtime.sql "0.2.1"]
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
              {:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]

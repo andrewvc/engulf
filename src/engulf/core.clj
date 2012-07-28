@@ -1,5 +1,6 @@
 (ns engulf.core
-  (:require [engulf.control :as ctrl]
+  (:require [engulf.migrations :as migrations]
+            [engulf.control :as ctrl]
             [engulf.worker-client :as w-client]
             [engulf.relay :as relay]
             [engulf.web-server :as w-server]

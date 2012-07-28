@@ -1,13 +1,22 @@
 (ns engulf.job-manager
-  (require [engulf.formula :as forumla]
-           [engulf.utils :as utils]
-           [lamina.core :as lc])
+  (:require [engulf.formula :as forumla]
+            [engulf.utils :as utils]
+            [lamina.core :as lc])
+  (:use korma.db korma.core)
   (:import java.util.UUID))
+
+(defdb db {:classname "org.sqlite.JDBC"
+           :subprotocol "sqlite"
+           :subname "engulf.sqlite3"})
+
+(defentity jobs)
+
+;;(insert jobs        (values         {:uuid (utils/rand-uuid-str)          :formula_name "test-formula-name"          :started_at (utils/now)          :ended_at  123          :params "test-params"          }))
+
+;;(println "JOBS: " (select jobs (limit 10)))
 
 (def emitter (lc/permanent-channel))
 (lc/ground emitter)
-
-(def jobs (ref {}))
 
 (def current-job (ref nil))
 

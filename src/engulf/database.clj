@@ -8,7 +8,7 @@
   (:use korma.db korma.core)
   (:import java.util.UUID))
 
-(defn db-connect
+(defn connect
   "Connect to the db specified in settings"
   []
   (defdb db (assoc (:jdbc settings/all)

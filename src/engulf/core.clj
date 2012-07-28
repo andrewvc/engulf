@@ -33,7 +33,7 @@
 
   (when (#{:combined :master} (:mode settings/all))
     (log/info "Connecting to DB")
-    (database/db-connect)
+    (database/connect)
     
     (log/info "Checking for DB Migrations")
     (migrations/ensure-all)

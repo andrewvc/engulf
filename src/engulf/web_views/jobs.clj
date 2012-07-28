@@ -7,7 +7,7 @@
             [noir.request :as noir-req]
             [cheshire.core :as json]
             [engulf.control :as ctrl]
-            [engulf.job-manager :as job-manager]
+            [engulf.job-manager :as jmgr]
             [clojure.tools.logging :as log]
             [clojure.walk :as walk])
   (:import java.net.URL))
@@ -29,9 +29,20 @@
   (receive-all ch #(na/async-push conn (str (json/generate-string %) "\n")))
   (on-closed ch #(na/close-connection conn)))
 
+(defpage "/jobs/:uuid" {:keys [uuid]}
+  (if-let [job (jmgr/find-job-by-uuid uuid)]
+    (json-resp 200 job)
+    (json-resp 404 {:message "Not found!"})))
+
+(defpage "/jobs" {:keys [page per-page]}
+  (let [page (if page (Integer/valueOf page) 1)
+        per-page (if per-page (Integer/valueOf per-page) 10)
+        jobs (jmgr/paginated-jobs page per-page :desc)]
+    (json-resp 200 jobs)))
+
 (defpage [:get "/jobs/current"]  {}
-  (if-let [job @job-manager/current-job]
-    (json-resp 200 @job-manager/current-job)
+  (if-let [job @jmgr/current-job]
+    (json-resp 200 @jmgr/current-job)
     (json-resp 404 {:message "No current job!"})))
 
 (na/defpage-async [:post "/jobs/current"] {} conn

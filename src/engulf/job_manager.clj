@@ -11,6 +11,15 @@
 
 (def current-job (ref nil))
 
+(defn job
+  "Creates a new job map"
+  [formula-name params]
+  {:uuid (utils/rand-uuid-str)
+   :formula-name formula-name
+   :started-at (utils/now)
+   :ended-at   nil
+   :params params})
+
 (defn record-result
   "Record an individual job result in the DB"
   [job result]
@@ -25,30 +34,33 @@
   [job ch]
   (lc/receive-all ch (partial record-result job)))
 
-(defn job
-  "Creates a new job map"
-  [formula-name params]
-  {:uuid (utils/rand-uuid-str)
-   :formula-name formula-name
-   :started-at (utils/now)
-   :ended-at   nil
-   :params params})
-
 (defn register-job
   "Registers a new job and marks it as started"
   [formula-name params]
   (let [j (job formula-name params)]
     (insert database/jobs (values j))
     (dosync
-     (ref-set current-job j)     
+     (ref-set current-job j)
      j)))
 
 (defn stop-job
   "Marks the currently running job as stopped"
   []
-  (let [stop-time (System/currentTimeMillis)]
-    (dosync
-     (when @current-job
-       (alter current-job assoc :ended-at stop-time)
-       (ref-set current-job nil)
-       @current-job))))
+  (when-let [job (dosync
+                  (when-let [job @current-job]
+                    (ref-set current-job nil)
+                    job))]
+    (update database/jobs
+            (set-fields {:ended-at (System/currentTimeMillis)})
+            (where {:uuid (:uuid job)}))))
+
+(defn find-job-by-uuid
+  [uuid]
+  (first (select database/jobs (where {:uuid uuid}) (limit 1))))
+
+(defn paginated-jobs
+  [page per-page order-direction]
+  (select database/jobs
+          (order :started-at order-direction)
+          (limit per-page)
+          (offset (* per-page (- page 1)))))

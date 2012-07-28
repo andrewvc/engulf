@@ -35,7 +35,7 @@
 
 (defn- deserialize-record-value
   [record]
-  (update-in record [:value] (comp walk/keywordize-keys json/parse-string)))
+  (update-in record [:value] json/parse-string))
 
 (defentity results
   (prepare serialize-record-value)

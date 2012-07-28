@@ -56,7 +56,10 @@
 
 (defn find-job-by-uuid
   [uuid]
-  (first (select database/jobs (where {:uuid uuid}) (limit 1))))
+  (first (select database/jobs
+                 (where {:uuid uuid})
+                 (limit 1)
+                 (with database/results))))
 
 (defn paginated-jobs
   [page per-page order-direction]

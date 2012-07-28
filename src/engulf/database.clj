@@ -38,10 +38,12 @@
   (update-in record [:value] json/parse-string))
 
 (defentity results
+  (pk :uuid)
   (prepare serialize-record-value)
   (transform (comp deserialize-record-value dash-keys)))
 
 (defentity jobs
+  (pk :uuid)
   (prepare serialize-record-params)
   (transform (comp deserialize-record-params dash-keys))
   (has-many results {:fk :job_uuid}))

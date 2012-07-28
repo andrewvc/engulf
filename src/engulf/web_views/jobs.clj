@@ -31,7 +31,7 @@
 
 (defpage [:get "/jobs/current"]  {}
   (if-let [job @job-manager/current-job]
-    (json-resp 200 (job-manager/current-job-snapshot))
+    (json-resp 200 @job-manager/current-job)
     (json-resp 404 {:message "No current job!"})))
 
 (na/defpage-async [:post "/jobs/current"] {} conn
@@ -40,12 +40,12 @@
           {:keys [results-ch job]} (ctrl/start-job params)]
       (if (= (:_stream params) "true")
         (async-stream conn results-ch)
-        (na/async-push conn (json-resp 200 (job-manager/job-snapshot job)))))
+        (na/async-push conn (json-resp 200 job))))
     (catch Exception e
       (log/warn e "Error starting job!")
       (na/async-push conn (json-resp 500 {:message (str e)})))))
 
 (defpage [:delete "/jobs/current"] {}
   (if-let [stopped (ctrl/stop-job)]
-    (json-resp 200 {:job (job-manager/serializable )})
+    (json-resp 200 {:job stopped})
     (json-resp 404 {})))

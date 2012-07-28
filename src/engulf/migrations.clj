@@ -1,14 +1,12 @@
 (ns engulf.migrations
   (:require [ragtime.sql.database :as sql]
             [ragtime.strategy :as strategy]
+            [engulf.settings :as settings]
             [clojure.java.jdbc :as jdbc])
   (:use ragtime.core)
   (:import ragtime.sql.database.SqlDatabase))
 
-(def db #ragtime.sql.database.SqlDatabase{
-          :classname "org.sqlite.JDBC"
-          :subprotocol "sqlite"
-          :subname "engulf.sqlite3"})
+(def db )
 
 
 (def create-jobs
@@ -30,13 +28,17 @@
                   (jdbc/create-table "results"
                                      [:uuid "VARCHAR(255)" "PRIMARY KEY"]
                                      [:job_uuid "VARCHAR(255)" "NOT NULL"]
-                                     [:value "TEXT" "NOT NULL"])
+                                     [:value "TEXT" "NOT NULL"]
+                                     [:created_at "INTEGER" "NOT NULL"])
                   (jdbc/do-commands
                    "CREATE INDEX results_job_uuid_idx ON results(job_uuid)")))})
 
-(migrate-all db
-             [create-jobs
-              create-results]
-             strategy/apply-new)
-
-(println (applied-migrations db))
+(defn ensure-all
+  []
+  (let [{{:keys [classname subprotocol subname user password]}:jdbc} settings/all
+        db (ragtime.sql.database.SqlDatabase. classname subprotocol subname
+                                             user password)]
+    (migrate-all db
+                 [create-jobs
+                  create-results]
+                 strategy/apply-new)))

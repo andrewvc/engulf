@@ -1,7 +1,6 @@
 (ns engulf.relay
   (:require
    [engulf.formula :as formula]
-   [engulf.job-manager :as job-mgr]
    [engulf.utils :as utils]
    [clojure.stacktrace :as strace]
    [clojure.tools.logging :as log]
@@ -31,7 +30,7 @@
 
 (defn broadcast-job-stop
   [job]
-  lc/enqueue emitter {"entity" "system" "name" "job-stop" "body" (job-mgr/serializable job)})
+  lc/enqueue emitter {"entity" "system" "name" "job-stop" "body" job})
 
 (defn start-job
   [job]

@@ -32,7 +32,7 @@
   (let [job (jmgr/register-job formula-name params)
         start-res @(relay/start-job job)]
     (lc/enqueue n-manager/receiver {"name" "job-start"
-                                    "body" (jmgr/serializable job)})
+                                    "body" job})
     (jmgr/record-results job (:results-ch start-res))
     (lc/on-closed (:results-ch start-res) #(stop-job))
     start-res))

@@ -1,5 +1,16 @@
 (ns engulf.utils
-  (:import [java.util Timer TimerTask concurrent.TimeUnit UUID]))
+  (:import [java.util
+            Timer
+            TimerTask
+            concurrent.TimeUnit
+            UUID
+            zip.GZIPOutputStream
+            zip.GZIPInputStream]
+           [java.io
+            ByteArrayOutputStream
+            ByteArrayInputStream
+            ]
+           java.nio.ByteBuffer))
 
 (def default-timer ^Timer (Timer. true))
 
@@ -46,3 +57,25 @@
   "Shorthand for System/currentTimeMillis"
   []
   (System/currentTimeMillis))
+
+(defn compress-byte-array
+  [^bytes ba]
+  (let [baos (ByteArrayOutputStream.)
+        gzos (GZIPOutputStream. baos)]
+    (doto gzos (.write ba) (.close))
+    (.toByteArray baos)))
+
+(defn decompress-byte-array
+  [^bytes ba]
+  (let [bais (ByteArrayInputStream. ba)
+        gzis (GZIPInputStream. bais)
+        buf-size 2048
+        baos (ByteArrayOutputStream.)]
+    (loop []
+      (let [buf (byte-array buf-size)
+            read-len (.read gzis buf 0 buf-size)]
+        (when (> read-len 0)
+          (.write baos buf 0 read-len)
+          (recur))))
+    (.close gzis)    
+    (.toByteArray baos)))

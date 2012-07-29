@@ -12,7 +12,8 @@
                  [ragtime/ragtime.sql "0.2.1"]
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
-             {:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
+             {
+              ;:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
               :dependencies
               [[org.clojure/tools.trace "0.7.3"]
                [midje "1.4.0"]]

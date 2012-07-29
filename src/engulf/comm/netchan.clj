@@ -1,5 +1,6 @@
 (ns engulf.comm.netchan
   (:require
+   [engulf.utils :as utils]
    [clojure.tools.logging :as log]
    [cheshire.core :as chesh])
   (:use
@@ -8,46 +9,18 @@
    gloss.core
    gloss.io
    [clojure.walk :only [keywordize-keys]])
-  (:import
-   java.util.zip.GZIPOutputStream
-   java.util.zip.GZIPInputStream
-   java.io.ByteArrayOutputStream
-   java.io.ByteArrayInputStream
-   java.nio.ByteBuffer
-   java.util.Arrays))
-
-(defn compress-byte-array
-  [^bytes ba]
-  (let [baos (ByteArrayOutputStream.)
-        gzos (GZIPOutputStream. baos)]
-    (doto gzos (.write ba) (.close))
-    (.toByteArray baos)))
-
-(defn decompress-byte-array
-  [^bytes ba]
-  (let [bais (ByteArrayInputStream. ba)
-        gzis (GZIPInputStream. bais)
-        buf-size 4096
-        baos (ByteArrayOutputStream.)]
-    (loop []
-      (let [buf (byte-array buf-size)
-            read-len (.read gzis buf 0 buf-size)]
-        (when (> read-len 0)
-          (.write baos buf 0 read-len)
-          (recur))))
-    (.close gzis)    
-    (.toByteArray baos)))
+  (:import java.util.Arrays))
 
 (defn encode-msg
   "Encodes a message using SMILE and GZIP"
   [msg]
-  (compress-byte-array (chesh/encode-smile msg)))
+  (utils/compress-byte-array (chesh/encode-smile msg)))
 
 (defn decode-msg
   "Parses a GZIPed SIMLE msg, ensures it's properly formatted as well"
   [msg]
   {:post [(not= nil (first %))]}
-  (chesh/parse-smile (decompress-byte-array msg)))
+  (chesh/parse-smile (utils/decompress-byte-array msg)))
 
 ;; Simple int32 prefixed frames
 (def wire-protocol

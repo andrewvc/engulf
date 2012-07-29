@@ -1,9 +1,6 @@
 (ns engulf.control
   (:require [engulf.comm.node-manager :as n-manager]
             [engulf.relay :as relay]
-            [engulf.job-manager :as jmgr]
-            [engulf.formulas.http-benchmark :as http-benchmark]
-            [engulf.formula :as formula]
             [lamina.core :as lc]
             [clojure.tools.logging :as log])
   (:use [clojure.walk :only [keywordize-keys]]))
@@ -16,24 +13,14 @@
 (defn stop-job
   []
   (lc/enqueue n-manager/receiver {"name" "job-stop"})
-  (relay/stop-job)
-  (jmgr/stop-job))
+  (relay/stop-job))
+
 
 (defn start-job
-  [{formula-name :formula-name :as params}]
-  (stop-job)
-  ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
-  (formula/init-job-formula {:formula-name formula-name :params params})
-  
-  (when (not formula-name)
-    (throw (Exception. "Missing formula name!")))
-  
-  (log/info (str "Starting job with params: " params))
-  (let [job (jmgr/register-job formula-name params)
-        start-res @(relay/start-job job)]
+  [job]
+  (let [start-res @(relay/start-job job)]
     (lc/enqueue n-manager/receiver {"name" "job-start"
                                     "body" job})
-    (jmgr/record-results job (:results-ch start-res))
     (lc/on-closed (:results-ch start-res) #(stop-job))
     start-res))
 

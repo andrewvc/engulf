@@ -6,7 +6,6 @@
   (:require [noir-async.core :as na]
             [noir.request :as noir-req]
             [cheshire.core :as json]
-            [engulf.control :as ctrl]
             [engulf.job-manager :as jmgr]
             [clojure.tools.logging :as log]
             [clojure.walk :as walk])
@@ -48,7 +47,7 @@
 (na/defpage-async [:post "/jobs/current"] {} conn
   (try
     (let [params (walk/keywordize-keys (json/parse-string (na/request-body-str conn)))
-          {:keys [results-ch job]} (ctrl/start-job params)]
+          {:keys [results-ch job]} (jmgr/start-job params)]
       (if (= (:_stream params) "true")
         (async-stream conn results-ch)
         (na/async-push conn (json-resp 200 job))))
@@ -57,6 +56,6 @@
       (na/async-push conn (json-resp 500 {:message (str e)})))))
 
 (defpage [:delete "/jobs/current"] {}
-  (if-let [stopped (ctrl/stop-job)]
+  (if-let [stopped (jmgr/stop-job)]
     (json-resp 200 {:job stopped})
     (json-resp 404 {})))

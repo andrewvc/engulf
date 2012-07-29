@@ -14,15 +14,15 @@
 (defn parse-args
   [args]
   (cli args
-       ["-p" "--http-port" "Listen on this port for the HTTP UI"
+       ["--http-port" "Listen on this port for the HTTP UI"
         :parse-fn #(Integer. %) :default (:http-port settings/all)]
-       ["-n" "--manager-port" "TCP Port for manager to listen on"
+       ["--manager-port" "TCP Port for manager to listen on"
         :parse-fn #(Integer. %) :default (:manager-port settings/all)]
-       ["-m" "--mode" "{combined:master:worker}"
+       ["--mode" "{combined:master:worker}"
         :parse-fn keyword :default (:mode settings/all)]
-       ["-c" "--connect-to" "When in worker mode, connect to this TCP host:port"
+       ["--connect-to" "When in worker mode, connect to this TCP host:port"
         :parse-fn #(let [[h p] (split % #":")] [h (Integer/valueOf p)]) :default (:connect-to settings/all)]
-       ["-h" "--help" "Show help, then exit" :default false :flag true]))
+       ["--help" "Show help, then exit" :default false :flag true]))
   
 (defn -main [& args]
   (let [[opts args banner] (parse-args args)]

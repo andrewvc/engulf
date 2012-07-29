@@ -54,7 +54,7 @@
     (when (not (nil? new-node))
       (lc/enqueue emitter {"entity" "system"
                            "name" "node-connect"
-                           "body" {"uuid" uuid "conn" conn}}))
+                           "body" {"uuid" uuid }}))
     new-node))
           
 (defn deregister-node

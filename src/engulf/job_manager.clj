@@ -13,6 +13,8 @@
             [lamina.core :as lc])
   (:use korma.db korma.core))
 
+(def emitter (lc/channel* :permanent? true :grounded? true))
+
 (def current-job (ref nil))
 
 (defn job
@@ -76,7 +78,9 @@
   (formula/init-job-formula {:formula-name formula-name :params params})
   
   (let [job (register-job formula-name params)
-        results-ch (record-results job (:results-ch (ctrl/start-job job)))]
+        results-ch (record-results job (:results-ch (ctrl/start-job job)))
+        res-msgs (lc/map* (fn [m] {"entity" "system" "name" "result" "body" m}) results-ch)]
+    (lc/siphon res-msgs emitter)
     (lc/on-closed results-ch #(stop-job))
     {:job job :results-ch results-ch}))
 

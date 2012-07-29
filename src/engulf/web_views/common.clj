@@ -9,6 +9,11 @@
    :content-type "application/json"
    :body (json/generate-string body)})
 
+(defn json-chunk
+  "Encodes data to json with a trailing newline"
+  [d]
+  (str (json/generate-string d) "\n"))
+
 (defpartial layout [& content]
   (html5
     [:html {:class "no-js" :lang "en"}

@@ -5,7 +5,8 @@
   (:require [noir.server :as nr-server]
             engulf.web-views.index
             engulf.web-views.jobs
-            engulf.web-views.nodes))
+            engulf.web-views.nodes
+            engulf.web-views.river))
 
 (defn start-webserver [port]
   (let [noir-handler (nr-server/gen-handler :prod)]

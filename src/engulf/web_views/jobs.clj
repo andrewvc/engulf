@@ -23,9 +23,17 @@
   (receive-all ch #(na/async-push conn (str (json/generate-string %) "\n")))
   (on-closed ch #(na/close-connection conn)))
 
-(defpage "/jobs/:uuid" {:keys [uuid]}
+(defpage [:get "/jobs/:uuid"] {:keys [uuid]}
   (if-let [job (jmgr/find-job-by-uuid uuid)]
     (json-resp 200 job)
+    (json-resp 404 {:message "Not found!"})))
+
+(defpage [:delete "/jobs/:uuid"] {:keys [uuid]}
+  (if-let [job (jmgr/find-job-by-uuid uuid)]
+    (if (:ended-at job)
+      (do (jmgr/delete-job-by-uuid uuid)
+          (json-resp 200 {:message "Deleted"}))
+      (json-resp 500 {:message "Could not delete, still running!"}))
     (json-resp 404 {:message "Not found!"})))
 
 (defpage "/jobs" {:keys [page per-page]}

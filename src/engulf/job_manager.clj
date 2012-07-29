@@ -91,6 +91,11 @@
                  (limit 1)
                  (with database/results))))
 
+(defn delete-job-by-uuid
+  [uuid]
+  (delete database/jobs (where {:uuid uuid}))
+  (delete database/results (where {:job-uuid uuid})))
+
 (defn paginated-jobs
   [page per-page order-direction]
   (select database/jobs

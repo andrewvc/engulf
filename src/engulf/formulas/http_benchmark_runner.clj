@@ -59,7 +59,7 @@
 
 (defn run-mock-request
   "Fake HTTP response for testing"
-  [params callback]
+  [client params callback]
   (let [started-at (now)
         res (lc/result-channel)
         succ-cb #(lc/success res (success-result started-at (System/currentTimeMillis) 200))]

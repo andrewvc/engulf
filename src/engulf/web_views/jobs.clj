@@ -1,20 +1,15 @@
 (ns engulf.web-views.jobs
   (:use engulf.utils
+        engulf.web-views.common
         noir.core
         lamina.core
         aleph.formats)
-  (:require [noir-async.core :as na]
+  (:require [engulf.job-manager :as jmgr]
+            [noir-async.core :as na]
             [noir.request :as noir-req]
             [cheshire.core :as json]
-            [engulf.job-manager :as jmgr]
             [clojure.tools.logging :as log]
-            [clojure.walk :as walk])
-  (:import java.net.URL))
-
-(defn json-resp [status body]
-  {:status status
-   :content-type "application/json"
-   :body (json/generate-string body)})
+            [clojure.walk :as walk]))
 
 (defn jsonify-results
   [results]

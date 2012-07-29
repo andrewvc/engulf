@@ -1,7 +1,13 @@
 (ns engulf.web-views.common
   (:use [noir.core :only [defpartial]]
         [hiccup.element :only [javascript-tag link-to]]
-        [hiccup.page :only [include-css html5 include-js]]))
+        [hiccup.page :only [include-css html5 include-js]])
+  (:require [cheshire.core :as json]))
+
+(defn json-resp [status body]
+  {:status status
+   :content-type "application/json"
+   :body (json/generate-string body)})
 
 (defpartial layout [& content]
   (html5

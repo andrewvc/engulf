@@ -4,6 +4,7 @@
    [engulf.formula :as formula]
    [engulf.control :as ctrl]
    [engulf.relay :as relay]
+   [engulf.utils :as utils]
    [engulf.worker-client :as wc]
    [lamina.core :as lc])
   (:use midje.sweet)
@@ -35,6 +36,7 @@
  seen
  (ctrl/start-job
   {:url "http://localhost/test"
+   :uuid (utils/rand-uuid-str)
    :method "POST"
    :concurrency 3
    :formula-name :mock-formula

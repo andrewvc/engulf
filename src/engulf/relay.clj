@@ -41,17 +41,20 @@
     
     (let [fla (formula/init-job-formula job)
           in-ch (job-ingress-channel job)
-          res-ch (formula/start-relay fla in-ch)]
+          res-ch (formula/start-relay fla in-ch)
+          current-state {:job job :formula fla :ingress-channel in-ch :results-ch res-ch}]
+
       (lc/on-closed res-ch (partial broadcast-job-stop job))
       (lc/siphon res-ch emitter)
-      (lc/enqueue res {:job job :formula fla :ingress-channel in-ch :results-ch res-ch}))))
+      (lc/enqueue res current-state)
+      current-state)))
 
 
 (defn stop-job
   []
   (utils/safe-send-off-with-result current res state
-    (when state
-      (lc/enqueue res (formula/stop (:formula state)))
+    (when-let [{fla :formula} state]
+      (lc/enqueue res (formula/stop fla))
       (lc/close (:ingress-channel state)))
     nil))
 

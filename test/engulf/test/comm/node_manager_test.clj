@@ -20,7 +20,7 @@
  (with-clean-emitter
    (clear-nodes)
    (let [ident "a-unique-identifier"
-         n  (n-manager/register-node ident {})]
+         n  (n-manager/register-node ident {} {"address" "127.0.0.1"})]
      (fact
       "the node should have the right uuid"
       (:uuid n) => ident)
@@ -37,10 +37,10 @@
  (facts
    "for nodes that do currently exist"
    (let [ident "some-unique-id"
-         existing  (n-manager/register-node ident {})]
+         existing  (n-manager/register-node ident {} {"address" "127.0.0.1"})]
      (fact
       "calling create should return nil"
-      (n-manager/register-node ident {}) => nil))))
+      (n-manager/register-node ident {} {}) => nil))))
 
 (facts
  "about removing nodes"
@@ -48,7 +48,7 @@
  (facts
   "for nodes that don't yet exist"
   (let [ident "a-unique-identifier"
-        n (n-manager/register-node ident (lc/channel))]
+        n (n-manager/register-node ident (lc/channel) {})]
     (fact
      "the node should no longer be present after removal"
      (n-manager/get-node ident) =not=> nil
@@ -61,3 +61,4 @@
        srv (n-manager/start-server port)]
    (fact "the server should start" srv => truthy)
    (fact "the server should stop" (srv) => truthy)))
+(println "NM DONE")

@@ -45,6 +45,7 @@
      @(lc/read-channel* ingress :timeout 500) => results))
   (fact
    "it should stop cleanly"
+   (Thread/sleep 1000)
    @(relay/stop-job) => truthy
    (Thread/sleep 20)
    @stopped => truthy))

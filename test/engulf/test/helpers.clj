@@ -19,9 +19,10 @@
    "method" "POST"
    "headers" {"X-Bender" "Jimmy crack corn, and I don't care"}
    "concurrency" "1"
-   "timeout" 10000
+   "timeout" 2000
    "body" "a new, shiny metal body!"
    "formula-name" "http-benchmark"
+   "limit" 500
    "mock" true})
 
 (def test-http-job

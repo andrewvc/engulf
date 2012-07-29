@@ -68,7 +68,7 @@
 
 (facts
  "about relay aggregation"
- (let [params {:timeout 500}
+ (let [params {:timeout 500 :limit 500}
        agg (htb/relay-aggregate
             params (htb/empty-relay-aggregation params) (repeatedly 2 eagg))]
    (fact

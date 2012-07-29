@@ -33,7 +33,7 @@
     (if (:ended-at job)
       (do (jmgr/delete-job-by-uuid uuid)
           (json-resp 200 {:message "Deleted"}))
-      (json-resp 500 {:message "Could not delete, still running!"}))
+      (json-resp 409 {:message "Could not delete, still running!"}))
     (json-resp 404 {:message "Not found!"})))
 
 (defpage "/jobs" {:keys [page per-page]}

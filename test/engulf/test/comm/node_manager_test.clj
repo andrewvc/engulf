@@ -33,7 +33,7 @@
                   (fn [msg]
                     msg => {"entity" "system"
                             "name" "node-connect"
-                            "body" {"uuid" (:uuid n) "conn" (:conn n)}})))))
+                            "body" {"uuid" (:uuid n)}})))))
  (facts
    "for nodes that do currently exist"
    (let [ident "some-unique-id"
@@ -61,4 +61,3 @@
        srv (n-manager/start-server port)]
    (fact "the server should start" srv => truthy)
    (fact "the server should stop" (srv) => truthy)))
-(println "NM DONE")

@@ -50,7 +50,8 @@
 (na/defpage-async [:post "/jobs/current"] {} conn
   (try
     (let [params (walk/keywordize-keys (json/parse-string (na/request-body-str conn)))
-          {:keys [results-ch job]} (jmgr/start-job params)]
+          {title :_title notes :_notes} params
+          {:keys [results-ch job]} (jmgr/start-job title notes params)]
       (if (= (:_stream params) "true")
         (async-stream conn results-ch)
         (na/async-push conn (json-resp 200 job))))

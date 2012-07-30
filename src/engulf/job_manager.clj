@@ -19,11 +19,13 @@
 
 (defn job
   "Creates a new job map"
-  [formula-name params]
+  [formula-name title notes params]
   {:uuid (utils/rand-uuid-str)
    :formula-name formula-name
    :started-at (utils/now)
    :ended-at   nil
+   :title title
+   :notes notes
    :params params})
 
 (defn record-result
@@ -46,8 +48,8 @@
 
 (defn register-job
   "Registers a new job and marks it as started"
-  [formula-name params]
-  (let [j (job formula-name params)]
+  [formula-name title notes params]
+  (let [j (job formula-name title notes params)]
     (insert database/jobs (values j))
     (dosync
      (ref-set current-job j)
@@ -66,7 +68,7 @@
 
 (defn start-job
   "Starts the job, returns a stream of results"
-  [{formula-name :formula-name :as params}]
+  [title notes {formula-name :formula-name :as params}]
   (ctrl/stop-job)
 
   (when (not formula-name)
@@ -77,7 +79,7 @@
   ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
   (formula/init-job-formula {:formula-name formula-name :params params})
   
-  (let [job (register-job formula-name params)
+  (let [job (register-job formula-name title notes params)
         results-ch (record-results job (:results-ch (ctrl/start-job job)))
         res-msgs (lc/map* (fn [m] {"entity" "system" "name" "result" "body" m}) results-ch)]
     (lc/siphon res-msgs emitter)

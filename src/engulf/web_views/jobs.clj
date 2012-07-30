@@ -20,7 +20,7 @@
 (defn async-stream
   [conn ch]
   (na/async-push conn {:status 200 :chunked true})
-  (receive-all ch #(na/async-push conn (str (json/generate-string %) "\n")))
+  (receive-all ch #(na/async-push conn (json-chunk %)))
   (on-closed ch #(na/close-connection conn)))
 
 (defpage [:get "/jobs/:uuid"] {:keys [uuid]}

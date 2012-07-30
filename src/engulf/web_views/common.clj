@@ -12,7 +12,7 @@
 (defn json-chunk
   "Encodes data to json with a trailing newline"
   [d]
-  (str (json/generate-string d {:pretty true}) "\n"))
+  (str (json/generate-string d) "\n"))
 
 (defpartial layout [& content]
   (html5

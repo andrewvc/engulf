@@ -7,12 +7,12 @@
 (defn json-resp [status body]
   {:status status
    :content-type "application/json"
-   :body (json/generate-string body)})
+   :body (json/generate-string body {:pretty true})})
 
 (defn json-chunk
   "Encodes data to json with a trailing newline"
   [d]
-  (str (json/generate-string d) "\n"))
+  (str (json/generate-string d {:pretty true}) "\n"))
 
 (defpartial layout [& content]
   (html5

@@ -6,12 +6,13 @@ $(function () {
 
 
 BenchmarkStream = function (addr) {
+  console.log("Connecting to addr", addr);
   this.addr = addr;
   _.extend(this, Backbone.Events);
   var self = this;
   
   if (typeof(WebSocket) !== 'undefined') {
-    console.log("Using a standarb websocket");
+    console.log("Using a standard websocket");
     self.socket = new WebSocket(this.addr);
   } else if (typeof(MozWebSocket) !== 'undefined') {
     console.log("Using MozWebSocket")
@@ -24,12 +25,11 @@ BenchmarkStream = function (addr) {
     self.trigger('open', e);
   };
   self.socket.onmessage = function (e) {
-    self.trigger('message', e);
-      self.trigger('data', e.data);
+    console.log(e.data);
     
     var parsed = JSON.parse(e.data);
       self.trigger('jsonData', parsed);
-    self.trigger('dtype-' + parsed.dtype, parsed.data);
+    self.trigger('name-' + parsed.name, parsed.body);
   };
   self.socket.onclose = function (e) {
     self.trigger('close', e);
@@ -62,36 +62,37 @@ ConsoleView = Backbone.View.extend({
 });
 
 Benchmarker = Backbone.Model.extend({
-  url: "/benchmarker",
+  url: "/jobs/current",
   initialize: function () {
     this.fetch();
   },
-  start: function (url, concurrency, requests) {
+  start: function (params) {
     var self = this;
-    $.post("/benchmarker",
-      {state: "started",
-       concurrency: concurrency,
-       requests: requests,
-       url: url
-      }).
-      success(function (data) {
+    $.ajax(
+      "/jobs/current",
+      {
+        contentType: "application/json",
+        type: "POST",
+        dataType: "json",
+        data: JSON.stringify(params)
+      }
+    ).success(function (data) {
         var parsed = JSON.parse(data);
         if (parsed.error) {
           alert("Could not start: " + parsed.error);
-          self.set({state: "stopped"});
+          self.set({currentJob: null});
         } else {
-          self.set({state: "started"});
-          self.set({state: "stopped"});
+          self.set({currentJob: parsed});
         }
       }).
       error(function (error) {
         console.log("Error", error);
         alert("Error processing request: " + error);
-      })
+      });
   },
   stop: function () {
     var self = this;
-    $.post("/benchmarker", {state: "stopped"}, function () {
+    $.delete("/jobs/current", function () {
       self.set({state: "stopped"});
     });
   },
@@ -101,8 +102,9 @@ Benchmarker = Backbone.Model.extend({
       self.set({stats: data});
     });
 
-    stream.bind('dtype-state', function (data) {
-      self.set(data);
+    stream.bind('name-current-job', function (data) {
+      console.log("current job", data);
+      self.set({currentJob: data});
     });
   },
   timeSeriesFor: function (field) {
@@ -156,32 +158,40 @@ ControlsView = Backbone.View.extend({
     "change": "render"
   },
   start: function (e) {
-    var url = this.$el.find('#url').val();
-    var concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
-    var requests = parseInt(this.$el.find('#requests').val(), 10);
+    var params = {};
     
-    if (!url || url.length < 3) {
+    params.url = this.$el.find('#url').val();
+    params.concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
+    params.limit = parseInt(this.$el.find('#limit').val(), 10);
+    params.method = $('#method').val();
+    params.timeout = $('#timeout').val();
+    params['keep-alive'] = 'true';
+    params['formula-name'] = 'http-benchmark';
+    params['_stream'] = 'false';
+    
+    
+    if (!params.url || params.url.length < 3) {
       alert("Could not start benchmark, no URL specified!")
       return;
     }
-    if (!concurrency || concurrency < 1) {
+    if (!params.concurrency || params.concurrency < 1) {
       alert("Concurrency must be a positive integer!");
       return;
     }
-    if (!requests || requests < 1) {
-      alert("Requests must be a positive integer!");
+    if (!params.limit || params.limit < 1) {
+      alert("Limit must be a positive integer!");
       return;
     }
     
     console.log("Starting");
     this.disableInputs();
-    this.model.start(url, concurrency, requests);
+    this.model.start(params);
   },
   stop: function (e) {
     this.model.stop();
   },
   render: function () {
-    if (this.model.get('state') === 'stopped') {
+    if (!this.model.get('currentJob')) {
       this.renderStartable();
       if (this.$urlInput.val() === '') {
         this.$urlInput.val('http://' + location.host + '/test-responses/delay/15');
@@ -478,7 +488,7 @@ TimeSeriesView = Backbone.View.extend({
 
 
 $(function () {
-  var benchmarkStream = window.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/benchmarker/stream');
+  var benchmarkStream = window.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
    
   var consoleView  = window.consoleView = new ConsoleView(
     {

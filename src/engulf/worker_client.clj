@@ -69,14 +69,19 @@
     (let [conn @(nc/client-connect host port)]
       (log/info "Connected to relay!")
       
-      (on-closed conn (fn [] (log/warn "Connection to master closed!")))
+      (on-closed conn (fn []
+                        (log/warn "Connection to master closed! Reconnecting in 5s")
+                        (Thread/sleep 5000)
+                        (client-connect host port)))
       (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
       (receive-all conn (partial handle-message conn))
       ;; Send identity immediately
       (enqueue conn {"name" "uuid" "body" uuid})
       conn)
     (catch java.net.ConnectException e
-      (log/warn e "Could not connect to control server!"))))
+      (log/warn e "Could not connect to control server! Reconnecting in 5s")
+      (Thread/sleep 5000)
+      (client-connect host port))))
 
 (defn start
   "Starts the worker client. Should be done once per process max."

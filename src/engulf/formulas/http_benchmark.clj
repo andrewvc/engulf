@@ -1,5 +1,6 @@
 (ns engulf.formulas.http-benchmark
-  (:require [lamina.core :as lc]
+  (:require [engulf.formulas.markov-requests :as markov]
+            [lamina.core :as lc]
             [clojure.tools.logging :as log]
             [clojure.set :as cset])
   (:use [engulf.formula :only [Formula register stop]]
@@ -19,23 +20,27 @@
 (defprotocol IHttpBenchmark
   (run-repeatedly [this ch runner] [this ch runner client req-params]))
 
+(defn req-seq
+  [req]
+  (lazy-seq (cons req (req-seq req))))
+
 (defrecord HttpBenchmark [state params res-ch mode]
   IHttpBenchmark
   (run-repeatedly
     [this ch runner]
     (let [req-pkeys #{:method :url :timeout :keep-alive?}
-          req-params (into {} (filter (fn [[k v]] (req-pkeys k)) params))
-          client (http-client {:url (:url req-params)
-                               :keep-alive? (:keep-alive? req-params)})]
-      (run-repeatedly this ch runner client req-params)))
+          reqs (req-seq (into {} (filter (fn [[k v]] (req-pkeys k)) params)))
+          client (http-client {:url (:url (first reqs))
+                               :keep-alive? (:keep-alive? (first reqs))})]
+      (run-repeatedly this ch runner client reqs)))
   (run-repeatedly
-    [this ch runner client req-params]
+    [this ch runner client reqs]
     (runner client
-            req-params
+            (first reqs)
             (fn req-resp [res]
               (when (= @state :started) 
                 (lc/enqueue ch res)
-                (run-repeatedly this ch runner client req-params)))))
+                (run-repeatedly this ch runner client (rest reqs))))))
   Formula
   (start-relay [this ingress]
     (when (compare-and-set! state :initialized :started)

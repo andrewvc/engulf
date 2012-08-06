@@ -24,10 +24,10 @@
 (defn clean-params [str-params]
   (let [params (keywordize-keys str-params)]
     ;; Ensure required keys
-    (let [diff (cset/difference #{:url :method :concurrency :timeout :limit} params)]
+    (let [diff (cset/difference #{:url :concurrency :timeout :limit} params)]
       (when (not (empty? diff))
         (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
-    (let [method (keyword (lower-case (:method params)))]
+    (let [method (keyword (lower-case (or (:method params) "get")))]
       ;; Ensure only valid methods are used
       (when (not (method valid-methods))
         (throw (Exception. (str "Invalid method: " method " expected one of " valid-methods))))

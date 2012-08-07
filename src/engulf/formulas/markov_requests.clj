@@ -27,9 +27,7 @@
   (doall
    (reduce
     (fn [out [req-id edges]]
-      (assoc out
-        req-id
-        (counts->treemap edges)))
+      (assoc out req-id (counts->treemap edges)))
     {}
     transitions)))
 

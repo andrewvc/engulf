@@ -100,7 +100,7 @@
 (defn format-percentiles
   "Takes a fastPercentiles.Percentile[] and formats it as [{},{},...]"
   [unformatted]
-  (vec (map (fn [p]
+  (vec (map (fn [^Percentile p]
          {:avg (.getAvg p)
           :min (.getMin p)
           :max (.getMax p)

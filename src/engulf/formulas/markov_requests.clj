@@ -7,7 +7,10 @@
   (:require [clojure.string :as string]
             [clojure.tools.logging :as log]
             [cheshire.core :as json])
-  (:import java.util.TreeMap))
+  (:import [java.util
+            TreeMap
+            NavigableMap
+            Map$Entry]))
 
 (defn counts->treemap
   [counts]
@@ -34,10 +37,11 @@
 (defn chain
   "Returns a lazy sequence of requests. Not guaranteed to terminate."
   ([{:keys [weighted-requests] :as compiled}]
-     (chain compiled (.getValue (.ceilingEntry weighted-requests (rand)))))
+     (chain compiled (.getValue
+                      (.ceilingEntry ^NavigableMap weighted-requests (rand)))))
   ([{:keys [transitions requests] :as compiled} request]
      (if-let [edges (transitions request)]
-       (let [e (.ceilingEntry edges (rand))]
+       (let [e (.ceilingEntry ^NavigableMap edges (rand))]
          (if-let [e-req (.getValue e)]
            (lazy-seq (cons (first (requests e-req)) (chain compiled e-req)))
            (throw (Exception.
@@ -49,7 +53,7 @@
   (reduce
    (fn [m request]
      (-> m
-         (update-in [(.hashCode request)] #(if % (update-in % [1] inc) [request 1]))
+         (update-in [(.hashCode ^Object request)] #(if % (update-in % [1] inc) [request 1]))
          (update-in [:total] inc)))
    {:total 0}
    parsed))
@@ -65,8 +69,8 @@
         last-node (last (last tuples))
         counted (reduce
                  (fn [m [a b]]
-                   (let [ac (.hashCode a)
-                         bc (.hashCode b)]
+                   (let [ac (.hashCode ^Object a)
+                         bc (.hashCode ^Object b)]
                      (-> m
                          (update-in [ac bc] incr-or-one)
                          (update-in [ac :total] incr-or-one))))
@@ -74,8 +78,8 @@
                  tuples)]
     ;; loop the end to the front to finish it
     (-> counted
-        (update-in [(.hashCode last-node) (.hashCode first-node)] incr-or-one)
-        (update-in [(.hashCode last-node) :total] incr-or-one))))
+        (update-in [(.hashCode ^Object last-node) (.hashCode ^Object first-node)] incr-or-one)
+        (update-in [(.hashCode ^Object last-node) :total] incr-or-one))))
 
 (defn counted-probabilities
   [counted]

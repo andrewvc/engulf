@@ -13,8 +13,8 @@
   []
   (defdb db (assoc (:jdbc settings/all)
               :naming {:entity (partial jdbc/as-quoted-str \`)
-                       :fields  #(.replace % "-" "_")
-                       :keyword #(.replace % "-" "_") })))
+                       :fields  #(.replace ^String % "-" "_")
+                       :keyword #(.replace ^String % "-" "_") })))
 
 (defn- dash-keys
   "Convert underscores in a map's keys into dashes"

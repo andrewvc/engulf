@@ -15,7 +15,7 @@
   [results]
   (json/generate-string
    (assoc results "percentiles"
-          (.toString (results "percentiles")))))
+          (.toString ^Object (results "percentiles")))))
 
 (defn async-stream
   [conn ch]

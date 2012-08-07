@@ -9,6 +9,7 @@
         [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])
   (:import fastPercentiles.PercentileRecorder
+           fastPercentiles.Percentile
            java.util.concurrent.Executors
            java.util.concurrent.ExecutorService))
 

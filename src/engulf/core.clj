@@ -31,6 +31,11 @@
     (alter-var-root (var settings/all) (fn [s] (merge s opts))))
   (log/info "Initializing in" (:mode settings/all) " mode")
 
+  (when (not (#{:combined :master :worker} (:mode settings/all)))
+    (binding [*out* *err*]
+      (println "Aborting! Invalid mode option: " (:mode settings/all))
+      (System/exit 1)))
+
   (when (#{:combined :master} (:mode settings/all))
     (log/info "Connecting to DB")
     (database/connect)

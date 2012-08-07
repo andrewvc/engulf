@@ -44,8 +44,8 @@
     (when (not ((:method refined) valid-methods))
         (throw (Exception. (str "Invalid method: " (:method params) " "
                                 "expected one of " valid-methods))))
-    
-    (into {} (filter (fn [[k v]] (req-pkeys k)) refined))))
+    (req-seq
+     (into {} (filter (fn [[k v]] (req-pkeys k)) refined)))))
 
 ;; TODO Clean this all up, it's a bit of a hairbal
 (defn clean-params [str-params]

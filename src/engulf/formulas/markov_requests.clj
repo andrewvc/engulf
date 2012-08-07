@@ -1,5 +1,6 @@
 (ns engulf.formulas.markov-requests
-  "Support for generating markov chains of requests"
+  "Support for generating markov chains of requests."
+  ;; TODO: This file's a bit of a messy in terms of organization and naming
   (:use clojure.pprint
         [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])
@@ -8,38 +9,42 @@
             [cheshire.core :as json])
   (:import java.util.TreeMap))
 
+(defn counts->treemap
+  [counts]
+  (let [m (TreeMap.)]
+    (reduce
+     (fn [offset [req-id weight]]
+       (let [off-ceil (+ offset weight)]
+         (.put m off-ceil req-id)
+         off-ceil))
+     0.0
+     counts)
+    m))
+
 (defn compile-transitions
-  "Compile a system's transitions into a format suitable for efficient markov chain generation. Internally this creates a lookup table of URLs with treemaps used to map probabilities onto numerical ranges."
+  "Compile transitions into a format suitable for efficient markov chain generation. Internally this creates a lookup table of requests with treemaps used to map probabilities onto numerical ranges."
   [transitions]
   (doall
    (reduce
-    (fn [out [url-id edges]]
+    (fn [out [req-id edges]]
       (assoc out
-        url-id
-        (let [m (TreeMap.)]
-          (reduce
-           (fn [offset [edge-url-id weight]]
-             (let [off-ceil (+ offset weight)]
-               (.put m off-ceil edge-url-id)
-               off-ceil))
-           0.0
-           edges)
-          m)))
+        req-id
+        (counts->treemap edges)))
     {}
     transitions)))
 
 (defn chain
   "Returns a lazy sequence of requests. Not guaranteed to terminate."
-  ([compiled]
-     (chain compiled :rand))
-  ([{:keys [transitions request-keys requests] :as compiled} request]
-     (let [r (request-keys (rand-int (count request-keys)))]
-       (if-let [edges (transitions r)]
-         (let [e (.ceilingEntry edges (rand))]
-           (if-let [e-req (.getValue e)]
-             (lazy-seq (cons (first (requests e-req)) (chain compiled e-req)))
-             (throw (Exception.  "This should never happen. The morkov chain is compromised!"))))
-         (throw (Exception. (str "Could not find edge for: " request)))))))
+  ([{:keys [weighted-requests] :as compiled}]
+     (chain compiled (.getValue (.ceilingEntry weighted-requests (rand)))))
+  ([{:keys [transitions requests] :as compiled} request]
+     (if-let [edges (transitions request)]
+       (let [e (.ceilingEntry edges (rand))]
+         (if-let [e-req (.getValue e)]
+           (lazy-seq (cons (first (requests e-req)) (chain compiled e-req)))
+           (throw (Exception.
+                   "This should never happen. The morkov chain is compromised!"))))
+       (throw (Exception. (str "Could not find edge for: " request))))))
 
 (defn build-requests
   [parsed]
@@ -58,8 +63,8 @@
 (defn counted-tuples
   [parsed requests]
   (let [tuples (partition 2 1 parsed)
-        first-edge (first (first tuples))
-        last-edge (last (last tuples))
+        first-node (first (first tuples))
+        last-node (last (last tuples))
         counted (reduce
                  (fn [m [a b]]
                    (let [ac (.hashCode a)
@@ -71,28 +76,39 @@
                  tuples)]
     ;; loop the end to the front to finish it
     (-> counted
-        (update-in [(.hashCode last-edge) (.hashCode first-edge)] incr-or-one)
-        (update-in [(.hashCode last-edge) :total] incr-or-one))))
+        (update-in [(.hashCode last-node) (.hashCode first-node)] incr-or-one)
+        (update-in [(.hashCode last-node) :total] incr-or-one))))
 
 (defn counted-probabilities
   [counted]
   (map
-   (fn [[request edges]]
+   (fn [[request nodes]]
      [request
-      (reduce (fn [m [ereq ecount]]
-                (if (= ereq :total)
+      (reduce (fn [m [nreq ncount]]
+                (if (= nreq :total)
                   m
-                  (assoc m ereq (float (/ ecount (:total edges))))))
+                  (assoc m nreq (float (/ ncount (:total nodes))))))
               {}
-              edges)])
+              nodes)])
    counted))
+
+(defn weighted-requests
+  [{total :total :as requests}]
+  (reduce
+   (fn [m [k v]]
+     (if (= k :total)
+       m
+       (let [[_ cnt] v]
+         (assoc m k (/ cnt total)))))
+   {}
+   requests))
 
 (defn compile-preprocessed
   "Compiles a preprocessed corpus into a format suitable for the (chain) method"
   [{:keys [requests counted]}]
   (let [probabilities (counted-probabilities counted)]
     {:requests requests
-     :request-keys (vec (filter #(not= :total %) (keys requests)))
+     :weighted-requests (counts->treemap (weighted-requests requests))
      :transitions (compile-transitions probabilities)}))
 
 (defn parse
@@ -115,6 +131,7 @@
      :counted counted}))
 
 (defn corpus-chain
+  "Takes an array of requests, returns a lazy seq of the chain"
   [corpus]
   (-> corpus
       preprocess-corpus

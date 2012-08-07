@@ -1,6 +1,7 @@
 (ns engulf.formulas.markov-requests
   "Support for generating markov chains of requests"
   (:use clojure.pprint
+        [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])
   (:require [clojure.string :as string]
             [clojure.tools.logging :as log]
@@ -99,7 +100,9 @@
   (->> corpus
        (map #(if (map? %) % {:url %}))
        (map keywordize-keys)
-       (map #(assoc % :method (keyword (or  (:method %) :get))))))
+       (map #(assoc % :method (if-let [m (:method %)]
+                                (keyword (lower-case m))
+                                :get)))))
 
 (defn preprocess-corpus
   "Compiles the corpus into something that's a processed as possible but can still

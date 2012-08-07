@@ -13,8 +13,8 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 
 # Todo:
 
-* RESTful interface (partially complete)
-* Distributed workers (in progress, on 'net' branch)
+* Embedded JS Engine
+* Reworked UI
 
 ## Hacking
 

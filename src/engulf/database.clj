@@ -22,12 +22,21 @@
   (into {} (map (fn [[k v]] [(keyword (.replaceAll (name k) "_" "-")) v]) m)))
 
 (defn- serialize-record-params
-  [record]
-  (update-in record [:params] json/generate-string))
+  [{:keys [params last-result] :as record}]
+  (reduce
+   (fn [m [k v]]
+     (condp = k
+       :params (assoc m k (json/generate-string v))
+       :last-result (assoc m k (json/generate-string v))
+       (assoc m k v)))
+   {}
+   record))
 
 (defn- deserialize-record-params
   [record]
-  (update-in record [:params] (comp walk/keywordize-keys json/parse-string)))
+  (-> record
+      (update-in [:params] (comp walk/keywordize-keys json/parse-string))
+      (update-in [:last-result] json/parse-string)))
 
 (defn- serialize-record-value
   [record]

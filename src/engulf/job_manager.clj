@@ -35,7 +35,11 @@
                         :job-uuid (:uuid job)
                         :value result
                         :created-at (utils/now)}]
-    (insert database/results (values recorded-value))
+    (update database/jobs
+            (set-fields {:last-result result})
+            (where {:uuid (:uuid job)}))
+    ;;TODO: We'll enable this again some day...
+    ;;(insert database/results (values recorded-value))
     recorded-value))
 
 (defn record-results

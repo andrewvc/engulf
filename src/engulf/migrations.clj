@@ -17,6 +17,7 @@
                                      [:formula_name "VARCHAR(255)" "NOT NULL"]
                                      [:started_at "INTEGER"]
                                      [:ended_at "INTEGER"]
+                                     [:last_result "TEXT"]
                                      [:params "TEXT"]
                                      [:title "VARCHAR"]
                                      [:notes "TEXT"])))

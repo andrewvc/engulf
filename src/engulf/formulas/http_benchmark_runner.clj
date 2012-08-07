@@ -21,23 +21,50 @@
 
 (defn int-val [i] (Integer/valueOf i))
 
+(defn req-seq
+  [req]
+  (lazy-seq (cons req (req-seq req))))
+
+(defn markov-req-seq
+  [{corpus :markov-corpus}]
+  
+  ;; TODO: Maybe consider having this just work...
+  (when (> 2 (count corpus))
+    (throw (Exception. (str "Markov corpus must contain at least 2 URLs. "
+                            "Got: " (count corpus)))))
+  
+  (markov/corpus-chain corpus))
+
+(defn simple-req-seq
+  [params]
+  (let [req-pkeys #{:url :method :timeout :keep-alive?}
+        refined (assoc params
+                  :method (keyword (lower-case (or (:method params) "get"))))]
+    
+    (when (not ((:method refined) valid-methods))
+        (throw (Exception. (str "Invalid method: " (:method params) " "
+                                "expected one of " valid-methods))))
+    
+    (into {} (filter (fn [[k v]] (req-pkeys k)) refined))))
+
+;; TODO Clean this all up, it's a bit of a hairbal
 (defn clean-params [str-params]
   (let [params (keywordize-keys str-params)]
+    
     ;; Ensure required keys
-    (let [diff (cset/difference #{:url :concurrency :timeout :limit} params)]
+    (let [diff (cset/difference #{:concurrency :timeout :limit} params)]
       (when (not (empty? diff))
         (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
-    (let [method (keyword (lower-case (or (:method params) "get")))]
-      ;; Ensure only valid methods are used
-      (when (not (method valid-methods))
-        (throw (Exception. (str "Invalid method: " method " expected one of " valid-methods))))
-      ;; Transform the types of vals that need it
-      (-> params
+
+    (-> params
           (update-in [:concurrency] int-val)
           (update-in [:timeout] int-val)
-          (update-in [:limit] int-val)
+          (update-in [:limit] int-val)          
           (assoc :keep-alive? #(not= "false" (:keep-alive params)))
-          (assoc :method method)))))
+          (assoc :req-seq
+            (if (:markov-corpus params)
+              (markov-req-seq params)
+              (simple-req-seq params))))))
 
 (defn run-real-request
   [client req-params callback]
@@ -48,7 +75,7 @@
          (enqueue-succ-cb [response]
            (.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb response)))
          (error-cb [throwable]
-           (log/warn throwable "Error executing HTTP Request")
+           (log/warn throwable (str "Error executing HTTP Request: " req-params))
            (callback (error-result started-at (now) throwable)))
          (enqueue-error-cb [throwable]
            (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb throwable)))]

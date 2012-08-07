@@ -8,9 +8,7 @@
   (:import java.util.TreeMap))
 
 (defn compile-transitions
-  "Compile a system's transitions into a format suitable for efficient markov chain generation.
-   Internally this creates a lookup table of URLs with treemaps used to map probabilities
-   onto numerical ranges."
+  "Compile a system's transitions into a format suitable for efficient markov chain generation. Internally this creates a lookup table of URLs with treemaps used to map probabilities onto numerical ranges."
   [transitions]
   (doall
    (reduce
@@ -32,28 +30,15 @@
 (defn chain
   "Returns a lazy sequence of requests. Not guaranteed to terminate."
   ([compiled]
-     (chain compiled :root))
-  ([{:keys [transitions requests] :as compiled} request]
-     (when-let [edges (transitions request)]
-       (let [e (.ceilingEntry edges (rand))]
-         (if-let [e-req (.getValue e)]
-           (lazy-seq
-            (cons (requests e-req) (chain compiled e-req)))
-           (chain compiled :root) )))))
-
-(defn parse-corpus
-  [corpus]
-  (map
-   #(let [[method url raw-opts] (string/split (string/trim %) #"\s+" 3)
-          opts (if (not raw-opts)
-                 {}
-                 (try (json/parse-string raw-opts)
-                      (catch com.fasterxml.jackson.core.JsonParseException e
-                        (log/warn e (str "Could not parse line: " %))
-                        (throw e)
-                        )))]
-      (merge (keywordize-keys opts) {:method method :url url }))
-   (filter (comp not string/blank?) (string/split-lines corpus))))
+     (chain compiled :rand))
+  ([{:keys [transitions request-keys requests] :as compiled} request]
+     (let [r (request-keys (rand-int (count request-keys)))]
+       (if-let [edges (transitions r)]
+         (let [e (.ceilingEntry edges (rand))]
+           (if-let [e-req (.getValue e)]
+             (lazy-seq (cons (first (requests e-req)) (chain compiled e-req)))
+             (throw (Exception.  "This should never happen. The morkov chain is compromised!"))))
+         (throw (Exception. (str "Could not find edge for: " request)))))))
 
 (defn build-requests
   [parsed]
@@ -65,29 +50,28 @@
    {:total 0}
    parsed))
 
+(defn incr-or-one
+  [v]
+  (if v (inc v) 1))
+
 (defn counted-tuples
   [parsed requests]
-  (reduce
-   (fn [m [a b]]
-     (let [ac (.hashCode a)
-           bc (.hashCode b)]
-       (-> m
-           (update-in [ac bc] #(if % (inc %) 1))
-           (update-in [ac :total] #(if % (inc %) 1)) )))
-   {}
-   (partition 2 1 parsed)))
-
-(defn add-root-tuples
-  [counted requests]
-  (assoc counted
-    :root
-    (reduce
-     (fn [m [k v]]
-       (if (= k :total)
-         (assoc m k v)
-         (let [[_ count] v] (assoc m k count))))
-     {}
-     requests)))
+  (let [tuples (partition 2 1 parsed)
+        first-edge (first (first tuples))
+        last-edge (last (last tuples))
+        counted (reduce
+                 (fn [m [a b]]
+                   (let [ac (.hashCode a)
+                         bc (.hashCode b)]
+                     (-> m
+                         (update-in [ac bc] incr-or-one)
+                         (update-in [ac :total] incr-or-one))))
+                 {}
+                 tuples)]
+    ;; loop the end to the front to finish it
+    (-> counted
+        (update-in [(.hashCode last-edge) (.hashCode first-edge)] incr-or-one)
+        (update-in [(.hashCode last-edge) :total] incr-or-one))))
 
 (defn counted-probabilities
   [counted]
@@ -95,25 +79,41 @@
    (fn [[request edges]]
      [request
       (reduce (fn [m [ereq ecount]]
-                (if (= ereq :total) m (assoc m ereq (float (/ ecount (:total edges))))
-                    ))
+                (if (= ereq :total)
+                  m
+                  (assoc m ereq (float (/ ecount (:total edges))))))
               {}
               edges)])
    counted))
 
 (defn compile-preprocessed
   "Compiles a preprocessed corpus into a format suitable for the (chain) method"
-  [{:keys [requests counted-partial]}]
-  (let [counted (add-root-tuples counted-partial requests)
-        probabilities (counted-probabilities counted)]
+  [{:keys [requests counted]}]
+  (let [probabilities (counted-probabilities counted)]
     {:requests requests
+     :request-keys (vec (filter #(not= :total %) (keys requests)))
      :transitions (compile-transitions probabilities)}))
+
+(defn parse
+  [corpus]
+  (->> corpus
+       (map #(if (map? %) % {:url %}))
+       (map keywordize-keys)
+       (map #(assoc % :method (keyword (or  (:method %) :get))))))
 
 (defn preprocess-corpus
   "Compiles the corpus into something that's a processed as possible but can still
    be serialized into JSON. Call 'compile-preprocessed' to finish it."
   [corpus]
-  (let [parsed (parse-corpus corpus)
+  (let [parsed (parse corpus)
         requests (build-requests parsed)
-        counted-partial (counted-tuples parsed requests)]
-    {:requests requests :counted-partial counted-partial}))
+        counted (counted-tuples parsed requests)]
+    {:requests requests
+     :counted counted}))
+
+(defn corpus-chain
+  [corpus]
+  (-> corpus
+      preprocess-corpus
+      compile-preprocessed
+      chain))

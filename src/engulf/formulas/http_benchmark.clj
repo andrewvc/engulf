@@ -20,16 +20,11 @@
 (defprotocol IHttpBenchmark
   (run-repeatedly [this ch runner] [this ch runner client req-params]))
 
-(defn req-seq
-  [req]
-  (lazy-seq (cons req (req-seq req))))
-
 (defrecord HttpBenchmark [state params res-ch mode]
   IHttpBenchmark
   (run-repeatedly
     [this ch runner]
-    (let [req-pkeys #{:method :url :timeout :keep-alive?}
-          reqs (req-seq (into {} (filter (fn [[k v]] (req-pkeys k)) params)))
+    (let [reqs (:req-seq params)
           client (http-client {:url (:url (first reqs))
                                :keep-alive? (:keep-alive? (first reqs))})]
       (run-repeatedly this ch runner client reqs)))

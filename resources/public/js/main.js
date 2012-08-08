@@ -76,7 +76,6 @@ Benchmarker = Backbone.Model.extend({
         data: JSON.stringify(params)
       }
     ).success(function (parsed) {
-        console.log("ddd", parsed);
         if (parsed.error) {
           alert("Could not start: " + parsed.error);
           self.set({currentJob: null});
@@ -418,8 +417,9 @@ PercentilesView = Backbone.View.extend({
          transition().
          duration(50).
          attr("y", function(d) { return self.h - self.yScale(d) - .5; }).
-         attr("height", function(d) { return self.yScale(d); });
+         attr("height", function(d) { return 2 });
 
+         //attr("height", function(d) { return self.yScale(d); });
     self.rtPercentiles.selectAll(".decile").
          data(deciles).
          transition().

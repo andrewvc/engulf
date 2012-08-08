@@ -27,7 +27,6 @@ h2 {
 h1 {
   text-align: center;
   font-size: 16px;
-  color: red;
   background-color: #fafafa;
   font-variant: small-caps;
   margin-top: 10px;
@@ -174,7 +173,11 @@ td {
 }
 
 .chart {
-  background-color: #f1f1f1;
+  background-color: #fff;;
+}
+
+.chart rect {
+  fill: red;
 }
 
 .chart div {

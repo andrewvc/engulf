@@ -25,7 +25,6 @@ BenchmarkStream = function (addr) {
     self.trigger('open', e);
   };
   self.socket.onmessage = function (e) {
-    console.log(e.data);
     
     var parsed = JSON.parse(e.data);
       self.trigger('jsonData', parsed);
@@ -76,8 +75,8 @@ Benchmarker = Backbone.Model.extend({
         dataType: "json",
         data: JSON.stringify(params)
       }
-    ).success(function (data) {
-        var parsed = JSON.parse(data);
+    ).success(function (parsed) {
+        console.log("ddd", parsed);
         if (parsed.error) {
           alert("Could not start: " + parsed.error);
           self.set({currentJob: null});
@@ -98,16 +97,29 @@ Benchmarker = Backbone.Model.extend({
   },
   bindToStream: function (stream) {
     var self = this;
-    stream.bind('dtype-stats', function (data) {
-      self.set({stats: data});
+    
+    stream.bind("all", function(name, body) {
+      //console.log(name);
+    });
+    
+    stream.bind("name-result", function (d) {
+      self.set({stats: d.value});
     });
 
     stream.bind('name-current-job', function (data) {
-      console.log("current job", data);
       self.set({currentJob: data});
+    });
+
+    stream.bind('name-job-start', function (data) {
+      self.set({currentJob: data});
+    });
+
+    stream.bind('name-job-stop', function (data) {
+      self.set({currentJob: null});
     });
   },
   timeSeriesFor: function (field) {
+    if (! this.get("stats")) return;
     var raw = this.get('stats')['by-start-time'];
     var data = [];
     for (time in raw) {
@@ -149,7 +161,9 @@ ControlsView = Backbone.View.extend({
     this.model.bind('change', this.render);
 
     this.$urlInput = $('#url');
+    this.$keepAliveInput = $('#keep-alive');
     this.$concInput = $('#concurrency');
+    this.$timeoutInput = $('#timeout');
     this.$reqsInput = $('#requests');
   },
   events: {
@@ -197,10 +211,19 @@ ControlsView = Backbone.View.extend({
         this.$urlInput.val('http://' + location.host + '/test-responses/delay/15');
       }
     } else {
+      var params = this.model.get('currentJob').params;
       this.renderStoppable();
-      this.$urlInput.val(this.model.get('url'));
-      this.$concInput.val(this.model.get('workers'));
-      this.$reqsInput.val(this.model.get('max-runs'));
+      this.$urlInput.val(params.url);
+      this.$concInput.val(params.concurrency);
+      this.$timeoutInput.val(params.timeout);
+      if (params["keep-alive"] === "true") {
+        this.$keepAliveInput.prop("checked", true);
+      } else {
+        this.$keepAliveInput.prop("checked", false);
+      }
+
+
+      this.$reqsInput.val(params.limit);
     }
 
 
@@ -250,13 +273,16 @@ AggregateStatsView = Backbone.View.extend({
   },
   render: function () {
     var res = this.renderElements;
+
     var stats = this.model.get('stats');
+    if (!stats) return;
+
     res.completed.text(stats['runs-total']);
     res.succeeded.text(stats['runs-succeeded']);
     res.failed.text(stats['runs-failed']);
     res.runtime.text(this.formatMillis(stats['runtime']));
 
-    var medianRuntime = stats['median-runtime'];
+    var medianRuntime = stats.percentiles['50'].median;
     if (medianRuntime) {
       res.medianRuntime.text(medianRuntime + " ms");
     }
@@ -266,11 +292,10 @@ AggregateStatsView = Backbone.View.extend({
       res.runsSec.text(parseInt(runsSec) + ' / sec');
     }
 
-    this.renderResponseCodes(stats['response-code-counts']);
+    this.renderResponseCodes(stats['status-codes']);
   },
   renderResponseCodes: function (codeCounts) {
     var self = this;
-     
     var tbody = self.renderElements.responseCodes;
     tbody.html('');
 
@@ -377,7 +402,7 @@ PercentilesView = Backbone.View.extend({
   render: function () {
     var self = this;
     
-    if (! this.model.get('stats')['runtime-percentiles']) return;
+    if (! this.model.get("stats") || ! this.model.get('stats')['runtime-percentiles']) return;
     
     var percentiles = this.model.percentileAvgs();
     var deciles = this.model.decileAvgs();
@@ -451,8 +476,9 @@ TimeSeriesView = Backbone.View.extend({
     var self = this;
     var data = [];
     
+    if (!this.field) return null;
     var times = this.model.timeSeriesFor(this.field);
-    if (!times) { return };
+    if (!times) { return null; };
     
     var max = this.model.maxInTimeSeries(times);
     
@@ -501,21 +527,21 @@ $(function () {
   var controlsView = window.controlsView = new ControlsView(
     {
       el: $('#controls')[0],
-      model: benchmarker,
+      model: benchmarker
     }
   );
 
   var statsView = window.statsView = new AggregateStatsView(
     {
       el: $('#stats')[0],
-      model: benchmarker,
+      model: benchmarker
     }
   );
    
   var percentilesView = window.percentilesView = new PercentilesView(
     {
       el: $('#resp-time-percentiles')[0],
-      model: benchmarker,
+      model: benchmarker
     }
   );
 

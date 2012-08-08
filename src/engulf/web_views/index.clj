@@ -26,27 +26,23 @@
       [:thead
        [:th [:label {:for "timeout"} "Timeout "]]
        [:th [:label {:for "concurrency"} "Concurrency "]]
-       [:th [:label {:for "method"} "Method "]]
        [:th [:label {:for "limit"} "Limit "]]
+       [:th [:label {:for "keep-alive"} "KeepAlive"]]
        [:th [:label {:for "start-stop"} "▷"]]
        ]
       [:tbody
        [:tr
         [:td [:input {:id "timeout" :class "short-num" :name "timeout" :type "number" :min 1 :max 200000 :value 5000 }]]
         [:td [:input {:id "concurrency" :class "short-num" :name "concurrency" :type "number" :min 1 :value 4 }]]
-        [:td [:input {:id "method" :class "short-num" :name "method" :type "number" :min 1 :value 4 }]]
         [:td [:input {:id "limit" :class "short-num" :name "requests" :type "number" :min 1 :value 200 }]]
-        [:td [:input {:id "start-ctl" :type "button" :value "Start"}]]
-
-        ]]]
-
-     [:div {:id "start-stop-cont"}
-
-      [:input {:id "stop-ctl"  :type "button" :value "Stop"}]]]]
+        [:td [:input {:id "keep-alive" :name "method" :type "checkbox" :checked "true"}]]
+        [:td
+         [:input {:id "start-ctl" :type "button" :value "Start"}]
+         [:input {:id "stop-ctl"  :type "button" :value "Stop"}]]]]]]]
    
    [:div {:id "output"}
     [:div {:id "scalars"}
-     [:h1 "(engulf)"]
+     [:h1 "engulf"]
      [:div {:id "stats"}
       [:h2 "Misc."]
       [:table {:id "benchmark-stats"}
@@ -57,6 +53,9 @@
         [:tr
          [:td {:class "k"} "Runs/Sec"]
          [:td {:class "v" :id "runs-sec"} "&#8734;"]]
+        [:tr
+         [:td {:class "k"} "Walltime"]
+         [:td {:class "v" :id "walltime"} "&#8734;"]]
         [:tr
          [:td {:class "k"} "Runtime"]
          [:td {:class "v" :id "runtime"} "&#8734;"]]

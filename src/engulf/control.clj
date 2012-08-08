@@ -10,7 +10,7 @@
 
 (defn stop-job
   []
-  (let [stop-msg {"name" "job-stop"}]
+  (let [stop-msg {"entity" "system" "name" "job-stop"}]
     (lc/enqueue nmgr/receiver stop-msg)
     (lc/enqueue emitter stop-msg))
   (relay/stop-job))

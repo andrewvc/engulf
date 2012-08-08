@@ -30,7 +30,10 @@
   (let [total (+ runs-total (count results))
         succeeded (+ runs-succeeded (count (successes results)))
         failed (- total succeeded)]
-    (assoc stats "runs-total" total "runs-failed" failed "runs-succeeded" succeeded)))
+    (assoc stats
+      "runs-total" total
+      "runs-failed" failed
+      "runs-succeeded" succeeded)))
 
 (defn edge-agg-times
   [{runtime "runtime" :as stats} results]

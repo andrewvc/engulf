@@ -91,9 +91,13 @@ Benchmarker = Backbone.Model.extend({
   },
   stop: function () {
     var self = this;
-    $.delete("/jobs/current", function () {
-      self.set({state: "stopped"});
-    });
+    $.ajax("/jobs/current", {
+               method: "delete",
+               success: function () {
+                   self.set({state: "stopped"});
+               }
+           });
+          
   },
   bindToStream: function (stream) {
     var self = this;
@@ -137,7 +141,7 @@ Benchmarker = Backbone.Model.extend({
     return max;
   },
   percentileAvgs: function () {
-    return _.map(this.get('stats')['runtime-percentiles'],
+    return _.map(this.get('stats')['percentiles'],
                  function (d) { return d.avg}
                 );
   },
@@ -402,7 +406,7 @@ PercentilesView = Backbone.View.extend({
   render: function () {
     var self = this;
     
-    if (! this.model.get("stats") || ! this.model.get('stats')['runtime-percentiles']) return;
+    if (! this.model.get("stats") || ! this.model.get('stats')['percentiles']) return;
     
     var percentiles = this.model.percentileAvgs();
     var deciles = this.model.decileAvgs();

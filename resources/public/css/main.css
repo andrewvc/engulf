@@ -10,6 +10,10 @@ body {
   margin: 0px auto;
 }
 
+header {
+  display: none;
+}
+
 h1, header, p {
   padding: 0px;
   margin:  0px;
@@ -21,8 +25,12 @@ h2 {
 }
 
 h1 {
-  font-size: 18px;
+  text-align: center;
+  font-size: 16px;
+  color: red;
+  background-color: #fafafa;
   font-variant: small-caps;
+  margin-top: 10px;
 }
 
 ul { list-style-type: diamond;}
@@ -34,20 +42,75 @@ a {
 }
 
 header {
-  margin: 20px 0px;
+  margin: 14px 0px;
 }
 
-#controls input {
-  margin: 10px;
+#controls {
+  float: right;
+  width: 500px;
 }
 
+#controls #title {
+  width: 438px;
+}
+
+#controls input, #controls select {
+  margin: 5px;
+  background-color: #f1f1f1;
+  color: #222;
+  border: none;
+  padding: 1px 5px;
+}
+
+#url {
+  width: 307px;
+}
 
 #controls input[type=button] {
-  padding: 0px 10px;
+  padding: 2px 20px;
 }
 
 #controls .short-num {
-  width: 70px;
+  border: 0;
+  width: 65px;
+}
+
+#controls-top {
+  padding: 5px;
+}
+
+#controls table {
+  margin: 0 0 0;
+  width: 100%;
+}
+
+#controls label {
+  font-weight: bold;
+}
+
+#controls td, #controls th {
+  width:80px;
+  margin: 0;
+  text-align: center;
+  padding: 0 10px 0 2px;
+  border: none;
+}
+
+#start-stop-cont {
+  width: 100%;
+  text-align: center;
+  margin-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #888;
+}
+
+#start-stop-cont input[type="button"] {
+  padding: 2px 20px;
+  
+}
+
+#controls #start-ctl {
+  background-color: red;
 }
 
 #console-enabled {
@@ -68,14 +131,15 @@ header {
   margin: 10px 0px;
 }
 
-#scalars {
-  float:left;
-  width: 190px;
+#scalars, #response-code-stats {
+  float: left;
+  width: 235px;
   padding-right: 20px;
-  min-height: 480px;
+  padding-left: 0px;
+  margin-bottom: 15px;
 }
 
-table {
+#benchmark-stats {
   margin: 10px 0px;
   width: 100%;
 }
@@ -91,12 +155,26 @@ td {
   padding: 5px;
 }
 
-.v {
+.k {
   font-weight: bold;
+  text-align: right;
+  padding-right: 20px;
+}
+
+.v {
+  width: 50px;
+  padding-left: 20px;
+  text-align: center;
+  background-color: #f1f1f1;
+  color: black;
   padding: 5px 10px;
-  border: 1px solid #666;
+  border: 1px solid #aaa;
   border-left: 0px;
   border-top: 0px;
+}
+
+.chart {
+  background-color: #f1f1f1;
 }
 
 .chart div {
@@ -106,6 +184,12 @@ td {
   padding: 3px;
   margin: 1px;
   color: white;
+}
+
+.charts {
+  float: right;
+  clear: right;
+  padding-top: 10px;
 }
 
 .non-decile {

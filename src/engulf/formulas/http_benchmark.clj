@@ -34,7 +34,7 @@
     (runner client
             (first reqs)
             (fn req-resp [res]
-              (when (= @state :started) 
+              (when (= @state :started)
                 (lc/enqueue ch res)
                 (run-repeatedly this ch runner client (rest reqs))))))
   Formula

@@ -4,7 +4,6 @@ $(function () {
   }
 });
 
-
 BenchmarkStream = function (addr) {
   console.log("Connecting to addr", addr);
   this.addr = addr;
@@ -123,10 +122,10 @@ Benchmarker = Backbone.Model.extend({
   },
   timeSeriesFor: function (field) {
     if (! this.get("stats")) return;
-    var raw = this.get('stats')['by-start-time'];
+    var raw = this.get('stats')['time-slices'];
     var data = [];
     for (time in raw) {
-      data.push({time: time, value: raw[time][field]});
+      data.push({time: time, value: raw[time][field] || 0});
     }
     return data;
   },
@@ -417,7 +416,7 @@ PercentilesView = Backbone.View.extend({
          transition().
          duration(50).
          attr("y", function(d) { return self.h - self.yScale(d) - .5; }).
-         attr("height", function(d) { return 2 });
+         attr("height", 1);
 
          //attr("height", function(d) { return self.yScale(d); });
     self.rtPercentiles.selectAll(".decile").
@@ -496,18 +495,18 @@ TimeSeriesView = Backbone.View.extend({
       append("rect").
       attr("x", function(d, i) { return self.xScale(i + 1) + 1; }).
       attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
-      attr("width", 1).
-      attr("height", function(d) { return self.yScale(d.value); }).
+      attr("width", 2).
+      attr("height", 20).
       transition().
       duration(1000).
       attr("x", function(d, i) { return self.xScale(i) - .5; });
 
 
     rect.transition().
-      duration(200).
+      duration(20).
       attr("x", function(d, i) { return self.xScale(i) - .5; }).
       attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
-      attr("height", function(d) { return self.yScale(d.value); });
+      attr("height", 2);
 
     rect.exit().transition().duration(0).remove();
   }
@@ -553,7 +552,7 @@ $(function () {
     {
       el: $('#resp-time-series')[0],
       model: benchmarker,
-      field: 'avg'
+      field: 200
     }
   )
     
@@ -561,7 +560,7 @@ $(function () {
     {
       el: $('#throughput-time-series')[0],
       model: benchmarker,
-      field: 'count'
+      field: 404
     }
   );
 });

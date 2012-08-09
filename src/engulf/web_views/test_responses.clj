@@ -22,3 +22,9 @@
     (fn []
       (let [i (swap! delayed-page-count inc)]
         (na/async-push conn (str "Test Response #" i))))))
+
+(def statuses [200 202 200 200 200 200 404 302 301 500])
+
+(defpage "/test-responses/rand-responses" {}
+  (let [s (statuses (rand-int (count statuses)))]
+    {:status s :body (str "Status" s)}))

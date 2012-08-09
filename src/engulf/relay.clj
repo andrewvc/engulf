@@ -7,7 +7,6 @@
    [lamina.core :as lc]))
 
 (def ^:dynamic receiver (lc/channel* :grounded? true :permanent? true))
-(def ^:dynamic emitter (lc/channel* :grounded? true :permanent? true))
 
 (def state (atom :stopped))
 (def receive-cb (atom nil))
@@ -28,10 +27,6 @@
        (lc/filter* (job-results-filter uuid))
        (lc/map* (fn [{{results "results"} "body"}] results))))
 
-(defn broadcast-job-stop
-  [job]
-  lc/enqueue emitter {"entity" "system" "name" "job-stop" "body" job})
-
 (defn start-job
   [job]
   (utils/safe-send-off-with-result current res state
@@ -42,10 +37,12 @@
     (let [fla (formula/init-job-formula job)
           in-ch (job-ingress-channel job)
           res-ch (formula/start-relay fla in-ch)
-          current-state {:job job :formula fla :ingress-channel in-ch :results-ch res-ch}]
+          current-state {:job job
+                         :formula fla
+                         :ingress-channel in-ch
+                         :results-ch res-ch}]
 
-      (lc/on-closed res-ch (partial broadcast-job-stop job))
-      (lc/siphon res-ch emitter)
+      (lc/ground res-ch)
       (lc/enqueue res current-state)
       current-state)))
 

@@ -77,15 +77,13 @@
       [:label {:for "console-enabled"} "Enable Console Logging"]]]
 
     [:div {:class "charts"}
-    [:h2 "Avg. Response Time Percentiles: "]
+    [:h2 "Avg. Response Time Percentiles"]
     [:div {:id "resp-time-percentiles"}]
-    
-    [:h2 "Avg. Response Time vs. Time: "]
-    [:div {:id "resp-time-series"}]
 
-    [:h2 "Throughput vs. Time: "]
-    [:div {:id "throughput-time-series"}]
-     ]
+     [:h2 "Response Codes"]
+     [:div {:id "time-series"}
+      [:div {:id "resp-time-series"}]
+      [:div {:id "throughput-time-series"}]]]
 
     ]
    ))

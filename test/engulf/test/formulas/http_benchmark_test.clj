@@ -64,7 +64,7 @@
                           [(htb/success-result 0 10 200)
                            (htb/success-result 0 10 200)
                            (htb/success-result 0 20 404)
-                           (htb/error-result 0 40 (Exception. "wtf"))]))
+                           (htb/error-result 550 590 (Exception. "wtf"))]))
 
 (facts
  "about relay aggregation"
@@ -83,6 +83,10 @@
    (fact
     "it should sum runtimes"
     (agg "runtime") => 160)
+   (fact
+    "it should merge time slices"
+    (agg "time-slices") => {0 {200 4, 404 2}, 500 {"thrown" 2}}
+    )
    (fact
     "it should sum aggregated statuses"
     (agg "status-codes") => {"thrown" 2, 404 2, 200 4}
@@ -113,4 +117,6 @@
     (count (agg "all-runtimes")) => 4)
    (fact
     "it should aggregate response codes by time-slice"
-    (agg "time-slices") => {0 {"thrown" 1, 404 1, 200 2}})))
+    (agg "time-slices") => {0 {404 1, 200 2}
+                            500 {"thrown" 1}})))
+

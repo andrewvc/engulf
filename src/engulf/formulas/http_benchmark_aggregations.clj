@@ -60,12 +60,37 @@
   (assoc stats "time-slices"
          (reduce
           (fn [buckets result]
-            (let [time-slice (long (/ (result :started-at) 250))]
+            (let [time-slice (- (result :started-at) (mod (result :started-at) 500))]
               (update-in buckets
                          [time-slice (:status result)]
                          #(if %1 (inc %1) 1))))
           (stats :time-slices)
           results)))
+
+(defn relay-agg-time-slices
+  "Processes time-slices segmented by status"
+  [stats aggs]
+  (let [agg-slices (map #(get % "time-slices") aggs)
+        tc-seq (partition
+                2
+                (flatten
+                 (reduce
+                  (fn [m as] (conj m (filter identity (seq as))))
+                  []
+                  agg-slices)))
+        exp-codes (apply concat
+                         (map (fn [[t codes]]
+                                (reduce (fn [m [code quant]] (conj m [t code quant]))
+                                        []
+                                        codes))
+                              tc-seq))]
+    (assoc stats
+      "time-slices"
+      (reduce
+        (fn [m [ts code quant]]
+          (update-in m [ts code] #(if % (+ % quant) quant)))
+        {}
+        exp-codes))))
 
 (defn relay-agg-totals
   [stats aggs]
@@ -125,6 +150,7 @@
     (-> initial
         (relay-agg-totals all-aggs)
         (relay-agg-times all-aggs)
+        (relay-agg-time-slices all-aggs)
         (relay-agg-statuses all-aggs)
         (relay-agg-percentiles aggs))))
 

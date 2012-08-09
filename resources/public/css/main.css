@@ -109,7 +109,7 @@ header {
 }
 
 #controls #start-ctl {
-  background-color: red;
+  background-color: #00FF04;
 }
 
 #console-enabled {
@@ -172,12 +172,19 @@ td {
   border-top: 0px;
 }
 
-.chart {
-  background-color: #fff;;
+#time-series {
+  position: relative;
+}
+
+#time-series .chart {
+  position: absolute;
+  top: 0
 }
 
 .chart rect {
-  fill: red;
+  stroke: #00FF04;
+  stroke-width: 1px;
+  opacity: 100;
 }
 
 .chart div {

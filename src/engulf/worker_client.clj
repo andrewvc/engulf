@@ -73,10 +73,12 @@
                         (log/warn "Connection to master closed! Reconnecting in 5s")
                         (Thread/sleep 5000)
                         (client-connect host port)))
-      (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
-      (receive-all conn (partial handle-message conn))
+      
       ;; Send identity immediately
       (enqueue conn {"name" "uuid" "body" uuid})
+
+      (on-error conn (fn [e] (log/warn e "Server Channel Error!") ))
+      (receive-all conn (partial handle-message conn))
       conn)
     (catch java.net.ConnectException e
       (log/warn e "Could not connect to control server! Reconnecting in 5s")

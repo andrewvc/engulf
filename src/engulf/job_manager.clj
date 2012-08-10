@@ -62,6 +62,7 @@
 (defn stop-job
   "Marks the currently running job as stopped"
   []
+  (ctrl/stop-job)
   (when-let [job (dosync
                   (when-let [job @current-job]
                     (ref-set current-job nil)

@@ -27,7 +27,6 @@ h2 {
 h1 {
   text-align: center;
   font-size: 16px;
-  background-color: #fafafa;
   font-variant: small-caps;
   margin-top: 10px;
 }
@@ -55,9 +54,7 @@ header {
 
 #controls input, #controls select {
   margin: 5px;
-  background-color: #f1f1f1;
   color: #222;
-  border: none;
   padding: 1px 5px;
 }
 
@@ -70,7 +67,6 @@ header {
 }
 
 #controls .short-num {
-  border: 0;
   width: 65px;
 }
 
@@ -106,10 +102,6 @@ header {
 #start-stop-cont input[type="button"] {
   padding: 2px 20px;
   
-}
-
-#controls #start-ctl {
-  background-color: #00FF04;
 }
 
 #console-enabled {
@@ -185,6 +177,11 @@ td {
   stroke: #00FF04;
   stroke-width: 1px;
   opacity: 100;
+}
+
+#time-series .chart rect {
+  fill: #0000FF;
+  stroke: none;
 }
 
 .chart div {

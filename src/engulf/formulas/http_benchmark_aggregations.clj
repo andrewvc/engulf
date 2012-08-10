@@ -61,9 +61,11 @@
          (reduce
           (fn [buckets result]
             (let [time-slice (- (result :started-at) (mod (result :started-at) 500))]
-              (update-in buckets
-                         [time-slice (:status result)]
-                         #(if %1 (inc %1) 1))))
+              (-> buckets
+                  (update-in [time-slice "total"]
+                             #(if %1 (inc %1) 1))
+                  (update-in [time-slice (:status result)]
+                             #(if %1 (inc %1) 1)))))
           (stats :time-slices)
           results)))
 

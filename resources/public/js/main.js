@@ -90,9 +90,9 @@ Benchmarker = Backbone.Model.extend({
   stop: function () {
     var self = this;
     $.ajax("/jobs/current", {
-               method: "delete",
-               success: function () {
-                   self.set({state: "stopped"});
+               type: "DELETE",
+               success: function (data) {
+                   self.set({currentJob: null});
                }
            });
           
@@ -495,7 +495,7 @@ TimeSeriesView = Backbone.View.extend({
       append("rect").
       attr("x", function(d, i) { return self.xScale(i + 1) + 1; }).
       attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
-      attr("width", 2).
+      attr("width", 1).
       attr("height", 20).
       transition().
       duration(1000).
@@ -506,7 +506,8 @@ TimeSeriesView = Backbone.View.extend({
       duration(20).
       attr("x", function(d, i) { return self.xScale(i) - .5; }).
       attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
-      attr("height", 2);
+      attr("height", function(d) { return self.yScale(d.value); });
+
 
     rect.exit().transition().duration(0).remove();
   }
@@ -552,7 +553,7 @@ $(function () {
     {
       el: $('#resp-time-series')[0],
       model: benchmarker,
-      field: 200
+      field: "total"
     }
   )
     

@@ -28,7 +28,7 @@
        [:th [:label {:for "concurrency"} "Concurrency "]]
        [:th [:label {:for "limit"} "Limit "]]
        [:th [:label {:for "keep-alive"} "KeepAlive"]]
-       [:th [:label {:for "start-stop"} "▷"]]
+       [:th [:label {:for "start-stop"} "&middot;"]]
        ]
       [:tbody
        [:tr
@@ -37,14 +37,13 @@
         [:td [:input {:id "limit" :class "short-num" :name "requests" :type "number" :min 1 :value 200 }]]
         [:td [:input {:id "keep-alive" :name "method" :type "checkbox" :checked "true"}]]
         [:td
-         [:input {:id "start-ctl" :type "button" :value "Start"}]
-         [:input {:id "stop-ctl"  :type "button" :value "Stop"}]]]]]]]
+         [:input {:id "start-ctl" :type "button" :value "▷ Start"}]
+         [:input {:id "stop-ctl"  :type "button" :value "▢ Stop"}]]]]]]]
    
    [:div {:id "output"}
     [:div {:id "scalars"}
-     [:h1 "engulf"]
+     [:h1 "(engulf)"]
      [:div {:id "stats"}
-      [:h2 "Misc."]
       [:table {:id "benchmark-stats"}
        [:tbody
         [:tr

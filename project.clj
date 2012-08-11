@@ -1,4 +1,4 @@
-(defproject engulf/engulf "3.0.0-SNAPSHOT"
+(defproject engulf/engulf "3.0.0-alpha2"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.cli "0.2.1"]
                  [noir-async "1.1.0-beta7"]
@@ -19,7 +19,7 @@
               :plugins [[lein-midje "2.0.0-SNAPSHOT"]
                         [lein-swank "1.4.4"]]}}
   :java-source-paths ["java-src"]
-  :main ^{:skip-aot true} engulf.core
+  :main engulf.core
   :min-lein-version "2.0.0"
   :jvm-opts ["-server"]
   :description "HTTP Benchmarker/Visualizer")

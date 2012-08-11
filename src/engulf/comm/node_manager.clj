@@ -37,6 +37,10 @@
      :conn conn
      :address (:address client-info)}))
 
+(defn serializable-node
+  [n]
+  (dissoc n :conn))
+
 (defn get-node
   [uuid]
   (@nodes uuid))
@@ -54,7 +58,7 @@
     (when new-node
       (lc/enqueue emitter {"entity" "system"
                            "name" "node-connect"
-                           "body" (dissoc new-node :conn)}))
+                           "body" (serializable-node new-node)}))
     new-node))
           
 (defn deregister-node
@@ -64,7 +68,7 @@
   (when-let [r (dosync (alter nodes dissoc (:uuid node)))]
     (lc/enqueue emitter {"entity" "system"
                          "name" "node-disconnect"
-                         "body" {"uuid" (:uuid node)}})
+                         "body" (serializable-node node)})
     r))
 
 (defn deregister-node-by-uuid

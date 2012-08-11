@@ -59,7 +59,9 @@ ConsoleView = Backbone.View.extend({
   }
 });
 
-Node = Backbone.Model.extend({});
+Node = Backbone.Model.extend({
+  idAttribute: "uuid"
+});
 Nodes = Backbone.Collection.extend({
   model: Node
 });
@@ -109,6 +111,7 @@ Benchmarker = Backbone.Model.extend({
     });
 
     stream.bind("name-current-nodes", function (d) {
+      console.log("N", d);
       if (self.get('nodes')) {
         self.get('nodes').reset(d);
       } else {
@@ -119,6 +122,13 @@ Benchmarker = Backbone.Model.extend({
 
     stream.bind("name-node-connect", function (d) {
       self.get('nodes').add(d);
+      self.trigger('change');
+    });
+
+    stream.bind("name-node-disconnect", function (d) {
+      var nodes = self.get('nodes');
+      var n = nodes.get(d.uuid);
+      self.get('nodes').remove(n);
       self.trigger('change');
     });
 

@@ -70,7 +70,7 @@ Benchmarker = Backbone.Model.extend({
   url: "/jobs/current",
   initialize: function () {
   },
-  start: function (params) {
+  start: function (params, on_success, on_error) {
     var self = this;
     $.ajax(
       "/jobs/current",
@@ -81,16 +81,13 @@ Benchmarker = Backbone.Model.extend({
         data: JSON.stringify(params)
       }
     ).success(function (parsed) {
-        if (parsed.error) {
-          alert("Could not start: " + parsed.error);
-          self.set({currentJob: null});
-        } else {
-          self.set({currentJob: parsed});
-        }
+        if (on_success) on_success(parsed);
+        self.set({currentJob: parsed});
       }).
       error(function (error) {
         console.log("Error", error);
-        alert("Error processing request: " + error);
+        if (on_error) on_error(error);
+        alert("Error processing request: " + JSON.stringify(error));
       });
   },
   stop: function () {
@@ -206,21 +203,15 @@ ControlsView = Backbone.View.extend({
   },
   start: function (e) {
     var params = {};
-    
-    params.url = this.$el.find('#url').val();
+    var self = this;
+
     params.concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
     params.limit = parseInt(this.$el.find('#limit').val(), 10);
-    params.method = $('#method').val();
     params.timeout = $('#timeout').val();
     params['keep-alive'] = 'true';
     params['formula-name'] = 'http-benchmark';
     params['_stream'] = 'false';
     
-    
-    if (!params.url || params.url.length < 3) {
-      alert("Could not start benchmark, no URL specified!")
-      return;
-    }
     if (!params.concurrency || params.concurrency < 1) {
       alert("Concurrency must be a positive integer!");
       return;
@@ -229,9 +220,28 @@ ControlsView = Backbone.View.extend({
       alert("Limit must be a positive integer!");
       return;
     }
+
+    if (this.type() == "url") {
+      params.url = this.$el.find('#url').val();      
+      params.method = $('#method').val();
+
+      if (!params.url || params.url.length < 3) {
+        alert("Could not start benchmark, no URL specified!");
+        return;
+      }
+    } else {
+      var c = $('#markov-corpus', this.el).val();
+      params['markov-corpus'] = _.map(c.split(/\n/),
+                                      function (s) {
+                                          var a = s.split(/[ \t]+/);
+                                          return {method: a[0], url: a[1]};
+                                      });
+    }
     
     this.disableInputs();
-    this.model.start(params);
+    this.model.start(params, null, function (e) {
+                       self.renderStartable();
+                     });
   },
   stop: function (e) {
     this.model.stop();
@@ -258,7 +268,20 @@ ControlsView = Backbone.View.extend({
       this.$reqsInput.val(params.limit);
     }
 
-
+    if (this.type() == "url") {
+      $('#url', this.el).show();
+      $('#method', this.el).show();
+      $('#markov-corpus', this.el).hide();
+      $('#markov-help', this.el).hide();
+    } else {
+      $('#url', this.el).hide();
+      $('#method', this.el).hide();
+      $('#markov-corpus', this.el).show();
+      $('#markov-help', this.el).show();
+    }
+  },
+  type: function () {
+    return $('#type', this.el).val();
   },
   renderStartable: function () {
     this.enableInputs();
@@ -303,7 +326,7 @@ AggregateStatsView = Backbone.View.extend({
       medianRuntime: this.$el.find('#median-runtime'),
       runsSec: this.$el.find('#runs-sec'),
       responseCodes: this.$el.find('#response-code-stats tbody')
-    }
+    };
   },
   render: function () {
     var res = this.renderElements;

@@ -10,7 +10,8 @@
   (:import [java.util
             TreeMap
             NavigableMap
-            Map$Entry]))
+            Map$Entry]
+           java.net.URL))
 
 (defn counts->treemap
   [counts]
@@ -116,6 +117,8 @@
 (defn parse
   [corpus]
   (->> corpus
+       ;; Ensure URLs are parsabl
+       (map #(do (.toString (URL. (:url %))) %))
        (map #(if (map? %) % {:url %}))
        (map keywordize-keys)
        (map #(assoc % :method (if-let [m (:method %)]

@@ -38,7 +38,8 @@
   (let [req-pkeys #{:url :method :timeout :keep-alive?}
         refined (assoc params
                   :method (keyword (lower-case (or (:method params) "get"))))]
-    
+    ;; Throw on bad URLs.
+    (URL. (:url params))
     (when (not ((:method refined) valid-methods))
         (throw (Exception. (str "Invalid method: " (:method params) " "
                                 "expected one of " valid-methods))))
@@ -48,7 +49,6 @@
 ;; TODO Clean this all up, it's a bit of a hairbal
 (defn clean-params [str-params]
   (let [params (keywordize-keys str-params)]
-    
     ;; Ensure required keys
     (let [diff (cset/difference #{:concurrency :timeout :limit} params)]
       (when (not (empty? diff))

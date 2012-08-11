@@ -57,8 +57,17 @@ header {
   padding: 1px 5px;
 }
 
-#url {
-  width: 307px;
+#controls #type {
+  width: 89px;
+}
+
+#controls #url {
+  width: 290px;
+}
+
+#controls #markov-corpus {
+  width: 97%;
+  height: 100px;
 }
 
 #controls input[type=button] {

@@ -9,10 +9,9 @@
    [:div {:id "controls"}
     [:form
      [:div {:id "controls-top"}
-      [:label {:for "url"} "URL: "]
-      [:input {:id "url" :name "url" :type "url"}]
-
-      [:label {:for "method"} "Method: "]
+      [:select {:id "type"}
+       [:option {:value "url"} "Single URL"]
+       [:option {:value "markov-corpus"} "URL List"]]
       [:select {:id "method" :class "short-num" :name "method"}
        [:option {:value "get"} "GET"]
        [:option {:value "post"} "POST"]
@@ -20,8 +19,15 @@
        [:option {:value "delete"} "DELETE"]
        [:option {:value "patch"} "PATCH"]
        ]
+      [:input {:id "url" :name "url" :type "url"}]
+      
+      [:span {:id "markov-help"}
+       "Specify newline separated URLs as: "
+       [:strong "GET http://localhost/foo"]
+       ]
+      [:textarea {:id "markov-corpus" :name "markov-corpus"}]
       ]
-     
+
      [:table
       [:thead
        [:th [:label {:for "timeout"} "Timeout "]]

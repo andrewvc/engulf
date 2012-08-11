@@ -141,6 +141,9 @@ Benchmarker = Backbone.Model.extend({
     for (time in raw) {
       data.push({time: time, value: raw[time][field] || 0});
     }
+    data.sort(function (a,b) {
+     return a.time - b.time;
+    });
     return data;
   },
   maxInTimeSeries: function (timeSeries) {
@@ -424,7 +427,7 @@ PercentilesView = Backbone.View.extend({
   render: function () {
     var self = this;
     
-    if (! this.model.get("stats") || ! this.model.get('stats')['percentiles']) return;
+    if (! this.model.get("stats") || this.model.get('stats')['percentiles'] < 100) return;
     
     var percentiles = this.model.percentileAvgs();
     var deciles = this.model.decileAvgs();
@@ -509,7 +512,7 @@ TimeSeriesView = Backbone.View.extend({
     this.setYScale(max);
     this.setXScale(times.length);
 
-    console.log(">", _.map(times, function (d) {return d.value}));
+    //console.log(">", _.flatten(_.map(times, function (d) {return [d.time, d.value]})));
     var rect = this.chart.selectAll("rect").
       data(times, function(d) { return d.time; });
 

@@ -604,7 +604,7 @@ TimeSeriesView = Backbone.View.extend({
     var elem = $(e.currentTarget);
     var tip = this.chart.append('text');
     var offset = elem.data('side') == 'l' ? 0 : -95;
-    tip.text(elem.data('val') + ' reqs @ ' + toFixed(elem.data('elapsed') / 1000, 3));
+    tip.text(elem.data('val') + ' reqs @ ' + toFixed(elem.data('elapsed') / 1000, 3) + ' secs');
     tip.attr('class', 'tip');
     tip.attr('x', parseInt(elem.attr('x'),0) + offset);
     tip.attr('y', this.h + 20);

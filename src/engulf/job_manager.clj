@@ -15,7 +15,7 @@
 
 (def emitter (lc/channel* :permanent? true :grounded? true))
 
-(def current-job (ref nil))
+(def current-job (atom nil))
 
 (defn job
   "Creates a new job map"
@@ -55,9 +55,8 @@
   [formula-name title notes params]
   (let [j (job formula-name title notes params)]
     (insert database/jobs (values j))
-    (dosync
-     (ref-set current-job j)
-     j)))
+    (reset! current-job j)
+    j))
 
 (defn stop-job
   "Marks the currently running job as stopped"
@@ -65,7 +64,7 @@
   (ctrl/stop-job)
   (when-let [job (dosync
                   (when-let [job @current-job]
-                    (ref-set current-job nil)
+                    (reset! current-job nil)
                     job))]
     (update database/jobs
             (set-fields {:ended-at (System/currentTimeMillis)})

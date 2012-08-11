@@ -49,7 +49,7 @@ ConsoleView = Backbone.View.extend({
       return;
     }
     
-    console.log(msg);
+    console.log(msg.name, msg);
   },
   logEvents: function (obj, eventType) {
     var self = this;
@@ -509,25 +509,23 @@ TimeSeriesView = Backbone.View.extend({
     this.setYScale(max);
     this.setXScale(times.length);
 
+    console.log(">", _.map(times, function (d) {return d.value}));
     var rect = this.chart.selectAll("rect").
       data(times, function(d) { return d.time; });
-    
+
     rect.enter().
       append("rect").
-      attr("x", function(d, i) { return self.xScale(i + 1) + 1; }).
-      attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
       attr("width", 1).
-      attr("height", 20).
-      transition().
-      duration(1000).
-      attr("x", function(d, i) { return self.xScale(i) - .5; });
-
-
-    rect.transition().
-      duration(20).
       attr("x", function(d, i) { return self.xScale(i) - .5; }).
-      attr("y", function(d) { return self.h - self.yScale(d.value) - .5; }).
+      attr("y", function(d) { return  self.h - self.yScale(d.value)  }).
+      attr("data-val", function (d) { return (d.value) } ).
       attr("height", function(d) { return self.yScale(d.value); });
+
+    rect.
+      attr("x", function(d, i) { return self.xScale(i) - .5; }).
+      attr("y", function(d) { return self.h - self.yScale(d.value)  }).
+      attr("data-val", function (d) { return (d.value) } ).
+      attr("height", function(d) { return 80 });
 
 
     rect.exit().transition().duration(0).remove();

@@ -74,7 +74,7 @@
         ;; Output is time-constrained for efficient messaging
         (lc/siphon 
          (lc/map* (partial edge-aggregate params)
-                  (lc/partition-every 100 http-res-ch))
+                  (lc/partition-every 250 http-res-ch))
          res-ch)
         res-ch)))
   (stop [this]

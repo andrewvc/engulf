@@ -4,6 +4,18 @@ $(function () {
   }
 });
 
+function toFixed(value, precision) {
+    var precision = precision || 0,
+    neg = value < 0,
+    power = Math.pow(10, precision),
+    value = Math.round(value * power),
+    integral = String((neg ? Math.ceil : Math.floor)(value / power)),
+    fraction = String((neg ? -value : value) % power),
+    padding = new Array(Math.max(precision - fraction.length, 0) + 1).join('0');
+
+    return precision ? integral + '.' +  padding + fraction : integral;
+}
+
 BenchmarkStream = function (addr) {
   console.log("Connecting to addr", addr);
   this.addr = addr;
@@ -108,7 +120,6 @@ Benchmarker = Backbone.Model.extend({
     });
 
     stream.bind("name-current-nodes", function (d) {
-      console.log("N", d);
       if (self.get('nodes')) {
         self.get('nodes').reset(d);
       } else {
@@ -508,6 +519,10 @@ TimeSeriesView = Backbone.View.extend({
     
     this.setupContainer();
   },
+  events: {
+    "mouseover rect": "showTip",
+    "mouseout rect": "clearTip"
+  },
   yScale: null,
   setYScale: function (upper) {
     this.yScale= d3.scale.linear().
@@ -525,7 +540,7 @@ TimeSeriesView = Backbone.View.extend({
       append("svg").
       attr("class", "chart").
       attr("width", this.w).
-      attr("height", this.h);
+      attr("height", this.h + 30);
     
     chart.append("line").
       attr("x1", 0).
@@ -537,38 +552,67 @@ TimeSeriesView = Backbone.View.extend({
     this.chart = chart;
   },
   render: function () {
+    if (!this.model.get('currentJob')) return;
     var self = this;
-    var data = [];
     
     if (!this.field) return null;
     var times = this.model.timeSeriesFor(this.field);
     if (!times) { return null; };
+
+    // Subsample data if we have too much
+    var maxBars = 75;
+    var mod = Math.ceil( 1 / (maxBars / times.length));
+    if (maxBars < times.length) {
+      var newTimes = [];
+      _.each(times,
+             function (e,i) {
+               if (i % mod === 1) newTimes.push(e);
+             });
+     times = newTimes;
+    }
     
     var max = this.model.maxInTimeSeries(times);
     
     this.setYScale(max);
     this.setXScale(times.length);
 
-    //console.log(">", _.flatten(_.map(times, function (d) {return [d.time, d.value]})));
     var rect = this.chart.selectAll("rect").
       data(times, function(d) { return d.time; });
 
+    var cjStart = self.model.get('currentJob')['started-at'];
     rect.enter().
       append("rect").
-      attr("width", 1).
+      attr("width", 3).
       attr("x", function(d, i) { return self.xScale(i) - .5; }).
-      attr("y", function(d) { return  self.h - self.yScale(d.value)  }).
-      attr("data-val", function (d) { return (d.value) } ).
+      attr("y", function(d) { return  self.h - self.yScale(d.value);  }).
+      attr("data-val", function (d) { return (d.value); } ).
+      attr("data-elapsed", function (d) { return d.time - cjStart; } ).
       attr("height", function(d) { return self.yScale(d.value); });
 
     rect.
       attr("x", function(d, i) { return self.xScale(i) - .5; }).
-      attr("y", function(d) { return self.h - self.yScale(d.value)  }).
-      attr("data-val", function (d) { return (d.value) } ).
-      attr("height", function(d) { return 80 });
+      attr("y", function(d) { return self.h - self.yScale(d.value);  }).
+      attr("data-val", function (d) { return (d.value); } ).
+      attr("data-side", function (d,i) { return i > (times.length / 2) ? "r" : "l";  }).
+      attr("height", function(d) { return  self.yScale(d.value); });
 
-
-    rect.exit().transition().duration(0).remove();
+    rect.exit().remove();
+    
+    return null;
+  },
+  showTip: function (e) {
+    var elem = $(e.currentTarget);
+    var tip = this.chart.append('text');
+    var offset = elem.data('side') == 'l' ? 0 : -95;
+    tip.text(elem.data('val') + ' reqs @ ' + toFixed(elem.data('elapsed') / 1000, 3));
+    tip.attr('class', 'tip');
+    tip.attr('x', parseInt(elem.attr('x'),0) + offset);
+    tip.attr('y', this.h + 20);
+    
+    tip.attr('fill', "black");
+  },
+  clearTip: function (e) {
+    this.chart.selectAll('.tip').remove();
   }
 });
 

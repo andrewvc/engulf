@@ -191,9 +191,17 @@ td {
 }
 
 #time-series .chart rect {
-  shape-rendering: crispEdges;
-  fill: #0000FF;
+  fill: #72A5FC;
   stroke: none;
+}
+
+#time-series .chart rect:hover {
+  fill: #FC72C0;
+}
+
+#time-series .tip {
+  z-index: 10000;
+  background-color: #fff;
 }
 
 .chart div {

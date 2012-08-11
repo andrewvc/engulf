@@ -70,6 +70,10 @@ header {
   height: 100px;
 }
 
+#controls #markov-help {
+  font-size: 10px;
+}
+
 #controls input[type=button] {
   padding: 2px 20px;
 }

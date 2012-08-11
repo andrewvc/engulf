@@ -22,8 +22,11 @@
       [:input {:id "url" :name "url" :type "url"}]
       
       [:span {:id "markov-help"}
-       "Specify newline separated URLs as: "
+       "Newline Separate URLs as: "
        [:strong "GET http://localhost/foo"]
+       ". Constructs a "
+       [:a {:href "https://github.com/andrewvc/engulf/wiki/HTTP-API"}
+        "Markov chain."]
        ]
       [:textarea {:id "markov-corpus" :name "markov-corpus"}]
       ]

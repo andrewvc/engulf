@@ -109,13 +109,17 @@ Benchmarker = Backbone.Model.extend({
     });
 
     stream.bind("name-current-nodes", function (d) {
-      console.log("NODES", d);
       if (self.get('nodes')) {
         self.get('nodes').reset(d);
       } else {
         var nodes = new Nodes(d);
         self.set({'nodes': nodes});
       }
+    });
+
+    stream.bind("name-node-connect", function (d) {
+      self.get('nodes').add(d);
+      self.trigger('change');
     });
 
     stream.bind("name-result", function (d) {

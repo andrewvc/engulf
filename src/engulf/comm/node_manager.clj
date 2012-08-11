@@ -51,10 +51,10 @@
                     (let [n (node uuid conn client-info)]
                       (get (alter nodes assoc uuid n)
                            uuid))))]
-    (when (not (nil? new-node))
+    (when new-node
       (lc/enqueue emitter {"entity" "system"
                            "name" "node-connect"
-                           "body" {"uuid" uuid }}))
+                           "body" (dissoc new-node :conn)}))
     new-node))
           
 (defn deregister-node

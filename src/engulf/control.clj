@@ -5,8 +5,8 @@
             [clojure.tools.logging :as log])
   (:use [clojure.walk :only [keywordize-keys]]))
 
-(def ^:dynamic receiver (lc/channel* :grounded true :permanent true))
-(def ^:dynamic emitter (lc/channel* :grounded true :permanent true))
+(def ^:dynamic receiver (lc/channel* :grounded? true :permanent? true))
+(def ^:dynamic emitter (lc/channel* :grounded? true :permanent? true))
 
 (defn stop-job
   []

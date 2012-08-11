@@ -213,7 +213,6 @@ ControlsView = Backbone.View.extend({
       return;
     }
     
-    console.log("Starting");
     this.disableInputs();
     this.model.start(params);
   },

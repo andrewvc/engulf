@@ -1,8 +1,16 @@
 # engulf
 
-Visualization tool for webserver concurrency, written in Clojure and Javascript.
+Distributed HTTP load tester, written in Clojure and Javascript.
 
-![Screenshot](https://img.skitch.com/20120221-eqssdyky47c8atq74tnen866xy.png)
+engulf lets you stress-test websites, scaling outwards with multiple worker nodes. engulf is fully self-contained, all you need is java 7 and the jar. It can also run in a standalone configuration.
+
+Your tests can be controlled by either the web interface (seen in the screenshot below), or by the RESTful/Streaming [HTTP API](https://github.com/andrewvc/engulf/wiki/HTTP-API).
+
+Load can be generated in one of two, ways. Either a single URL can be tested, or a sequence of URLs can be given. engulf will build the sequence into a markov chain and follow it in a pattern commensurate with that.
+
+All jobs are stored in a local sqlite database by the master node, and are accessible through the HTTP API (a web interface for past jobs is on the way).
+
+![Screenshot](https://img.skitch.com/20120811-qf81tgw9pg51mnbjnidq4axmgf.png)
 
 ## Get up and running
 
@@ -10,22 +18,17 @@ Visualization tool for webserver concurrency, written in Clojure and Javascript.
 1. Download the jar from the [downloads page](https://github.com/andrewvc/engulf/downloads)
 1. Run it like so `PORT=4000 java -jar engulf-VERSION.jar`
 1. Visit http://localhost:4000 in your browser to use the GUI
+1. See the wiki page on [usage](https://github.com/andrewvc/engulf/wiki/Usage) for more details.
 
 # Todo:
 
 * Embedded JS Engine
-* Reworked UI
+* Browsing past jobs in the UI
+* Targetting subsets of nodes
 
 ## Hacking
 
-Engulf is a work in progresss. The *currently released version is the 2.x branch.*
-Master represents the upcoming 3.0 version, which will feature distributed operation,
- saved results, a REST API, and numerous other improvements. It's currently only 70% done
-and barely runnable (with no UI). If you're interested in helping out, just ping me!
-
-## Legacy
-
-There is a legacy version of engulf available on the downloads page and the `legacy` branch that runs quite differently.
+Engulf is a work in progresss. The 3.0.0 branch is currently alpha quality but is rapidly approaching beta.
 
 ## Thanks!
 I'd like to thank YourKit for providing this project with their Java profiler (which works excellently with Clojure).

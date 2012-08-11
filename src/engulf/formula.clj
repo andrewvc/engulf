@@ -25,6 +25,6 @@
 (defn init-job-formula
   [{:keys [formula-name params] :as job}]
   (if-let [constructor (lookup formula-name)]
-    (constructor params)
+    (constructor params job)
     (throw (Exception. (str "Could not find formula for job: " job
                             "\n Available formulas: " (keys @registry))))))

@@ -95,11 +95,15 @@
         exp-codes))))
 
 (defn relay-agg-totals
-  [stats aggs]
-  (assoc stats
-    "runs-total" (reduce + (map #(get % "runs-total") aggs))
-    "runs-succeeded" (reduce + (map #(get % "runs-succeeded") aggs))
-    "runs-failed" (reduce + (map #(get % "runs-failed") aggs))))
+  [stats aggs job]
+  (let [total (reduce + (map #(get % "runs-total") aggs))
+        walltime (- (now) (:started-at job))]
+    (assoc stats
+      "runs-total" total
+      "runs-succeeded" (reduce + (map #(get % "runs-succeeded") aggs))
+      "runs-failed" (reduce + (map #(get % "runs-failed") aggs))
+      "walltime" walltime
+      "total-runs-per-second" (/ total (/ walltime 1000)) )))
 
 (defn relay-agg-times
   [stats aggs]
@@ -147,10 +151,10 @@
      (.percentiles ^PercentileRecorder (agg "percentiles")))))
 
 (defn relay-aggregate
-  [params initial aggs]
+  [job initial aggs]
   (let [all-aggs (conj aggs initial)]
     (-> initial
-        (relay-agg-totals all-aggs)
+        (relay-agg-totals all-aggs job)
         (relay-agg-times all-aggs)
         (relay-agg-time-slices all-aggs)
         (relay-agg-statuses all-aggs)

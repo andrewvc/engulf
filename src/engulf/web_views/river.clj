@@ -26,9 +26,6 @@
   ;; With the  initial full node list. Some events could slip by, though it's
   ;; unlikely in most systems
 
-  (receive-all ctrl/emitter
-               #(println "ohai" %))
-  
   (let [output (na/writable-channel conn)]
     (siphon (map* json-chunk ctrl/emitter) output)
     (siphon (map* json-chunk jmgr/emitter) output)))

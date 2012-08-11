@@ -1,5 +1,3 @@
-(defn now [] (System/currentTimeMillis))
-
 (defn result
   [started-at ended-at]
   {:started-at started-at

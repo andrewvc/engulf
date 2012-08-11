@@ -27,7 +27,6 @@ h2 {
 h1 {
   text-align: center;
   font-size: 16px;
-  font-variant: small-caps;
   margin-top: 10px;
 }
 
@@ -130,7 +129,7 @@ header {
   margin-bottom: 15px;
 }
 
-#benchmark-stats {
+#output table {
   margin: 10px 0px;
   width: 100%;
 }
@@ -174,12 +173,12 @@ td {
 }
 
 .chart rect {
-  stroke: #00FF04;
-  stroke-width: 1px;
-  opacity: 100;
+  fill: #555;
+  shape-rendering: crispEdges;
 }
 
 #time-series .chart rect {
+  shape-rendering: crispEdges;
   fill: #0000FF;
   stroke: none;
 }

@@ -59,10 +59,14 @@ ConsoleView = Backbone.View.extend({
   }
 });
 
+Node = Backbone.Model.extend({});
+Nodes = Backbone.Collection.extend({
+  model: Node
+});
+
 Benchmarker = Backbone.Model.extend({
   url: "/jobs/current",
   initialize: function () {
-    this.fetch();
   },
   start: function (params) {
     var self = this;
@@ -101,9 +105,19 @@ Benchmarker = Backbone.Model.extend({
     var self = this;
     
     stream.bind("all", function(name, body) {
-      //console.log(name);
+      //console.log(name, body);
     });
-    
+
+    stream.bind("name-current-nodes", function (d) {
+      console.log("NODES", d);
+      if (self.get('nodes')) {
+        self.get('nodes').reset(d);
+      } else {
+        var nodes = new Nodes(d);
+        self.set({'nodes': nodes});
+      }
+    });
+
     stream.bind("name-result", function (d) {
       self.set({stats: d.value});
     });
@@ -264,10 +278,12 @@ AggregateStatsView = Backbone.View.extend({
     this.model.bind('change', this.render);
 
     this.renderElements = {
+      nodes: $("#nodes-connected"),
       completed: this.$el.find('#runs-total'),
       succeeded: this.$el.find('#runs-succeeded'),
       failed: this.$el.find('#runs-failed'),
       runtime: this.$el.find('#runtime'),
+      walltime: this.$el.find('#walltime'),
       medianRuntime: this.$el.find('#median-runtime'),
       runsSec: this.$el.find('#runs-sec'),
       responseCodes: this.$el.find('#response-code-stats tbody')
@@ -276,25 +292,30 @@ AggregateStatsView = Backbone.View.extend({
   render: function () {
     var res = this.renderElements;
 
+    
+
+    res.nodes.text(this.model.get('nodes').length);
+    
     var stats = this.model.get('stats');
-    if (!stats) return;
+    if (stats) {
+      res.completed.text(stats['runs-total']);
+      res.succeeded.text(stats['runs-succeeded']);
+      res.failed.text(stats['runs-failed']);
+      res.runtime.text(this.formatMillis(stats['runtime']));
+      res.walltime.text(this.formatMillis(stats['walltime']));
 
-    res.completed.text(stats['runs-total']);
-    res.succeeded.text(stats['runs-succeeded']);
-    res.failed.text(stats['runs-failed']);
-    res.runtime.text(this.formatMillis(stats['runtime']));
+      var medianRuntime = stats.percentiles['50'].median;
+      if (medianRuntime) {
+        res.medianRuntime.text(medianRuntime + " ms");
+      }
 
-    var medianRuntime = stats.percentiles['50'].median;
-    if (medianRuntime) {
-      res.medianRuntime.text(medianRuntime + " ms");
+      var runsSec = stats['total-runs-per-second'];
+      if (runsSec) {
+        res.runsSec.text(parseInt(runsSec) + ' / sec');
+      }
+
+      this.renderResponseCodes(stats['status-codes']);        
     }
-
-    var runsSec = stats['runs-sec'];
-    if (runsSec) {
-      res.runsSec.text(parseInt(runsSec) + ' / sec');
-    }
-
-    this.renderResponseCodes(stats['status-codes']);
   },
   renderResponseCodes: function (codeCounts) {
     var self = this;
@@ -416,9 +437,10 @@ PercentilesView = Backbone.View.extend({
          transition().
          duration(50).
          attr("y", function(d) { return self.h - self.yScale(d) - .5; }).
-         attr("height", 1);
+         attr("height", function(d) { return self.yScale(d); });
 
-         //attr("height", function(d) { return self.yScale(d); });
+         //attr("height", 2);
+      
     self.rtPercentiles.selectAll(".decile").
          data(deciles).
          transition().
@@ -548,20 +570,12 @@ $(function () {
       model: benchmarker
     }
   );
-
-  var responseTimeAvgSeriesView = new TimeSeriesView(
-    {
-      el: $('#resp-time-series')[0],
-      model: benchmarker,
-      field: "total"
-    }
-  )
     
   var throughputTimeAvgSeriesView = new TimeSeriesView(
     {
       el: $('#throughput-time-series')[0],
       model: benchmarker,
-      field: 404
+      field: "total"
     }
   );
 });

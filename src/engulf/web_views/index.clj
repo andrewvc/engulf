@@ -43,7 +43,14 @@
    [:div {:id "output"}
     [:div {:id "scalars"}
      [:h1 "(engulf)"]
+     [:div {:id "nodes"}
+      [:table {:id "node-stats"}
+       [:tbody
+        [:tr
+         [:td {:class "k"} "Nodes Connected"]
+         [:td {:class "v" :id "nodes-connected"} "&#8734;"]]]]]
      [:div {:id "stats"}
+      [:h2 "Aggregates"]
       [:table {:id "benchmark-stats"}
        [:tbody
         [:tr
@@ -64,7 +71,7 @@
         [:tr
          [:td {:class "k"} "Failed"]
          [:td {:class "v" :id "runs-failed"} "&#8734;"]]]]
-      [:h2 "HTTP Codes"]
+      [:h2 "Status Codes"]
       [:table {:id "response-code-stats"}
        [:tbody
         [:tr
@@ -79,7 +86,7 @@
     [:h2 "Avg. Response Time Percentiles"]
     [:div {:id "resp-time-percentiles"}]
 
-     [:h2 "Response Codes"]
+     [:h2 "Throughput Over Time"]
      [:div {:id "time-series"}
       [:div {:id "resp-time-series"}]
       [:div {:id "throughput-time-series"}]]]

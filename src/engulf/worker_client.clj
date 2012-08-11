@@ -70,6 +70,7 @@
       (log/info "Connected to relay!")
       
       (on-closed conn (fn []
+                        (stop-job)
                         (log/warn "Connection to master closed! Reconnecting in 5s")
                         (Thread/sleep 5000)
                         (client-connect host port)))

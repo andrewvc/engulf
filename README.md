@@ -1,14 +1,11 @@
 # engulf
 
-Distributed HTTP load tester, written in Clojure and Javascript.
+engulf is a distributed HTTP load tester written in Clojure and Javascript. It's designed to let you spin up a cluster of high performance load-testers with minimal infrastructure in no time. Just put your jar on the servers, and point them at a master with a single command line. You can also run it on your workstation in a standalone configuration. You get a bevy of features such as:
 
-engulf lets you stress-test websites, scaling outwards with multiple worker nodes. engulf is fully self-contained, all you need is java 7 and the jar. It can also run in a standalone configuration.
-
-Your tests can be controlled by either the web interface (seen in the screenshot below), or by the RESTful/Streaming [HTTP API](https://github.com/andrewvc/engulf/wiki/HTTP-API).
-
-Load can be generated in one of two, ways. Either a single URL can be tested, or a sequence of URLs can be given. engulf will build the sequence into a markov chain and follow it in a pattern commensurate with that.
-
-All jobs are stored in a local sqlite database by the master node, and are accessible through the HTTP API (a web interface for past jobs is on the way).
+* An [HTTP API](https://github.com/andrewvc/engulf/wiki/HTTP-API)
+* [Simple Usage](https://github.com/andrewvc/engulf/wiki/Usage)
+* Markov URL Request Pattern Generation
+* Annotation and Recording of all results in SQLite (retrievable via REST as well)
 
 ![Screenshot](https://img.skitch.com/20120811-qf81tgw9pg51mnbjnidq4axmgf.png)
 

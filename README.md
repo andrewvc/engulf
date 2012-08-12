@@ -1,6 +1,8 @@
 # engulf
 
-engulf is a distributed HTTP load tester written in Clojure and Javascript. It's designed to let you spin up a cluster of high performance load-testers with minimal infrastructure in no time. Just put your jar on the servers, and point them at a master with a single command line. You can also run it on your workstation in a standalone configuration. You get a bevy of features such as:
+engulf is a distributed HTTP load tester written in Clojure and Javascript. It's designed to let you spin up a cluster of high performance HTTP load-testers without requiring any extra infrastructure. Just put the JAR on your servers and point them at a master with the proper shell command. engulf can also be run in a standalone configuration on your workstation with just as little effort.
+
+Some of the engulf's features:
 
 * An [HTTP API](https://github.com/andrewvc/engulf/wiki/HTTP-API)
 * [Simple Usage](https://github.com/andrewvc/engulf/wiki/Usage)

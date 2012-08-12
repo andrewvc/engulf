@@ -20,7 +20,7 @@
  (with-clean-emitter
    (clear-nodes)
    (let [ident "a-unique-identifier"
-         n  (n-manager/register-node ident {} {"address" "127.0.0.1"})]
+         n  (n-manager/register-node ident {} {:address "127.0.0.1"})]
      (fact
       "the node should have the right uuid"
       (:uuid n) => ident)
@@ -33,7 +33,7 @@
                   (fn [msg]
                     msg => {"entity" "system"
                             "name" "node-connect"
-                            "body" {"uuid" (:uuid n)}})))))
+                            "body" {:uuid (:uuid n) :address "127.0.0.1"}})))))
  (facts
    "for nodes that do currently exist"
    (let [ident "some-unique-id"

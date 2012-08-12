@@ -5,6 +5,7 @@
    :manager-port 4025
    :host "localhost"
    :mode :combined
+   :reconnect true
    :connect-to ["localhost" 4025]
    :jdbc {:classname "org.sqlite.JDBC"
           :subprotocol "sqlite"

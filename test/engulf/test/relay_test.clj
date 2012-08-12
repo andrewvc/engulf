@@ -20,7 +20,7 @@
                      (lc/channel :first-msg))
                    (fn rly-stop [_]
                      (reset! stopped true)))]
-  (formula/register :http-benchmark (fn [_] fla))
+  (formula/register :http-benchmark (fn [params job] fla))
   (relay/start)
   (lc/enqueue relay/receiver {"name" "job-start", "body" job})
   (Thread/sleep 20)

@@ -2,10 +2,12 @@
   (:require [engulf.comm.node-manager :as n-manager]
             [engulf.worker-client :as wc]
             [lamina.core :as lc]
+            [engulf.settings :as settings]
             [cheshire.core :as chesh])
   (:use midje.sweet
         [clojure.walk :only [keywordize-keys]]))
 
+(alter-var-root (var settings/all) #(assoc % :reconnect false))
 
 (let [port (+ 10000 (int (rand 20000)))
       server (n-manager/start-server port)

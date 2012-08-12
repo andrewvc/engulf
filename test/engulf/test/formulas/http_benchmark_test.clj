@@ -6,11 +6,14 @@
    [engulf.formula :as fla])
   (:use midje.sweet))
 
-
+(defn init-benchmark
+  []
+  (htb/init-benchmark helpers/test-http-job-params
+                      {:params helpers/test-http-job-params}))
 
 (facts
  "about initializing a benchmark"
- (let [b (htb/init-benchmark helpers/test-http-job-params)]
+ (let [b (init-benchmark)]
    (fact
     "it should be an engulf benchmark"
     (class b) => engulf.formulas.http_benchmark.HttpBenchmark)
@@ -20,7 +23,7 @@
 
 (facts
  "about starting an edge"
- (let [b (htb/init-benchmark helpers/test-http-job-params)
+ (let [b (init-benchmark)
        res-ch (fla/start-edge b)]
    (fact
     "it should return nil if it's already started"
@@ -40,8 +43,8 @@
 
 (facts
  "about starting a relay"
- (let [b (htb/init-benchmark helpers/test-http-job-params)
-       res-ch (fla/start-relay b (lc/channel))]
+   (let [b (init-benchmark)
+         res-ch (fla/start-relay b (lc/channel))]
    (fact
     "it should return nil if it's already started"
     (fla/start-relay b (lc/channel)) => nil)
@@ -70,7 +73,8 @@
  "about relay aggregation"
  (let [params {:timeout 500 :limit 500}
        agg (htb/relay-aggregate
-            params (htb/empty-relay-aggregation params) (repeatedly 2 eagg))]
+            {:params params :started-at 100}
+            (htb/empty-relay-aggregation params) (repeatedly 2 eagg))]
    (fact
     "it should sum run totals"
     (agg "runs-total") => 8)
@@ -85,7 +89,7 @@
     (agg "runtime") => 160)
    (fact
     "it should merge time slices"
-    (agg "time-slices") => {0 {200 4, 404 2}, 500 {"thrown" 2}}
+    (agg "time-slices") => {0 {200 4, 404 2 "total" 6}, 500 {"total" 2 "thrown" 2}}
     )
    (fact
     "it should sum aggregated statuses"
@@ -117,6 +121,6 @@
     (count (agg "all-runtimes")) => 4)
    (fact
     "it should aggregate response codes by time-slice"
-    (agg "time-slices") => {0 {404 1, 200 2}
-                            500 {"thrown" 1}})))
+    (agg "time-slices") => {0 {404 1, 200 2 "total" 3}
+                            500 {"thrown" 1 "total" 1}})))
 

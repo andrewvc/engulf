@@ -16,7 +16,7 @@
          ~watch-binding (atom {})
          relay-stop# (relay/start)]
      (formula/register :mock-formula
-                       (fn [params#]
+                       (fn [params# job#]
                          (MockFormula.
                           (fn mf-edge [mj#]
                             (swap! ~watch-binding #(assoc %1 :start-edge true))

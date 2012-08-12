@@ -2,6 +2,7 @@
   (:require
    [engulf.utils :as utils]
    [engulf.comm.netchan :as nc]
+   [engulf.settings :as settings]
    [engulf.formula :as formula]
    [clojure.tools.logging :as log]
    [lamina.core :as lc])
@@ -73,7 +74,7 @@
                         (stop-job)
                         (log/warn "Connection to master closed! Reconnecting in 5s")
                         (Thread/sleep 5000)
-                        (client-connect host port)))
+                        (when (:reconnect settings/all) (client-connect host port))))
       
       ;; Send identity immediately
       (enqueue conn {"name" "uuid" "body" uuid})
@@ -84,7 +85,7 @@
     (catch java.net.ConnectException e
       (log/warn e "Could not connect to control server! Reconnecting in 5s")
       (Thread/sleep 5000)
-      (client-connect host port))))
+      (when (:reconnect settings/all) (client-connect host port)))))
 
 (defn start
   "Starts the worker client. Should be done once per process max."

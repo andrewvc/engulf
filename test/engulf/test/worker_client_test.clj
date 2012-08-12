@@ -3,10 +3,14 @@
             [engulf.worker-client :as wc]
             [engulf.formula :as formula]
             [lamina.core :as lc]
+            [engulf.settings :as settings]
             [cheshire.core :as chesh])
   (:use midje.sweet)
   (:import engulf.test.helpers.MockFormula
            java.util.UUID))
+
+;; It's hard to test failures well with this on
+(alter-var-root (var settings/all) #(assoc % :reconnect false))
 
 (facts
  "about starting/stopping jobs"
@@ -20,7 +24,7 @@
                          nil
                          (fn wc-stop [_]
                            (reset! stopped true)))
-       _ (formula/register :mock-formula (fn [_] fla ))
+       _ (formula/register :mock-formula (fn [params job] fla ))
        res (wc/start-job job conn-ch)
        ]
    (fact

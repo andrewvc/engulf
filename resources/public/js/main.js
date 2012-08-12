@@ -233,7 +233,7 @@ ControlsView = Backbone.View.extend({
     }
 
     if (this.type() == "url") {
-      params.url = this.$el.find('#url').val();      
+      params.url = $.trim(this.$el.find('#url').val());      
       params.method = $('#method').val();
 
       if (!params.url || params.url.length < 3) {
@@ -242,10 +242,16 @@ ControlsView = Backbone.View.extend({
       }
     } else {
       var c = $('#markov-corpus', this.el).val();
-      params['markov-corpus'] = _.map(c.split(/\n/),
+      var lines = _.map(c.split(/\n/), function (l) {return $.trim(l);});
+      var filtered = _.filter(lines, function (l) { return !(l == "" || l == "\n");});
+      params['markov-corpus'] = _.map(filtered,
                                       function (s) {
-                                          var a = s.split(/[ \t]+/);
-                                          return {method: a[0], url: a[1]};
+                                          var a = $.trim(s).split(/[ \t]+/);
+                                          if (a.length == 1) {
+                                            return {method: "get", url: a[0]};
+                                          } else {
+                                            return {method: a[0], url: a[1]};
+                                          }
                                       });
     }
     

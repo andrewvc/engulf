@@ -59,7 +59,7 @@
 <li>This only runs in google chrome at the moment</li>
 <li>Download the jar from the <a href="https://github.com/andrewvc/engulf/downloads">downloads page</a>
 </li>
-<li>Run it like so <code>java -jar -server engulf-VERSION.jar</code>
+<li>Run it like so <code>java -server -jar engulf-VERSION.jar</code>
 </li>
 <li>Visit http://localhost:4000 in your browser to use the GUI</li>
 <li>See the wiki page on <a href="https://github.com/andrewvc/engulf/wiki/Usage">usage</a> for more details.</li>
@@ -70,9 +70,9 @@
 <p>
 Client/server configuration of engulf is simple. One master node is started which will listen on port 4025. Then, any number of worker nodes maybe started that point to the master. See the example below:</p>
 
-<p>Starting the master<br><code>java -jar -server engulf.jar --mode master</code></p>
+<p>Starting the master<br><code>java -server -jar engulf.jar --mode master</code></p>
 
-<p>Starting a worker<br><code>java -jar -server engulf.jar --mode worker --connect-to 127.0.0.1:4025</code></p>
+<p>Starting a worker<br><code>java -server -jar engulf.jar --mode worker --connect-to 127.0.0.1:4025</code></p>
 
 <h2 id="http-api">REST / Streaming API</h2>
 

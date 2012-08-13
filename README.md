@@ -1,33 +1,16 @@
 # engulf
 
-engulf is a distributed HTTP load tester written in Clojure and Javascript. It's designed to let you spin up a cluster of high performance HTTP load-testers without requiring any extra infrastructure. Just put the JAR on your servers and point them at a master with the proper shell command. engulf can also be run in a standalone configuration on your workstation with just as little effort.
+*Please see [engulf-project.org](http://engulf-project.org) for more info and full documentation!*
 
-Some of engulf's features:
+A **scalable, distributed HTTP load tester**, designed to let you spin up and coordinate a cluster of workers with nothing more than a single JAR. Features include:
 
-* An [HTTP API](https://github.com/andrewvc/engulf/wiki/HTTP-API)
-* [Simple Usage](https://github.com/andrewvc/engulf/wiki/Usage)
-* Markov URL Request Pattern Generation
-* Annotation and Recording of all results in SQLite (retrievable via REST as well)
+* Realtime browser UI
+* Markov request pattern generation
+* Recording/annotation of all test runs
+* RESTful/Streaming API
+* Minimalism and ease of use as a pervasive goal
 
 ![Screenshot](https://img.skitch.com/20120811-qf81tgw9pg51mnbjnidq4axmgf.png)
-
-## Get up and running
-
-1. This only runs in google chrome at the moment
-1. Download the jar from the [downloads page](https://github.com/andrewvc/engulf/downloads)
-1. Run it like so `PORT=4000 java -jar engulf-VERSION.jar`
-1. Visit http://localhost:4000 in your browser to use the GUI
-1. See the wiki page on [usage](https://github.com/andrewvc/engulf/wiki/Usage) for more details.
-
-# Todo:
-
-* Embedded JS Engine
-* Browsing past jobs in the UI
-* Targetting subsets of nodes
-
-## Hacking
-
-Engulf is a work in progresss. The 3.0.0 branch is currently alpha quality but is rapidly approaching beta.
 
 ## Thanks!
 I'd like to thank YourKit for providing this project with their Java profiler (which works excellently with Clojure).

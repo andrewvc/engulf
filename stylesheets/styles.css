@@ -118,13 +118,12 @@ header ul {
   border-radius:5px;
   border:1px solid #d2d2d2;
   box-shadow:inset #fff 0 1px 0, inset rgba(0,0,0,0.03) 0 -1px 0;
-  width:270px;
+  width:88px;
 }
 
 header li {
   width:89px;
   float:left;
-  border-right:1px solid #d2d2d2;
   height:40px;
 }
 

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>Engulf by andrewvc</title>
+    <title>engulf by andrewvc</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
@@ -15,50 +15,224 @@
   <body>
     <div class="wrapper">
       <header>
-        <h1>Engulf</h1>
-        <p>Visual HTTP Concurrency / Load Tool</p>
+        <h1>engulf</h1>
+        <p>High Performance HTTP Load Testing</p>
 
         <p class="view"><a href="https://github.com/andrewvc/engulf">View the Project on GitHub <small>andrewvc/engulf</small></a></p>
 
 
-        <ul>
-          <li><a href="https://github.com/downloads/andrewvc/engulf/engulf-3.0.0-alpha2-standalone.jar">Download <strong>JAR File</strong></a></li>
+        <ul class="downloads">
+          <li><a href="https://github.com/andrewvc/engulf/downloads">Download <strong>JAR File</strong></a></li>
         </ul>
+        
+        <h2>Sections</h2>
+        <ul class="sections-toc">
+          <li><a href="#">About Engulf</a></li>
+          <li><a href="#usage">Usage</a></li>
+          <li><a href="#http-api">REST/Streaming API</a></li>
+        </ul>
+        
       </header>
       <section>
-        <h1>Scalable HTTP Benchmarking</h1>
-
-<p>engulf is a scalable, distributed HTTP load tester written in Clojure and Javascript. It's designed to let you spin up a cluster of high performance HTTP load-testers without requiring any extra infrastructure. Just put the JAR on your servers and point them at a master with the proper shell command. engulf can also be run in a standalone configuration on your workstation with just as little effort.</p>
-
-<p>Some of engulf's features:</p>
+<p class"intro">A <em><strong>scalable, distributed HTTP load tester</strong></em>, designed to let you spin up and coordinate a cluster of workers with nothing more than a single JAR. Features include:</p>
 
 <ul>
-<li>An <a href="https://github.com/andrewvc/engulf/wiki/HTTP-API">HTTP API</a>
+<li>Realtime browser UI</li>
+<li>Markov request pattern generation</li>
+<li>Recording/annotation of all test runs</li>
+<li><a href="#http-api">RESTful/Streaming API</a>
 </li>
-<li><a href="https://github.com/andrewvc/engulf/wiki/Usage">Simple Usage</a></li>
-<li>Markov URL Request Pattern Generation</li>
-<li>Annotation and Recording of all results in SQLite (retrievable via REST as well)</li>
+<li>Minimalism, and ease of use as a pervasive goal</li>
+</ul>
+
+<em>The Web UI in action</em>:
 </ul><p><img src="https://img.skitch.com/20120811-qf81tgw9pg51mnbjnidq4axmgf.png" alt="Screenshot"></p>
 
-<h2>Get up and running</h2>
-
-<ol>
-<li>This only runs in google chrome at the moment</li>
-<li>Download the jar from the <a href="https://github.com/andrewvc/engulf/downloads">downloads page</a>
-</li>
-<li>Run it like so <code>PORT=4000 java -jar engulf-VERSION.jar</code>
-</li>
-<li>Visit http://localhost:4000 in your browser to use the GUI</li>
-<li>See the wiki page on <a href="https://github.com/andrewvc/engulf/wiki/Usage">usage</a> for more details.</li>
-</ol><h1>Todo:</h1>
+<h2 id="todo">Todo:</h2>
 
 <ul>
 <li>Embedded JS Engine</li>
 <li>Browsing past jobs in the UI</li>
 <li>Targetting subsets of nodes</li>
-</ul><h2>Hacking</h2>
+</ul>
 
-<p>Engulf is a work in progresss. The 3.0.0 branch is currently alpha quality but is rapidly approaching beta.</p>
+<h2 id="usage">Usage</h2>
+
+<h3>Quickstart</h3>
+
+<ol>
+<li>This only runs in google chrome at the moment</li>
+<li>Download the jar from the <a href="https://github.com/andrewvc/engulf/downloads">downloads page</a>
+</li>
+<li>Run it like so <code>java -jar -server engulf-VERSION.jar</code>
+</li>
+<li>Visit http://localhost:4000 in your browser to use the GUI</li>
+<li>See the wiki page on <a href="https://github.com/andrewvc/engulf/wiki/Usage">usage</a> for more details.</li>
+</ol>
+
+<h3>Client / Server Configuration</h3>
+
+<p>
+Client/server configuration of engulf is simple. One master node is started which will listen on port 4025. Then, any number of worker nodes maybe started that point to the master. See the example below:</p>
+
+<p>Starting the master <code>java -jar -server engulf.jar --mode master</code></p>
+
+<p>Starting a worker <code>java -jar -server engulf.jar --mode worker --connect-to 127.0.0.1:4025</code></p>
+
+<h2 id="http-api">REST / Streaming API</h2>
+
+<div class="markdown-body">
+
+<h3>Jobs</h3>
+
+<ul>
+<li><a href="#wiki-job-start">Starting a Job</a></li>
+<li>
+<a href="#wiki-job-stop">Stopping the Current Job</a> </li>
+<li><a href="#wiki-job-list">Listing Jobs</a></li>
+<li><a href="#wiki-job-get">Retrieving a Job</a></li>
+<li><a href="#wiki-job-delete">Deleting a Job</a></li>
+</ul>
+
+<h3>River</h3>
+
+<ul>
+<li><a href="#wiki-river">Understanding the River API</a></li>
+</ul>
+
+<h3>Nodes</h3>
+
+<ul>
+<li><a href="#wiki-node-list">Listing Nodes</a></li>
+<li><a href="#wiki-node-get">Retrieving a Node</a></li>
+</ul>
+
+<h3>Job API</h3>
+
+<p>Each benchmark executed is represented by a single job, with multiple nested results in this REST API.</p>
+
+<h3 id="wiki-job-start">Starting a Job</h3>
+
+<p><code>POST /jobs/current</code> <em>+ JSON Body</em></p>
+
+<p>A new benchmark can be started by issuing a POST request to <code>/jobs/current</code> with a JSON body of parameters. The parameters for jobs are:</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li>
+<strong>url:</strong> MAY be set. The full URL to test, e.g., http://localhost/bar. It must <em>ALWAYS</em> include the host and protocol. If this is not set, markov-corpus must be set.</li>
+<li>
+<strong>markov-corpus:</strong> MAY be set. If you'd like to test a list of URLs use this option.<br>The list is analyzed and traversed as a <a href="http://www.beetleinabox.com/markov.html">markov-chain</a> for a good mix between randomness and similarity to a given source. Taking a snippet out of a webserver log is a good way to use this.<br> The should must passed in as a JSON array of either strings (simple get requests) or hashes of the form {"url": "http://...", "method": "post"}.</li>
+<li>
+<strong>limit:</strong> MUST be set. The job will stop at this point. Note, due to performance optimizations there is no guarantee engulf will stop at this exact mark. It will merely attempt to stop at it, but will usually over-run it by a small amount.</li>
+<li>
+<strong>timeout:</strong> MUST be set. Specifies the max time to wait for a response to return in milliseconds.</li>
+<li>
+<strong>method:</strong> MAY be set. Either get/put/patch/post/delete. MUST be lower-case. Will default to 'get'.</li>
+<li>
+<strong>concurrency:</strong> MUST be set. The desired number of concurrent requests <em>per worker node</em>. So, if you have 2 workers, a setting of 5 means there will be 10 simultaneous requests at any given time.</li>
+<li>
+<strong>formula-name:</strong> MUST be set. Currently always "http-benchmark".</li>
+<li>
+<strong>keep-alive:</strong> MAY be set. Defaults to true. When <code>false</code> will be disabled.</li>
+<li>
+<strong>_title:</strong> MAY be set. Stored as job metadata. Maxlen 255</li>
+<li>
+<strong>_notes:</strong> MAY be set. Stores as job metadata. Size unbounded</li>
+<li>
+<strong>_stream:</strong> MAY be set. If set to <code>true</code> the HTTP connection will stay open while the benchmark is running, and stream results back in chunks. If set to <code>false</code> it will return the job metadata immediately.</li>
+</ul><p><strong>Examples:</strong></p>
+
+<div class="highlight"><pre><span class="c"># Testing a single URL</span>
+curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d <span class="s1">'{</span>
+<span class="s1">"formula-name":"http-benchmark", "concurrency":5, "method":"get", "timeout":50, "limit":50000,</span>
+<span class="s1">"url":"http://localhost:8081", "_stream":"true", "keep-alive":"true"}'</span>
+</pre></div>
+
+<div class="highlight"><pre><span class="c"># An example of testing using a markov-chain</span>
+curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d <span class="s1">'</span>
+<span class="s1">{"formula-name":"http-benchmark", "concurrency":5,  "timeout":50, "limit":5000, </span>
+<span class="s1">"keep-alive":"true", "_stream": "true",</span>
+<span class="s1">"markov-corpus":["http://localhost/foo","http://localhost/bar", "http://localhost/bar",</span>
+<span class="s1">"http://localhost/baz",{"method": "POST", "url": "http://localhost/fancy"}, "http://localhost/foo",</span>
+<span class="s1">"http://localhost/foo", {"method": "POST", "url": "http://localhost/fancy"}]}'</span>
+</pre></div>
+
+<h3 id="wiki-job-stop">Stopping the Current Job</h3>
+
+<p><code>DELETE /jobs/current</code></p>
+
+<p>Stops the currently running benchmark instantly. Returns a representation of the job.</p>
+
+<p><strong>Example:</strong> <code>curl -XDELETE http://localhost:4000/jobs/current</code></p>
+
+<h3 id="wiki-job-list">Listing Jobs</h3>
+
+<p><code>GET /jobs</code></p>
+
+<p>Returns a paginated list of jobs. This will only return the job metadata. To retrieve results, view the <a href="#wiki-job-get">job-get</a> API below.</p>
+
+<p><strong>Parameters:</strong></p>
+
+<ul>
+<li>
+<strong>page:</strong> Starting from 1, the page number to retrieve.</li>
+<li>
+<strong>per-page:</strong> The number of results per-page</li>
+</ul><p><strong>Example:</strong> <code>curl http://localhost:4000/jobs?page=1&amp;per-page=10</code></p>
+
+<h3 id="wiki-job-get">Retrieving a Job</h3>
+
+<p><code>GET /jobs/UUID</code></p>
+
+<p>A single job can be retrieving at <code>/jobs/UUID-HERE</code>. It will include all the results nested inside of it.</p>
+
+<p><strong>Example:</strong> <code>curl http://localhost:4000/jobs/ef3062e1-7abc-4769-a96c-a654c4219f5c</code></p>
+
+<h3 id="wiki-job-delete">Deleting a Job</h3>
+
+<p><code>DELETE /jobs/UUID</code></p>
+
+<p>This will attempt to delete the job specified by uuid at <code>/jobs/UUID-HERE</code>. Jobs that are currently still running cannot be deleted, and will return an HTTP status of <code>409 - Conflict</code>. </p>
+
+<p><strong>Example:</strong> <code>curl -XDELETE http://localhost:4000/jobs/ef3062e1-7abc-4769-a96c-a654c4219f5c</code></p>
+
+<h2>River API</h2>
+
+<h3 id="wiki-river">Understanding the River API</h3>
+
+<p><code>GET /river</code> <em>supports websockets</em></p>
+
+<p>The river API consists of a single endpoint <code>/river</code> that understands both plain GET and WebSocket requests. Either way, it returns a stream of JSON messages representing state-changes and results within engulf.</p>
+
+<p>Most messages sent through the River API utilize the <a href="http://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model">EAV Pattern</a>, and have a format that consists a map of the format: {"entity", "msg-entity" "name": "msg-name", "body", "msg-body"}. </p>
+
+<p>It should be noted that the River API consists only of deltas of nodes and job state changes. The initial request to <code>/river</code> will return messages named <code>"current-nodes"</code> and <code>"current-jobs"</code> respectively. These are a snapshot of the current state of both resources. Messages received subsequently should alter the local state of clients accessing these resources.</p>
+
+<p>More documentation about the River API is on the way, but a reasonable understanding can be gleaned by watching the output of <code>curl /river</code>.</p>
+
+<h2>Node API</h2>
+
+<p>Information about connected worker nodes can be retrieved via this REST API.</p>
+
+<h3 id="wiki-node-list">Listing Nodes</h3>
+
+<p><code>GET /nodes</code></p>
+
+<p>Returns a list of all connected nodes.</p>
+
+<p><strong>Example:</strong> <code>curl http://localhost:4000/nodes</code></p>
+
+<h3 id="wiki-node-get">Retrieving a Node</h3>
+
+<p><code>GET /nodes/UUID</code></p>
+
+<p>Returns the metadata for a single connected node.</p>
+
+<p><strong>Example:</strong> <code>curl http://localhost:4000/nodes/a-uuid-here</code></p>
+    </div>
+
 
 <h2>Thanks!</h2>
 
@@ -70,6 +244,7 @@ YourKit, LLC is the creator of innovative and intelligent tools for profiling
 Java and .NET applications. Take a look at YourKit's leading software products:
 <a href="http://www.yourkit.com/java/profiler/index.jsp">YourKit Java Profiler</a> and
 <a href="http://www.yourkit.com/.net/profiler/index.jsp">YourKit .NET Profiler</a></p>
+
 
 <h2>License</h2>
 

@@ -25,11 +25,13 @@
           <li><a href="https://github.com/andrewvc/engulf/downloads">Download <strong>JAR File</strong></a></li>
         </ul>
         
-        <h2>Sections</h2>
+        <h2>Documentation</h2>
         <ul class="sections-toc">
           <li><a href="#">About Engulf</a></li>
           <li><a href="#usage">Usage</a></li>
           <li><a href="#http-api">REST/Streaming API</a></li>
+          <li><a href="#todo">Todo</a></li>
+          <li><a href="#thanks">Thanks</a></li>
         </ul>
         
       </header>
@@ -47,14 +49,6 @@
 
 <em>The Web UI in action</em>:
 </ul><p><img src="https://img.skitch.com/20120811-qf81tgw9pg51mnbjnidq4axmgf.png" alt="Screenshot"></p>
-
-<h2 id="todo">Todo:</h2>
-
-<ul>
-<li>Embedded JS Engine</li>
-<li>Browsing past jobs in the UI</li>
-<li>Targetting subsets of nodes</li>
-</ul>
 
 <h2 id="usage">Usage</h2>
 
@@ -231,10 +225,21 @@ curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type
 <p>Returns the metadata for a single connected node.</p>
 
 <p><strong>Example:</strong> <code>curl http://localhost:4000/nodes/a-uuid-here</code></p>
-    </div>
+</div>
 
 
-<h2>Thanks!</h2>
+<h2 id="todo">Todo:</h2>
+
+<ul>
+<li>Embedded JS Engine</li>
+<li>Browsing past jobs in the UI</li>
+<li>Targetting subsets of nodes</li>
+</ul>
+
+
+<h2 id="thanks">Thanks!</h2>
+
+<p>I'd like to thank <a href="http://trentstrong.com/">Trent Strong</a> for the idea of generating requests with Markov chains</p>
 
 <p>I'd like to thank YourKit for providing this project with their Java profiler (which works excellently with Clojure).
 It's great at spotting performance issues. More info below:</p>
@@ -253,7 +258,7 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 <p>Distributed under the MIT Licensee, see LICENSE for details</p>
       </section>
       <footer>
-        <p>This project is maintained by <a href="https://github.com/andrewvc">andrewvc</a></p>
+        <p>Maintained by <a href="http://blog.andrewvc.com">Andrew Cholakian</a></p>
         <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
       </footer>
     </div>

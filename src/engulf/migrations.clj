@@ -34,6 +34,13 @@
                   (jdbc/do-commands
                    "CREATE INDEX results_job_uuid_idx ON results(job_uuid)")))})
 
+(def add-node-count
+  {:id "add-node-count"
+   :up (fn [db] (jdbc/with-connection db
+                  (jdbc/do-commands "ALTER TABLE jobs ADD COLUMN node_count INTEGER")))
+   :down (fn [db])
+   })
+
 (defn ensure-all
   []
   (let [{{:keys [classname subprotocol subname user password]}:jdbc} settings/all
@@ -41,5 +48,6 @@
                                              user password)]
     (migrate-all db
                  [create-jobs
-                  create-results]
+                  create-results
+                  add-node-count]
                  strategy/apply-new)))

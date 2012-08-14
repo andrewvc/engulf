@@ -1,6 +1,7 @@
 (ns engulf.job-manager
   (:require [engulf.formula :as forumla]
             [engulf.database :as database]
+            [engulf.comm.node-manager :as nmgr]
             [engulf.settings :as settings]
             [engulf.control :as ctrl]
             [engulf.utils :as utils]
@@ -26,6 +27,7 @@
    :ended-at   nil
    :title title
    :notes notes
+   :node-count (nmgr/count-nodes)
    :params params})
 
 (defn record-result

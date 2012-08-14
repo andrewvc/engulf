@@ -114,6 +114,7 @@ Benchmarker = Backbone.Model.extend({
   },
   bindToStream: function (stream) {
     var self = this;
+    console.log("binding");
     
     stream.bind("all", function(name, body) {
       //console.log(name, body);
@@ -206,6 +207,7 @@ ControlsView = Backbone.View.extend({
     this.$concInput = $('#concurrency');
     this.$timeoutInput = $('#timeout');
     this.$reqsInput = $('#requests');
+    this.$titleInput = $('#title');
   },
   events: {
     "click #start-ctl": "start",
@@ -213,13 +215,14 @@ ControlsView = Backbone.View.extend({
     "change": "render"
   },
   start: function (e) {
+    engRouter.navigate("river", {trigger: true});
     var params = {};
     var self = this;
 
     params.concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
     params.limit = parseInt(this.$el.find('#limit').val(), 10);
     params.timeout = $('#timeout').val();
-    params['_title'] = this.$el.find('#title').val();
+    params['_title'] = this.$titleInput.val();
     params['keep-alive'] = 'true';
     params['formula-name'] = 'http-benchmark';
     params['_stream'] = 'false';
@@ -265,23 +268,28 @@ ControlsView = Backbone.View.extend({
     this.model.stop();
   },
   render: function () {
-    if (!this.model.get('currentJob')) {
+    var curJob = this.model.get('currentJob');
+    if (!curJob || (curJob && curJob["ended-at"] != null)) {
       this.renderStartable();
       if (this.$urlInput.val() === '') {
         this.$urlInput.val('http://' + location.host + '/test-responses/delay/15');
       }
     } else {
-      var params = this.model.get('currentJob').params;
       this.renderStoppable();
+    }
+
+    if (curJob) {
+      var params = curJob.params;
       this.$urlInput.val(params.url);
       this.$concInput.val(params.concurrency);
       this.$timeoutInput.val(params.timeout);
+      this.$titleInput.val(curJob["title"]);
+      
       if (params["keep-alive"] === "true") {
         this.$keepAliveInput.prop("checked", true);
       } else {
         this.$keepAliveInput.prop("checked", false);
       }
-
 
       this.$reqsInput.val(params.limit);
     }
@@ -348,10 +356,10 @@ AggregateStatsView = Backbone.View.extend({
   },
   render: function () {
     var res = this.renderElements;
+    var curJob = this.model.get('currentJob');
 
-    
-
-    res.nodes.text(this.model.get('nodes').length);
+    var nodes = this.model.get('nodes');
+    res.nodes.text(nodes ? nodes.length : (curJob && curJob["node-count"]));
     
     var stats = this.model.get('stats');
     if (stats) {
@@ -625,45 +633,61 @@ TimeSeriesView = Backbone.View.extend({
 
 
 
-$(function () {
-  var benchmarkStream = window.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
-   
-  var consoleView  = window.consoleView = new ConsoleView(
-    {
-      el: $('#console')
-    }
-  );
-  consoleView.logEvents(benchmarkStream, 'jsonData');
-   
-  var benchmarker  = window.benchmarker = new Benchmarker();
-  benchmarker.bindToStream(benchmarkStream);
-  
-  var controlsView = window.controlsView = new ControlsView(
-    {
-      el: $('#controls')[0],
-      model: benchmarker
-    }
-  );
+EngulfRouter = Backbone.Router.extend({
+  routes: {
+    "river": "river",
+    "jobs/:uuid": "job"
+  },
+  initialize: function () {
+    this.benchmarker = new Benchmarker();
 
-  var statsView = window.statsView = new AggregateStatsView(
-    {
+    this.controlsView = new ControlsView({
+     el: $('#controls')[0],
+      model: this.benchmarker
+    });
+
+    this.statsView = new AggregateStatsView({
       el: $('#stats')[0],
-      model: benchmarker
-    }
-  );
+      model: this.benchmarker
+    });
    
-  var percentilesView = window.percentilesView = new PercentilesView(
-    {
+    this.percentilesView = new PercentilesView({
       el: $('#resp-time-percentiles')[0],
-      model: benchmarker
-    }
-  );
-    
-  var throughputTimeAvgSeriesView = new TimeSeriesView(
-    {
+      model: this.benchmarker
+    });
+
+    this.throughputTimeAvgSeriesView = new TimeSeriesView({
       el: $('#throughput-time-series')[0],
-      model: benchmarker,
+      model: this.benchmarker,
       field: "total"
+    });          
+
+    this.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
+  },
+  river: function () {
+    this.benchmarker.set({currentJob: null});
+    this.benchmarker.bindToStream(this.benchmarkStream);
+    this.consoleView  = new ConsoleView({el: $('#console')});
+    this.consoleView.logEvents(this.benchmarkStream, 'jsonData');
+  },
+  job: function(uuid) {
+    var self = this;
+    if (this.benchmarkStream) {
+      this.benchmarkStream.unbind();        
     }
-  );
+
+    $.getJSON("/jobs/" + uuid, 
+              function (job) {
+                self.benchmarker.set({currentJob: job});
+                self.benchmarker.set({stats: job["last-result"]});
+              });
+  }
+});
+
+$(function () {
+  window.engRouter = new EngulfRouter();
+  if (document.location.hash == "") {
+    engRouter.navigate("#river", {trigger: true});
+  }
+  Backbone.history.start();
 });

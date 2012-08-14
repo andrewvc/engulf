@@ -219,6 +219,7 @@ ControlsView = Backbone.View.extend({
     params.concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
     params.limit = parseInt(this.$el.find('#limit').val(), 10);
     params.timeout = $('#timeout').val();
+    params['_title'] = this.$el.find('#title').val();
     params['keep-alive'] = 'true';
     params['formula-name'] = 'http-benchmark';
     params['_stream'] = 'false';

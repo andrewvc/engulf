@@ -8,7 +8,11 @@
   (common/layout
    [:div {:id "controls"}
     [:form
+
+     
      [:div {:id "controls-top"}
+           [:label {:for "_title"} "Title:"]
+     [:input {:id "title" :name "_title" :type "text" :placeholder "Untitled"}]
       [:select {:id "type"}
        [:option {:value "url"} "Single URL"]
        [:option {:value "markov-corpus"} "URL List"]]
@@ -30,7 +34,7 @@
        ]
       [:textarea {:id "markov-corpus" :name "markov-corpus"}]
       ]
-
+     
      [:table
       [:thead
        [:th [:label {:for "timeout"} "Timeout "]]

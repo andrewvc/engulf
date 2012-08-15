@@ -68,7 +68,7 @@
    
    [:div {:id "output"}
     [:div {:id "scalars"}
-     [:h1 "(engulf)"]
+     [:h1 [:div "Engulf"]]
      [:div {:id "nodes"}
       [:table {:id "node-stats"}
        [:tbody

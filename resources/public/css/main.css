@@ -31,8 +31,17 @@ h2 {
 
 h1 {
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
   margin-top: 10px;
+  background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANklEQVQYV2NkIAIwEqHmPyFF/4GGMBJSBLYIlyKwCTCnYFOEogCfSSj+QTYJwwR063AqACkEAGnjBgmbf5VOAAAAAElFTkSuQmCC);
+}
+
+h1 div {
+  padding: 4px;
+  width: 70px;
+  height: 100%;
+  margin: 0 auto;
+  background-color: rgba(255,255,255,0.9);
 }
 
 ul { list-style-type: diamond;}

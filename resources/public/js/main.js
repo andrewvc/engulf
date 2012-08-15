@@ -767,6 +767,7 @@ JobBrowser = Backbone.View.extend({
 
 EngulfRouter = Backbone.Router.extend({
   routes: {
+    "": "river",
     "river": "river",
     "jobs/:uuid": "job"
   },

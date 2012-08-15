@@ -1,3 +1,8 @@
+html, body, #container {
+  margin: none;
+  padding: none;
+}
+
 body {
   /*background: url('/images/rockywall.png');*/
   background-color: #fff;
@@ -36,10 +41,6 @@ a {
   color: black;
   font-weight: bold;
   text-decoration: underline;
-}
-
-header {
-  margin: 14px 0px;
 }
 
 #controls {
@@ -229,4 +230,67 @@ td {
   width: 700px;
   margin: 10px auto;
   text-align: center;
+}
+
+#job-browser {
+  position: relative;
+  border: 1px solid silver;
+  border-top: none;
+  border-bottom: none;
+  background-color: #f8f8f8;
+  height: 315px;
+  margin-top: 0px;
+  transition: margin 0.5s;
+  -moz-transition: margin 0.5s; /* Firefox 4 */
+  -webkit-transition: margin 0.5s; /* Safari and Chrome */
+  -o-transition: margin 0.5s;
+}
+
+#job-browser a {
+  color: black;
+  text-decoration: none;
+}
+
+table.jobs {
+  width: 100%;
+}
+
+table.jobs th {
+  border-bottom: 1px solid black;
+  padding: 5px;
+}
+
+#job-browser td.url {
+  width; 100%;
+}
+
+#job-browser td.url div {
+  max-height: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#job-browser.visible {
+  margin-top: -10px;
+}
+
+.tab-grip {
+  cursor: pointer;
+  position: absolute;
+  bottom: 0px;
+  width: 100%;
+  background-color: #fff;
+  background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAHklEQVQIW2NkQAX/GZH4/4FsRpgAmAOSBBFwDkgAAIKuBATRTAAZAAAAAElFTkSuQmCC);
+  height: 20px;
+}
+
+#past-jobs-title {
+  width: 200px;
+  height: 20px;
+  line-height: 20px;
+  padding: 1px 10px;
+  margin: 0 auto;
+  text-align: center;
+  background-color: rgba(255,255,255,0.8);
+  color: black;
 }

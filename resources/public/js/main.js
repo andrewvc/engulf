@@ -4,6 +4,29 @@ $(function () {
   }
 });
 
+function formatTimestamp (timestamp) {
+    var date = new Date(timestamp * 1000);
+    return date.getFullYear() + "-" +
+           (sprintf('%02d', date.getMonth()+1)) + "-" + 
+           sprintf('%02d', date.getDay()) + " " +
+           sprintf('%02d', date.getHours()) + ":" + 
+           sprintf('%02d', date.getMinutes()) + ":" +
+           sprintf('%02d', date.getSeconds());
+
+}
+
+Job = Backbone.Model.extend({
+  urlRoot: "/jobs",
+  idAttribute: "uuid"
+});
+
+Node = Backbone.Model.extend({
+  idAttribute: "uuid"
+});
+Nodes = Backbone.Collection.extend({
+  model: Node
+});
+
 function toFixed(value, precision) {
     var precision = precision || 0,
     neg = value < 0,
@@ -69,13 +92,6 @@ ConsoleView = Backbone.View.extend({
       self.append(e);
     });
   }
-});
-
-Node = Backbone.Model.extend({
-  idAttribute: "uuid"
-});
-Nodes = Backbone.Collection.extend({
-  model: Node
 });
 
 Benchmarker = Backbone.Model.extend({
@@ -631,7 +647,70 @@ TimeSeriesView = Backbone.View.extend({
   }
 });
 
+Jobs = Backbone.Collection.extend({
+  model: Job,
+  url: "/jobs"
+});
 
+JobBrowser = Backbone.View.extend({
+  visible: false,
+  events: {
+    'click .tab-grip': 'toggle'
+  },
+  jobsListTmpl: _.template("<table class='jobs'>"
+                           + "<thead>"
+                           + "<th>Date</th>"
+                           + "<th>Title</th>"
+                           + "<th>Concurrency</th>"
+                           + "<th>Nodes</th>"
+                           + "<th>Limit</th>"
+                           + "<th>URL</th>"
+                           + "</thead>"
+                + "<% _.each(jobs, function (job) { %>"
+                + "<tr>"
+                + "<td><%= formatTimestamp(job['started-at'] / 1000) %> </td>"
+                + "<td><a href='/#jobs/<%= job.uuid %>'>"
+                + "<%= job.title || \"Untitled\" %>"
+                + "</a></td>"
+                + "<td><%= job.params.concurrency %></td>"
+                + "<td><%= job['node-count'] %></td>"
+                + "<td><%= job.params.limit %></td>"
+                + "<td class='url'><div><%= job.params['markov-corpus'] ? 'Markov URL List' : job.params.url %></div></td>"
+                + "</tr>"
+                + "<% });  %><table>"),
+  initialize: function () {
+    var self = this;
+    this.jobs = new Jobs();
+
+    this.jobs.on("reset", function () {
+      $('#job-list-cont').html(
+        self.jobsListTmpl({jobs: self.jobs.toJSON()})
+      );
+    });
+
+    this.jobs.fetch({
+      success: function (data) {
+        console.log("Success");
+        self.render.call(self, data);
+      },
+      error: function (e) {
+        console.log("Could not fetch jobs!", e);
+      }
+    });
+  },
+  render: function () {
+    console.log("RENDER", this.jobs);
+  },
+  toggle: function (e) {
+    if (this.visible) {
+      $(this.el).removeClass('visible');
+      this.visible = false;
+    } else {
+      $(this.el).addClass('visible');
+      this.visible = true;
+    }
+  }
+});
 
 EngulfRouter = Backbone.Router.extend({
   routes: {
@@ -639,6 +718,7 @@ EngulfRouter = Backbone.Router.extend({
     "jobs/:uuid": "job"
   },
   initialize: function () {
+    this.jobBrowser = new JobBrowser({el: $('#job-browser')[0]});
     this.benchmarker = new Benchmarker();
 
     this.controlsView = new ControlsView({

@@ -39,6 +39,7 @@
        "/js/vendor/jquery-ui.min.js",
        "/js/vendor/underscore.min.js",
        "/js/vendor/backbone.min.js",
+       "/js/vendor/sprintf.js",
        "/js/main.js")
      (javascript-tag "try{Typekit.load();}catch(e){};")]
     [:body [:div {:id "container"}

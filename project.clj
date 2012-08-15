@@ -1,7 +1,7 @@
-(defproject engulf/engulf "3.0.0-alpha2"
+(defproject engulf/engulf "3.0.0-beta1"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.cli "0.2.1"]
-                 [noir-async "1.1.0-beta7"]
+                 [noir-async "1.1.0-beta9"]
                  [cheshire "4.0.0"]
                  [org.slf4j/slf4j-simple "1.6.6"]
                  [com.ning/async-http-client "1.7.4"]

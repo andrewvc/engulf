@@ -264,6 +264,10 @@ table.jobs {
   width: 100%;
 }
 
+table.jobs tbody tr {
+  cursor: pointer;
+}
+
 table.jobs th {
   border-bottom: 1px solid black;
   padding: 5px;

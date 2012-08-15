@@ -664,7 +664,8 @@ JobBrowser = Backbone.View.extend({
   events: {
     'click .tab-grip': 'toggle',
     'click .next': 'next',
-    'click .prev': 'prev'
+    'click .prev': 'prev',
+    'click tr': 'select'
   },
   jobsListTmpl: _.template("<table class='jobs'>"
                            + "<thead>"
@@ -674,19 +675,19 @@ JobBrowser = Backbone.View.extend({
                            + "<th>Nodes</th>"
                            + "<th>Limit</th>"
                            + "<th>URL</th>"
-                           + "</thead>"
+                           + "</thead><tbody>"
                 + "<% _.each(jobs, function (job) { %>"
-                + "<tr class='<%= job.uuid %>'>"
+                + "<tr data-uuid='<%= job.uuid %>'>"
                 + "<td><%= formatTimestamp(job['started-at'] / 1000) %> </td>"
-                + "<td><a href='/#jobs/<%= job.uuid %>'>"
+                + "<td>"
                 + "<%= job.title || \"Untitled\" %>"
-                + "</a></td>"
+                + "</td>"
                 + "<td><%= job.params.concurrency %></td>"
                 + "<td><%= job['node-count'] %></td>"
                 + "<td><%= job.params.limit %></td>"
                 + "<td class='url'><div><%= job.params['markov-corpus'] ? 'Markov URL List' : job.params.url %></div></td>"
                 + "</tr>"
-                + "<% });  %><table>"),
+                + "<% });  %></tbody><table>"),
   initialize: function (opts) {
     var self = this;
     this.benchmarker = opts.benchmarker;
@@ -707,7 +708,7 @@ JobBrowser = Backbone.View.extend({
       var cj = self.benchmarker.get('currentJob');
       if (cj) {
           $('.cur-job-related').removeClass('cur-job-related');
-          $("." + cj.uuid).addClass('cur-job-related');          
+          $("[data-uuid=" + cj.uuid + "]").addClass('cur-job-related');          
       }
     });
    
@@ -757,6 +758,10 @@ JobBrowser = Backbone.View.extend({
       } else {
         $('.next', self.el).show();          
       }
+  },
+  select: function (e) {
+    var uuid = $(e.currentTarget).data('uuid');
+    window.engRouter.navigate("#jobs/" + uuid, {trigger: true});
   }
 });
 

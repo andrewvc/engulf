@@ -166,10 +166,12 @@ Benchmarker = Backbone.Model.extend({
     });
 
     stream.bind('name-job-start', function (data) {
+      self.trigger("new-start");
       self.set({currentJob: data});
     });
 
     stream.bind('name-job-stop', function (data) {
+      self.trigger("new-stop");
       self.set({currentJob: null});
     });
   },
@@ -649,13 +651,20 @@ TimeSeriesView = Backbone.View.extend({
 
 Jobs = Backbone.Collection.extend({
   model: Job,
-  url: "/jobs"
+  url: function () { return "/jobs?page=" + this.page; },
+  page: 1,
+  fetchPage: function(pnum,opts) {
+    this.page = pnum;
+    return this.fetch(opts);
+  }
 });
 
 JobBrowser = Backbone.View.extend({
   visible: false,
   events: {
-    'click .tab-grip': 'toggle'
+    'click .tab-grip': 'toggle',
+    'click .next': 'next',
+    'click .prev': 'prev'
   },
   jobsListTmpl: _.template("<table class='jobs'>"
                            + "<thead>"
@@ -667,7 +676,7 @@ JobBrowser = Backbone.View.extend({
                            + "<th>URL</th>"
                            + "</thead>"
                 + "<% _.each(jobs, function (job) { %>"
-                + "<tr>"
+                + "<tr class='<%= job.uuid %>'>"
                 + "<td><%= formatTimestamp(job['started-at'] / 1000) %> </td>"
                 + "<td><a href='/#jobs/<%= job.uuid %>'>"
                 + "<%= job.title || \"Untitled\" %>"
@@ -678,28 +687,48 @@ JobBrowser = Backbone.View.extend({
                 + "<td class='url'><div><%= job.params['markov-corpus'] ? 'Markov URL List' : job.params.url %></div></td>"
                 + "</tr>"
                 + "<% });  %><table>"),
-  initialize: function () {
+  initialize: function (opts) {
     var self = this;
+    this.benchmarker = opts.benchmarker;
     this.jobs = new Jobs();
 
-    this.jobs.on("reset", function () {
-      $('#job-list-cont').html(
-        self.jobsListTmpl({jobs: self.jobs.toJSON()})
-      );
-    });
-
-    this.jobs.fetch({
+    this.fetchOpts = {
       success: function (data) {
-        console.log("Success");
+        self.checkPagination.call(self);
         self.render.call(self, data);
       },
       error: function (e) {
         console.log("Could not fetch jobs!", e);
       }
+    };
+
+    /* Highlight the current job in the list */
+    this.benchmarker.on("change", function () {
+      var cj = self.benchmarker.get('currentJob');
+      if (cj) {
+          $('.cur-job-related').removeClass('cur-job-related');
+          $("." + cj.uuid).addClass('cur-job-related');          
+      }
     });
-  },
+   
+    var reloadIfFirst = function () {
+      if (self.jobs.page === 1) {
+        self.jobs.fetchPage(1, self.fetchOpts);
+      }
+    };
+    this.benchmarker.on('new-start', reloadIfFirst);
+
+    this.jobs.on("reset", function () { self.render.call(self); });
+
+    this.jobs.fetchPage(1, this.fetchopts);
+  },  
   render: function () {
-    console.log("RENDER", this.jobs);
+    var self = this;
+    $('.page-num', self.el).text(self.jobs.page);
+    $('#job-list-cont').html(
+      self.jobsListTmpl({jobs: self.jobs.toJSON()})
+    );
+    self.checkPagination();
   },
   toggle: function (e) {
     if (this.visible) {
@@ -709,6 +738,25 @@ JobBrowser = Backbone.View.extend({
       $(this.el).addClass('visible');
       this.visible = true;
     }
+  },
+  next: function () {
+    this.jobs.fetchPage(this.jobs.page+1,this.fetchOpts);
+  },
+  prev: function () {
+    this.jobs.fetchPage(this.jobs.page-1,this.fetchOpts);
+  },
+  checkPagination: function () {
+      if (this.jobs.page <= 1) {
+        $('.prev', self.el).hide();
+      } else {
+        $('.prev', self.el).show();          
+      }
+
+      if (this.jobs.length === 0) {
+        $('.next', self.el).hide();
+      } else {
+        $('.next', self.el).show();          
+      }
   }
 });
 
@@ -718,8 +766,9 @@ EngulfRouter = Backbone.Router.extend({
     "jobs/:uuid": "job"
   },
   initialize: function () {
-    this.jobBrowser = new JobBrowser({el: $('#job-browser')[0]});
     this.benchmarker = new Benchmarker();
+    
+    this.jobBrowser = new JobBrowser({el: $('#job-browser')[0], benchmarker: this.benchmarker});
 
     this.controlsView = new ControlsView({
      el: $('#controls')[0],

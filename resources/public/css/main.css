@@ -238,8 +238,8 @@ td {
   border-top: none;
   border-bottom: none;
   background-color: #f8f8f8;
-  height: 315px;
-  margin-top: 0px;
+  height: 325px;
+  margin-top: -294px;
   transition: margin 0.5s;
   -moz-transition: margin 0.5s; /* Firefox 4 */
   -webkit-transition: margin 0.5s; /* Safari and Chrome */
@@ -271,7 +271,7 @@ table.jobs th {
 }
 
 #job-browser.visible {
-  margin-top: -10px;
+  margin-top: 0px;
 }
 
 .tab-grip {
@@ -293,4 +293,19 @@ table.jobs th {
   text-align: center;
   background-color: rgba(255,255,255,0.8);
   color: black;
+}
+
+#job-list-pagination {
+  width: 100%;
+  text-align: center;
+  position: absolute;
+  bottom: 25px;
+}
+
+#job-list-pagination .next, #job-list-pagination .prev {
+  cursor: pointer;
+}
+
+.cur-job-related {
+  background-color: #CFE0FF;
 }

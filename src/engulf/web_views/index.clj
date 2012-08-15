@@ -8,8 +8,15 @@
   (common/layout
    [:div {:id "job-browser"}
     [:div {:id "job-list-cont"}]
+    [:div {:id "job-list-pagination"}
+     [:span {:class "prev"} "◀ Prev"]
+     " ◇ "
+     [:span {:class "page-num"} "1"]
+     " ◇ "
+     [:span {:class "next"} "Next ▶ "]
+     ]
     [:div {:class "tab-grip"}
-     [:h2 {:id "past-jobs-title"} "Past Jobs ⇣⇡"]]
+     [:h2 {:id "past-jobs-title"} "Job History ⇣⇡"]]
     ]
    [:div {:id "benchmarker"}
     [:div {:id "controls"}

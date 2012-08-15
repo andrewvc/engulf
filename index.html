@@ -22,7 +22,7 @@
 
 
         <ul class="downloads">
-          <li><a href="https://github.com/andrewvc/engulf/downloads">Download <strong>JAR File</strong></a></li>
+          <li><a href="https://github.com/downloads/andrewvc/engulf/engulf-3.0.0-beta1-standalone.jar">Download <strong>JAR File</strong></a></li>
         </ul>
         
         <h2>Documentation</h2>
@@ -74,6 +74,16 @@ Client/server configuration of engulf is simple. One master node is started whic
 <p>Starting the master<br><code>java -server -jar engulf.jar --mode master</code></p>
 
 <p>Starting a worker<br><code>java -server -jar engulf.jar --mode worker --connect-to 127.0.0.1:4025</code></p>
+
+<h3>CLI Opts</h3>
+<pre>Switches           Default             Desc                      
+ --http-port        4000                Listen on this port for the HTTP UI                
+ --manager-port     4025                TCP Port for manager to listen on                  
+ --mode             :combined           {combined:master:worker}                           
+ --connect-to       ["localhost" 4025]  When in worker mode, connect to this TCP host:port 
+ --no-help, --help  false               Show help, then exit                               
+</pre>
+
 
 <h2 id="http-api">REST / Streaming API</h2>
 

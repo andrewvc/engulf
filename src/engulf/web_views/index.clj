@@ -73,7 +73,7 @@
       [:table {:id "node-stats"}
        [:tbody
         [:tr
-         [:td {:class "k"} "Nodes Connected"]
+         [:td {:class "k"} "Nodes"]
          [:td {:class "v" :id "nodes-connected"} "&#8734;"]]]]]
      [:div {:id "stats"}
       [:h2 "Aggregates"]

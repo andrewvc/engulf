@@ -175,10 +175,10 @@ td {
 }
 
 .v {
-  width: 50px;
+  width: 80px;
   padding-left: 20px;
   text-align: center;
-  background-color: #f1f1f1;
+  background-color: #f3f3f3;
   color: black;
   padding: 5px 10px;
   border: 1px solid #aaa;
@@ -268,17 +268,32 @@ table.jobs tbody tr {
   cursor: pointer;
 }
 
+table.jobs tbody tr:hover {
+  background-color: #eaeaea;
+}
+
+table.jobs tbody tr.cur-job-related {
+  background-color: #CFE0FF;
+}
+
 table.jobs th {
   border-bottom: 1px solid black;
   padding: 5px;
 }
 
-#job-browser td.url {
-  width; 100%;
-}
 
 #job-browser td.url div {
-  max-height: 16px;
+  float:left;
+  width: 220px;
+  height: 14px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#job-browser td.title div {
+  float:left;
+  width: 240px;
+  height: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -317,8 +332,4 @@ table.jobs th {
 
 #job-list-pagination .next, #job-list-pagination .prev {
   cursor: pointer;
-}
-
-.cur-job-related {
-  background-color: #CFE0FF;
 }

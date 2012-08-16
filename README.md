@@ -1,6 +1,6 @@
 # engulf
 
-*Please see [engulf-project.org](http://engulf-project.org) for more info and full documentation!*
+**Please see [engulf-project.org](http://engulf-project.org) for more info and full documentation!**
 
 A **scalable, distributed HTTP load tester**, designed to let you spin up and coordinate a cluster of workers with nothing more than a single JAR. Features include:
 

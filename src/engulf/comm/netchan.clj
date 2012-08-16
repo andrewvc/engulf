@@ -19,23 +19,28 @@
 (defn decode-msg
   "Parses a GZIPed SIMLE msg, ensures it's properly formatted as well"
   [msg]
-  {:post [(not= nil (first %))]}
   (chesh/parse-smile (utils/decompress-byte-array msg)))
 
 ;; Simple int32 prefixed frames
-(def wire-protocol
-  (compile-frame (finite-block (prefix :int32))))
+(defcodec wire-protocol (finite-block (prefix :int32)))
 
 (defn decode-frame
   "Returns only the decoded frame payload, stripping off its length prefix"
   [frame]
   (let [frame-arr (.array (contiguous frame))]
-    (decode-msg (Arrays/copyOfRange frame-arr 4 (alength frame-arr)))))
+    (try
+      (decode-msg (Arrays/copyOfRange frame-arr 4 (alength frame-arr)))
+      (catch Exception e
+        ;; This is a hack, once we find out how I'm abusing aleph hopefully this will go away
+        (log/warn "\n\n\nWeird bug decoding stuff. Recovering...\n\n\n")
+        (decode-msg frame-arr)))))
 
 (defn encode-frame
   "Encodes a msg into a buffer-seq suitable for gloss framing"
   [msg]
   (to-buf-seq (encode-msg msg)))
+
+(println "WTF\n")
 
 (defn formatted-channel
   "Takes a channel from a tcp server or client, and returns a new channel that automatically

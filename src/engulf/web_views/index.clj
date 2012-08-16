@@ -9,11 +9,11 @@
    [:div {:id "job-browser"}
     [:div {:id "job-list-cont"}]
     [:div {:id "job-list-pagination"}
-     [:div {:class "prev-cont"} [:span {:class "prev"} "◀ Prev"]]
+     [:div {:class "prev-cont"} [:a {:class "prev"} "◀ Prev"]]
      " ◇ "
      [:span {:class "page-num"} "1"]
      " ◇ "
-     [:div {:class "next-cont"} [:span {:class "next"} "Next ▶ "]]
+     [:div {:class "next-cont"} [:a {:class "next"} "Next ▶ "]]
      ]
     [:div {:class "tab-grip"}
      [:h2 {:id "past-jobs-title"} "Job History ⇣⇡"]]

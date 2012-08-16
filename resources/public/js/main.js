@@ -740,10 +740,12 @@ JobBrowser = Backbone.View.extend({
       this.visible = true;
     }
   },
-  next: function () {
+  next: function (e) {
+    e.preventDefault();
     this.jobs.fetchPage(this.jobs.page+1,this.fetchOpts);
   },
-  prev: function () {
+  prev: function (e) {
+    e.preventDefault();
     this.jobs.fetchPage(this.jobs.page-1,this.fetchOpts);
   },
   checkPagination: function () {

@@ -338,3 +338,8 @@ table.jobs th {
 #job-list-pagination .next, #job-list-pagination .prev {
   cursor: pointer;
 }
+
+.page-num {
+  font-weight: bold;
+  padding: 0 3px;
+}

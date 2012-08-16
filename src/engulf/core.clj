@@ -9,7 +9,8 @@
             [engulf.web-server :as w-server]
             [clojure.tools.logging :as log])
   (:use [clojure.tools.cli :only [cli]]
-        [clojure.string :only [split join]]))
+        [clojure.string :only [split join]])
+  (:gen-class))
 
 (defn parse-args
   [args]

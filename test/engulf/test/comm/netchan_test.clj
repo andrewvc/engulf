@@ -1,5 +1,7 @@
 (ns engulf.test.comm.netchan-test
-  (:require [engulf.comm.netchan :as nc])
+  (:require [engulf.comm.netchan :as nc]
+            [clojure.tools.logging :as log]
+            )
   (:use midje.sweet
         lamina.core
         gloss.io)
@@ -33,6 +35,7 @@
       (fact
        "it should return a connection channel"
        conn => channel?)
+      (log/info "SMALL")
       (fact
        "it should send messages without error"
        (enqueue conn ["ohai" "there"]) => truthy)
@@ -40,7 +43,8 @@
        "it should receive sent messages back"
        (enqueue conn ["ohai" "there"])
        @(read-channel* conn :timeout 2000) => ["ohai" "there"])
-      (let [large (apply str  (repeat 100000 ["ohai" "there"]))]
+      (log/info "LARGE")
+      (let [large (apply str  (repeat 100000 "ohai there"))]
         (fact
          "it should send large messages without error"
          (enqueue conn large) => truthy)
@@ -49,3 +53,5 @@
          (enqueue conn large)
          (read-channel conn)
          @(read-channel* conn :timeout 2000) => large))))))
+
+      (log/info "END")

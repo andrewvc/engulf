@@ -41,8 +41,6 @@
   [msg]
   (to-buf-seq (encode-msg msg)))
 
-(println "WTF\n")
-
 (defn formatted-channel
   "Takes a channel from a tcp server or client, and returns a new channel that automatically
    decodes and encodes values"

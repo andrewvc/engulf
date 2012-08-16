@@ -330,6 +330,11 @@ table.jobs th {
   bottom: 25px;
 }
 
+.prev-cont, .next-cont {
+  display: inline-block;
+  width: 43px;
+}
+
 #job-list-pagination .next, #job-list-pagination .prev {
   cursor: pointer;
 }

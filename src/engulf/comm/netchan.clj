@@ -24,7 +24,7 @@
 
 ;; Simple int32 prefixed frames
 (def wire-protocol
-  (finite-block (prefix :int32 inc dec)))
+  (compile-frame (finite-block (prefix :int32))))
 
 (defn decode-frame
   "Returns only the decoded frame payload, stripping off its length prefix"

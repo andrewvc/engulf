@@ -33,7 +33,7 @@
       (decode-msg (Arrays/copyOfRange frame-arr 4 (alength frame-arr)))
       (catch java.util.zip.ZipException e
         ;; This is a hack, once we find out how I'm abusing aleph hopefully this will go away
-        (log/warn "\n\n\nWeird bug decoding stuff. Recovering.")
+        (log/warn "Weird bug decoding stuff. Recovering.")
         (decode-msg frame-arr)))))
 
 (defn encode-frame

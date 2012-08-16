@@ -9,7 +9,8 @@
    gloss.core
    gloss.io
    [clojure.walk :only [keywordize-keys]])
-  (:import java.util.Arrays))
+  (:import java.util.Arrays
+           java.util.zip.ZipException))
 
 (defn encode-msg
   "Encodes a message using SMILE and GZIP"
@@ -30,9 +31,9 @@
   (let [frame-arr (.array (contiguous frame))]
     (try
       (decode-msg (Arrays/copyOfRange frame-arr 4 (alength frame-arr)))
-      (catch Exception e
+      (catch java.util.zip.ZipException e
         ;; This is a hack, once we find out how I'm abusing aleph hopefully this will go away
-        (log/warn "\n\n\nWeird bug decoding stuff. Recovering...\n\n\n")
+        (log/warn "\n\n\nWeird bug decoding stuff. Recovering.")
         (decode-msg frame-arr)))))
 
 (defn encode-frame

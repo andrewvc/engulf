@@ -28,7 +28,10 @@
   (run-repeatedly
     [this ch runner]
     (let [reqs (:req-seq params)
+          ;; Note, retry does not retry requests, but retries if
+          ;; the server connection is severed in between reqs
           client (http-client {:url (:url (first reqs))
+                               :retry? true
                                :keep-alive? (:keep-alive? (first reqs))})]
       (run-repeatedly this ch runner client reqs)))
   (run-repeatedly

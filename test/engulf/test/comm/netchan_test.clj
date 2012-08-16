@@ -39,4 +39,13 @@
       (fact
        "it should receive sent messages back"
        (enqueue conn ["ohai" "there"])
-       @(read-channel* conn :timeout 2000) => ["ohai" "there"] )))))
+       @(read-channel* conn :timeout 2000) => ["ohai" "there"])
+      (let [large (apply str  (repeat 100000 ["ohai" "there"]))]
+        (fact
+         "it should send large messages without error"
+         (enqueue conn large) => truthy)
+        (fact
+         "it should receive large messages back"
+         (enqueue conn large)
+         (read-channel conn)
+         @(read-channel* conn :timeout 2000) => large))))))

@@ -610,9 +610,9 @@ TimeSeriesView = Backbone.View.extend({
     if (!this.model.get('currentJob')) return;
     var self = this;
     
-    if (!this.field) return null;
+    if (!this.field) return;
     var times = this.model.timeSeriesFor(this.field);
-    if (!times) { return null; };
+    if (!times) { return; };
 
     var max = this.model.maxInTimeSeries(times);
     
@@ -641,7 +641,7 @@ TimeSeriesView = Backbone.View.extend({
 
     rect.exit().remove();
     
-    return null;
+    return;
   },
   showTip: function (e) {
     var elem = $(e.currentTarget);

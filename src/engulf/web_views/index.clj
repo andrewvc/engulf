@@ -68,7 +68,11 @@
    
    [:div {:id "output"}
     [:div {:id "scalars"}
-     [:h1 [:div "Engulf"]]
+     [:h1
+      [:div {:class "engulf"} "Engulf"]
+      [:div {:class "status live"} "LIVE"]
+      [:div {:class "status playback" :style "display: none"}
+       [:a {:href "#"} "PLAYBACK"]]]
      [:div {:id "nodes"}
       [:table {:id "node-stats"}
        [:tbody

@@ -828,6 +828,8 @@ EngulfRouter = Backbone.Router.extend({
     this.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
   },
   river: function () {
+    $('.status.live').show();      
+    $('.status.playback').hide();
     $('.cur-job-related').removeClass('cur-job-related');
     this.benchmarker.set({currentJob: null});
     this.benchmarker.bindToStream(this.benchmarkStream);
@@ -835,6 +837,8 @@ EngulfRouter = Backbone.Router.extend({
     this.consoleView.logEvents(this.benchmarkStream, 'jsonData');
   },
   job: function(uuid) {
+    $('.status.live').hide();      
+    $('.status.playback').show();
     var self = this;
     if (this.benchmarkStream) {
       this.benchmarkStream.unbind();        

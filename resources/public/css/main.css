@@ -30,18 +30,45 @@ h2 {
 }
 
 h1 {
+  position: relative;
   text-align: center;
   font-size: 14px;
   margin-top: 10px;
+  overflow: hidden;
   background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAJCAYAAADgkQYQAAAANklEQVQYV2NkIAIwEqHmPyFF/4GGMBJSBLYIlyKwCTCnYFOEogCfSSj+QTYJwwR063AqACkEAGnjBgmbf5VOAAAAAElFTkSuQmCC);
 }
 
-h1 div {
+h1 div.engulf {
   padding: 4px;
   width: 70px;
   height: 100%;
-  margin: 0 auto;
+  margin: 0 auto 0 0;
   background-color: rgba(255,255,255,0.9);
+}
+
+h1 div.status {
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 20px;
+  width:70px;
+  padding-top: 6px;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  font-style: italic;
+}
+
+h1 div.status a {
+  color: black;
+  text-decoration: none;
+}
+
+h1 div.status.live {
+  background: rgba(215,255,165,0.9);
+}
+
+h1 div.status.playback {
+  background: rgba(165,165,255,0.9);
 }
 
 ul { list-style-type: diamond;}

@@ -555,7 +555,9 @@ PercentilesView = Backbone.View.extend({
          attr("dx", -3). // padding-right
          attr("dy", ".35em"). // vertical-align: middle
          attr("text-anchor", "end"). // text-align: right
-         text(function (d, i) { return d + 'ms' } );
+         text(function (d, i) {
+                  return d > 1000 ? sprintf("%0.2f",d / 1000) + 's' : d + 'ms';
+         } );
   }
 });
 

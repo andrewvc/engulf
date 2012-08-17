@@ -10,7 +10,7 @@ A **scalable, distributed HTTP load tester**, designed to let you spin up and co
 * RESTful/Streaming API
 * Minimalism and ease of use as a pervasive goal
 
-![Screenshot](https://img.skitch.com/20120811-qf81tgw9pg51mnbjnidq4axmgf.png)
+![Screenshot](https://img.skitch.com/20120817-j2ybqsr77dbfdmissga1sksg6k.png)
 
 ## Thanks!
 I'd like to thank YourKit for providing this project with their Java profiler (which works excellently with Clojure).

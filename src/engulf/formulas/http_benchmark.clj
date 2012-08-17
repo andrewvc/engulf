@@ -5,7 +5,7 @@
             [clojure.tools.logging :as log]
             [clojure.set :as cset])
   (:use [engulf.formula :only [Formula register stop]]
-        [engulf.utils :only [set-timeout now]]
+        [engulf.utils :only [set-timeout now merge-map-sums]]
         [aleph.http :only [http-client http-request]]
         [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])

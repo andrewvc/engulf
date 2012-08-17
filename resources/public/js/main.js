@@ -614,18 +614,6 @@ TimeSeriesView = Backbone.View.extend({
     var times = this.model.timeSeriesFor(this.field);
     if (!times) { return null; };
 
-    // Subsample data if we have too much
-    var maxBars = 75;
-    var mod = Math.ceil( 1 / (maxBars / times.length));
-    if (maxBars < times.length) {
-      var newTimes = [];
-      _.each(times,
-             function (e,i) {
-               if (i % mod === 1) newTimes.push(e);
-             });
-     times = newTimes;
-    }
-    
     var max = this.model.maxInTimeSeries(times);
     
     this.setYScale(max);

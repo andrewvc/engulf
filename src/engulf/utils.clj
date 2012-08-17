@@ -79,3 +79,16 @@
           (recur))))
     (.close gzis)    
     (.toByteArray baos)))
+
+(defn merge-map-sums
+  "Given n maps, will return a single map with key values summed"
+  [& maps]
+  (reduce
+   (fn [m this-map]
+     (reduce
+      (fn [mm [k v]]
+        (update-in mm [k] #(if % (+ % v) v)))
+        m
+      this-map))
+   {}
+   maps))

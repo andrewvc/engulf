@@ -94,6 +94,26 @@
         {}
         exp-codes))))
 
+(defn relay-agg-quantize-time-slices
+  "Quantize time slices such that we have no more than 100"
+  [stats aggs job]
+  (assoc stats "time-slices"
+         (let [wt (stats "walltime")
+               ideal (int (/ wt 50))
+               slice-size (if (< ideal 500)
+                            500
+                            (* 500 (int (Math/pow 2 (Math/ceil (/ (Math/log (/ ideal 500)) (Math/log 2)))))))]
+           (reduce
+            (fn [m [ts counts]]
+              (update-in m [ts] (partial merge-map-sums counts)))
+            (sorted-map)
+            (map
+             (fn [[ts counts]]
+               (let [ts (Long/valueOf ts)]
+                 [(- ts (mod ts slice-size)) counts]))
+             (stats "time-slices"))))))
+  
+
 (defn relay-agg-totals
   [stats aggs job]
   (let [total (reduce + (map #(get % "runs-total") aggs))
@@ -160,6 +180,7 @@
         (relay-agg-totals all-aggs job)
         (relay-agg-times all-aggs)
         (relay-agg-time-slices all-aggs)
+        (relay-agg-quantize-time-slices all-aggs job)
         (relay-agg-statuses all-aggs)
         (relay-agg-percentiles aggs))))
 

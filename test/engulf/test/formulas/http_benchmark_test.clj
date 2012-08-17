@@ -1,5 +1,6 @@
 (ns engulf.test.formulas.http-benchmark-test
   (:require
+   [engulf.utils :as utils]
    [lamina.core :as lc]
    [engulf.formulas.http-benchmark :as htb]
    [engulf.test.helpers :as helpers]
@@ -61,66 +62,71 @@
     "blah"
     (:res-ch b) => lc/closed?)))
 
+(def ea-start (utils/now))
+
 (defn eagg
   []
   (htb/edge-aggregate {:timeout 500}
-                          [(htb/success-result 0 10 200)
-                           (htb/success-result 0 10 200)
-                           (htb/success-result 0 20 404)
-                           (htb/error-result 550 590 (Exception. "wtf"))]))
+                          [(htb/success-result ea-start (+ ea-start 10) 200)
+                           (htb/success-result ea-start (+ ea-start 10) 200)
+                           (htb/success-result ea-start (+ ea-start 20) 404)
+                           (htb/success-result (+ ea-start 2000) (+ ea-start 2025) 404)
+                           (htb/error-result (+ ea-start 2000)
+                                             (+ ea-start 2025)
+                                             (Exception. "wtf"))]
+                          ))
 
 (facts
  "about relay aggregation"
  (let [params {:timeout 500 :limit 500}
        agg (htb/relay-aggregate
-            {:params params :started-at 100}
+            {:params params :started-at ea-start}
             (htb/empty-relay-aggregation params) (repeatedly 2 eagg))]
    (fact
     "it should sum run totals"
-    (agg "runs-total") => 8)
+    (agg "runs-total") => 10)
    (fact
     "it should sum success totals"
-    (agg "runs-succeeded") => 6)
+    (agg "runs-succeeded") => 8)
    (fact
     "it should sum failure totals"
     (agg "runs-failed") => 2)
    (fact
     "it should sum runtimes"
-    (agg "runtime") => 160)
+    (agg "runtime") => 180)
    (fact
     "it should merge time slices"
-    (agg "time-slices") => {0 {200 4, 404 2 "total" 6}, 500 {"total" 2 "thrown" 2}}
-    )
+    (vec (vals (into (sorted-map) (agg "time-slices")))) =>
+    [{200 4, 404 2 "total" 6}, {"total" 4 "thrown" 2 404 2}])
    (fact
     "it should sum aggregated statuses"
-    (agg "status-codes") => {"thrown" 2, 404 2, 200 4}
-    )))
+    (agg "status-codes") => {"thrown" 2, 404 4, 200 4})))
 
 (facts
  "about edge aggregation"
  (let [agg (eagg)]
    (fact
     "it should set the runs-total to the length of the dataset"
-    (agg "runs-total")  => 4)
+    (agg "runs-total")  => 5)
    (fact
     "it should count successes correctly"
-    (agg "runs-succeeded") => 3)
+    (agg "runs-succeeded") => 4)
    (fact
     "it should count failures correctly"
     (agg "runs-failed") => 1)
    (fact
     "it should add up times correctly"
-    (agg "runtime") => 80)
+    (agg "runtime") => 90)
    (fact
     "it should properly aggregate the status codes"
     (agg "status-codes") => {200 2
-                            404 1
+                            404 2
                             "thrown" 1})
    (fact
     "it should record as many samples as given"
-    (count (agg "all-runtimes")) => 4)
+    (count (agg "all-runtimes")) => 5)
    (fact
     "it should aggregate response codes by time-slice"
-    (agg "time-slices") => {0 {404 1, 200 2 "total" 3}
-                            500 {"thrown" 1 "total" 1}})))
+    (vec (vals (into (sorted-map) (agg "time-slices")))) =>
+    [{404 1, 200 2 "total" 3} {"thrown" 1, 404 1, "total" 2}] )))
 

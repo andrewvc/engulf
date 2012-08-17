@@ -15,6 +15,19 @@ function formatTimestamp (timestamp) {
 
 }
 
+function formatMillis (millis) {
+    totalSec = parseInt(millis / 1000);
+    hours = parseInt( totalSec / 3600 ) % 24;
+    minutes = parseInt( totalSec / 60 ) % 60;
+    seconds = totalSec % 60;
+    millis = millis % 1000;
+
+    return (hours < 10 ? "0" + hours : hours) +
+        ":" + (minutes < 10 ? "0" + minutes : minutes) +
+        ":" + (seconds  < 10 ? "0" + seconds : seconds) +
+        "." + millis;
+}
+
 Job = Backbone.Model.extend({
   urlRoot: "/jobs",
   idAttribute: "uuid"
@@ -407,8 +420,8 @@ AggregateStatsView = Backbone.View.extend({
       res.completed.text(stats['runs-total']);
       res.succeeded.text(stats['runs-succeeded']);
       res.failed.text(stats['runs-failed']);
-      res.runtime.text(this.formatMillis(stats['runtime']));
-      res.walltime.text(this.formatMillis(stats['walltime']));
+      res.runtime.text(formatMillis(stats['runtime']));
+      res.walltime.text(formatMillis(stats['walltime']));
 
       var medianRuntime = stats.percentiles['50'].median;
       if (medianRuntime) {
@@ -438,18 +451,6 @@ AggregateStatsView = Backbone.View.extend({
       var count = codeCounts[code];
       tbody.append(self.tmpl({code: code, count: count}));
     }
-  },
-  formatMillis: function(millis) {
-    totalSec = parseInt(millis / 1000);
-    hours = parseInt( totalSec / 3600 ) % 24;
-    minutes = parseInt( totalSec / 60 ) % 60;
-    seconds = totalSec % 60;
-    millis = millis % 1000;
-
-    return (hours < 10 ? "0" + hours : hours) +
-            ":" + (minutes < 10 ? "0" + minutes : minutes) +
-            ":" + (seconds  < 10 ? "0" + seconds : seconds) +
-            "." + millis;
   }
 });
 
@@ -649,8 +650,8 @@ TimeSeriesView = Backbone.View.extend({
   showTip: function (e) {
     var elem = $(e.currentTarget);
     var tip = this.chart.append('text');
-    var offset = elem.data('side') == 'l' ? 0 : -95;
-    tip.text(elem.data('val') + ' reqs @ ' + toFixed(elem.data('elapsed') / 1000, 3) + ' secs');
+    var offset = elem.data('side') == 'l' ? 0 : -130;
+    tip.text(elem.data('val') + ' reqs @ ' + formatMillis(elem.data('elapsed')));
     tip.attr('class', 'tip');
     tip.attr('x', parseInt(elem.attr('x'),0) + offset);
     tip.attr('y', this.h + 20);

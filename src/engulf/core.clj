@@ -57,4 +57,13 @@
     (log/info "Connecting worker to" (join ":"  (:connect-to settings/all)))
     (apply w-client/start (:connect-to settings/all)))
   
-  (log/info "Done initializing!"))
+  (log/info "Done initializing!")
+
+  (when (#{:combined :master} (:mode settings/all))
+    (let [message (format "* Just Point your browser to http://localhost:%s/ *" (:http-port settings/all))
+          border (str (reduce str (repeat (count message) "*")))]
+      (println "\n\n")
+      (println border)
+      (println message)
+      (println border)
+      (println "\n\n"))))

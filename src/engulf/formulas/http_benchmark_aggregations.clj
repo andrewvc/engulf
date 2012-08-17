@@ -128,7 +128,10 @@
     (doseq [agg aggs]
       (if-let [agg-rec (agg "percentiles")]
         (.merge recorder agg-rec)
-        (.record recorder (int-array (agg "all-runtimes"))))))
+        (try
+          (.record recorder (int-array (agg "all-runtimes")))
+          (catch Error e
+              (log/warn e "Could not record percentile"))))))
   stats)
 
 (defn format-percentiles

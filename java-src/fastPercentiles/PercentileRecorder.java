@@ -68,7 +68,7 @@ public class PercentileRecorder {
 
     /* Non locking way to record. Not threadsafe. You *must* aquire dataLock first */
     private void recordUnsafe(int value) {
-        if (value > range) {
+        if (value > range || value < 0) {
             throw new Error("Value" + value + " out of percentile ranges");
         }
         

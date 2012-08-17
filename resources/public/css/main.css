@@ -25,8 +25,9 @@ h1, header, p {
 }
 
 h2 {
-  font-size: 12px;
-  font-weight: bold;
+  font-size: 13px;
+  text-align: center;
+  color: #444;
 }
 
 h1 {
@@ -82,6 +83,8 @@ a {
 #controls {
   float: right;
   width: 500px;
+  margin-top: 10px;
+  background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFklEQVQIW2NkQAOMIP6qpb+MYeKEBQDPfAd5EpaoMQAAAABJRU5ErkJggg==);
 }
 
 #controls #title {
@@ -196,21 +199,22 @@ td {
 }
 
 .k {
-  font-weight: bold;
   text-align: right;
   padding-right: 20px;
+  color: #444;
 }
 
 .v {
   width: 80px;
   padding-left: 20px;
   text-align: center;
-  background-color: #f3f3f3;
+  background-color: #fafafa;
   color: black;
   padding: 5px 10px;
   border: 1px solid #aaa;
   border-left: 0px;
   border-top: 0px;
+  color: #444;
 }
 
 #time-series {

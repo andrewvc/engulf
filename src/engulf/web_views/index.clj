@@ -21,8 +21,6 @@
    [:div {:id "benchmarker"}
     [:div {:id "controls"}
      [:form
-
-      
       [:div {:id "controls-top"}
        [:label {:for "_title"} "Title:"]
        [:input {:id "title" :name "_title" :type "text" :placeholder "Untitled"}]
@@ -74,6 +72,7 @@
       [:div {:class "status playback" :style "display: none"}
        [:a {:href "#"} "PLAYBACK"]]]
      [:div {:id "nodes"}
+      [:h2 "System"]
       [:table {:id "node-stats"}
        [:tbody
         [:tr

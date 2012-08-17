@@ -225,6 +225,7 @@ ControlsView = Backbone.View.extend({
     this.$timeoutInput = $('#timeout');
     this.$reqsInput = $('#requests');
     this.$titleInput = $('#title');
+    this.$limitInput = $('#limit');
   },
   events: {
     "click #start-ctl": "start",
@@ -241,8 +242,8 @@ ControlsView = Backbone.View.extend({
     var params = {};
     var self = this;
 
-    params.concurrency = parseInt(this.$el.find('#concurrency').val(), 10);
-    params.limit = parseInt(this.$el.find('#limit').val(), 10);
+    params.concurrency = parseInt(this.$concInput.val(), 10);
+    params.limit = parseInt(this.$limitInput.val(), 10);
     params.timeout = $('#timeout').val();
     params['_title'] = this.$titleInput.val();
     params['keep-alive'] = 'true';
@@ -302,8 +303,10 @@ ControlsView = Backbone.View.extend({
 
     if (curJob) {
       var params = curJob.params;
+        console.log("P", params);
       this.$urlInput.val(params.url);
       this.$concInput.val(params.concurrency);
+      this.$limitInput.val(params.limit);
       this.$timeoutInput.val(params.timeout);
       this.$titleInput.val(curJob["title"]);
       

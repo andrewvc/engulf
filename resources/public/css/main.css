@@ -281,16 +281,21 @@ table.jobs th {
   padding: 5px;
 }
 
+#job-browser td.timestamp {
+  font-size: 10px;
+}
 
 #job-browser td.url div {
+  text-align: left;
   float:left;
-  width: 220px;
+  width: 110px;
   height: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 #job-browser td.title div {
+  text-align: left;
   float:left;
   width: 240px;
   height: 14px;

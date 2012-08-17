@@ -69,7 +69,7 @@
   (let [started-at (now)]
     (letfn
         [(succ-cb [response]
-           (callback (success-result started-at (now) (:status response))))
+           (callback (success-result started-at (now) (or (:status response) "err"))))
          (enqueue-succ-cb [response]
            (.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb response)))
          (error-cb [throwable]

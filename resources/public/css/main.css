@@ -84,7 +84,7 @@ a {
   float: right;
   width: 500px;
   margin-top: 10px;
-  background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAFklEQVQIW2NkQAOMIP6qpb+MYeKEBQDPfAd5EpaoMQAAAABJRU5ErkJggg==);
+  background: #f5f5f5;
 }
 
 #controls #title {

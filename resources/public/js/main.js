@@ -130,7 +130,6 @@ Benchmarker = Backbone.Model.extend({
   },
   bindToStream: function (stream) {
     var self = this;
-    console.log("binding");
     
     stream.bind("all", function(name, body) {
       //console.log(name, body);
@@ -230,10 +229,15 @@ ControlsView = Backbone.View.extend({
   events: {
     "click #start-ctl": "start",
     "click #stop-ctl":  "stop",
-    "change": "render"
+    "change": "formChange"
+  },
+  formChange: function(e) {
+    engRouter.navigate('', {trigger: true});
+    engRouter.benchmarker.set({currentJob: null});
+    this.render();  
   },
   start: function (e) {
-    engRouter.navigate("river", {trigger: true});
+    engRouter.navigate("", {trigger: true});
     var params = {};
     var self = this;
 
@@ -312,15 +316,31 @@ ControlsView = Backbone.View.extend({
       this.$reqsInput.val(params.limit);
     }
 
-    if (this.type() == "url") {
+    if (params) {
+      $('#method option[value=' + params.method + ']').attr('selected',true);
+    } else {
+      $('#method option[value=get]').attr('selected',true);        
+    }
+    
+    if (params ? !params['markov-corpus'] : this.type() === 'url') {
+      $('option#type-url', this.el).attr('selected',true);
       $('#url', this.el).show();
+      if (params)  $('#url', this.el).val(params.url);
       $('#method', this.el).show();
       $('#markov-corpus', this.el).hide();
+      $('#markov-corpus', this.el).text('');
       $('#markov-help', this.el).hide();
     } else {
+      $('option#type-markov', this.el).attr('selected',true);
       $('#url', this.el).hide();
       $('#method', this.el).hide();
       $('#markov-corpus', this.el).show();
+      if (params && params['markov-corpus']) {
+        $('#markov-corpus', this.el).text(_.map(params['markov-corpus'], function (u) { return u.method + " " + u.url;}).join("\n"));          
+      } else {
+        $('#markov-corpus', this.el).text('');          
+      }
+
       $('#markov-help', this.el).show();
     }
   },
@@ -665,7 +685,7 @@ JobBrowser = Backbone.View.extend({
     'click .tab-grip': 'toggle',
     'click .next': 'next',
     'click .prev': 'prev',
-    'click tr': 'select'
+    'click tbody tr': 'select'
   },
   jobsListTmpl: _.template("<table class='jobs'>"
                            + "<thead>"
@@ -808,6 +828,7 @@ EngulfRouter = Backbone.Router.extend({
     this.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
   },
   river: function () {
+    $('.cur-job-related').removeClass('cur-job-related');
     this.benchmarker.set({currentJob: null});
     this.benchmarker.bindToStream(this.benchmarkStream);
     this.consoleView  = new ConsoleView({el: $('#console')});
@@ -830,7 +851,7 @@ EngulfRouter = Backbone.Router.extend({
 $(function () {
   window.engRouter = new EngulfRouter();
   if (document.location.hash == "") {
-    engRouter.navigate("#river", {trigger: true});
+    engRouter.navigate("", {trigger: true});
   }
   Backbone.history.start();
 });

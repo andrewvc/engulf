@@ -27,8 +27,8 @@
        [:label {:for "_title"} "Title:"]
        [:input {:id "title" :name "_title" :type "text" :placeholder "Untitled"}]
        [:select {:id "type"}
-        [:option {:value "url"} "Single URL"]
-        [:option {:value "markov-corpus"} "URL List"]]
+        [:option {:id "type-url" :value "url"} "Single URL"]
+        [:option {:id "type-markov" :value "markov-corpus"} "URL List"]]
        [:select {:id "method" :class "short-num" :name "method"}
         [:option {:value "get"} "GET"]
         [:option {:value "post"} "POST"]

@@ -18,7 +18,7 @@
    "runs-failed" 0
    "status-codes" {}
    "time-slices" {}
-   "percentiles" (PercentileRecorder. (or (params "timeout") 10000))})
+   "percentiles" (PercentileRecorder. (or (params "timeout") 90000))})
 
 (defn successes
   [results]

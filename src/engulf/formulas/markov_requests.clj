@@ -1,8 +1,7 @@
 (ns engulf.formulas.markov-requests
   "Support for generating markov chains of requests."
   ;; TODO: This file's a bit of a messy in terms of organization and naming
-  (:use clojure.pprint
-        [clojure.string :only [lower-case]]
+  (:use [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])
   (:require [clojure.string :as string]
             [clojure.tools.logging :as log]

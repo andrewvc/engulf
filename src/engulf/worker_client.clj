@@ -90,5 +90,4 @@
 (defn start
   "Starts the worker client. Should be done once per process max."
   [host port]
-  (utils/set-interval 15000 #(log/info (str "Worker State: " @current)))
   (client-connect host port))

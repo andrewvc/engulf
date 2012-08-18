@@ -1,0 +1,23 @@
+#!/bin/sh
+#
+# Starts and stops engulf
+#
+
+case "$1" in
+start)
+  sudo -u ubuntu curl https://raw.github.com/andrewvc/engulf/master/misc/ami_bootstrap.sh | sh &
+;;
+
+stop)
+  killall -9 java
+;;
+
+restart)
+  	$0 stop
+  	$0 start
+;;
+
+*)
+        echo "Usage: $0 {start|stop|restart}"
+        exit 1
+esac

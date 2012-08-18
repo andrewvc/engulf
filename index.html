@@ -97,14 +97,14 @@ Client/server configuration of engulf is simple. One master node is started whic
 
 <h3>About the AMI</h3>
 
-<p>Perhaps the easiest way to start up engulf is with the Amazon AMI (<a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">ami-49299c20</a>), a pre-configured VM that you can instantly boot on AWS with full functionality. It can easily be used to create a tuned load-testing cluster within minutes.</p>
+<p>Perhaps the easiest way to start up engulf is with the Amazon AMI (<a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-5f2a9f36">ami-5f2a9f36</a>), a pre-configured VM that you can instantly boot on AWS with full functionality. It can easily be used to create a tuned load-testing cluster within minutes.</p>
 
-<p>The pre-built engulf AMI is configured with all the correct dependencies, will always use the latest version of engulf and uses a tuned jvm configuration based on the instance's provisioned memory. Options for engulf can be passed through the user-data option when booting.</p>
+<p>The pre-built engulf AMI is configured with all the correct dependencies, will always use the latest version of engulf and uses tuned kernel and JVM settings for optimal performance. Options for engulf can be passed through the user-data option when booting.</p>
 
 <h3>Launching a Single Instance</h3>
 
 <ol>
-<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a></li>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-5f2a9f36">this link</a> to launch the AMI</a></li>
 <li>In the AMI wizard fill in any values you please, but be sure to leave the user data portion of the wizard blank</li>
 <li>Point your browser toward: <code>http://ec2yourinstance.compute1.amazonaws.com:8080</code></li>
 </ol>
@@ -118,14 +118,14 @@ In an engulf cluster you must provision a single master and multiple workers.
 <h4>Provisioning the Master</h4>
 
 <ol>
-<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. When you get to the user data section of the wizard, proceed to the next step.</li>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-5f2a9f36">this link</a> to launch the AMI</a>. When you get to the user data section of the wizard, proceed to the next step.</li>
 <li>In the user data section of the wizard enter: <pre>--mode master</pre></li>
 </ol>
 
 <h4>Provisioning the Workers</h4>
 
 <ol>
-<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. You may select as many machines as you want if you desire multiple workers. When you get to the user data field in the wizard proceed to the next step.</li>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-5f2a9f36">this link</a> to launch the AMI</a>. You may select as many machines as you want if you desire multiple workers. When you get to the user data field in the wizard proceed to the next step.</li>
 <li>Take note of the <strong>master's internal hostname</strong>, which should look something like:<br> <code>ip-0-0-0-0.ec2.internal</code>. You will need this for the next step.</li>
 <li>In the instance launch wizard, in the user data section enter: <pre>--mode worker --connect-to MASTER-INTERNAL-HOSTNAME:4025</pre> <strong>Don't forget to append ':4025'</strong> to the hostname!</li>
 </ol>

@@ -1,4 +1,7 @@
 #!/bin/bash
+# Reduce fin to 7s from default 60
+echo 7 | sudo tee /proc/sys/net/ipv4/tcp_fin_timeout
+
 INST_DIR=/home/ubuntu
 curl -L http://engulf-project.org/latest.jar > $INST_DIR/engulf.jar
 curl http://169.254.169.254/latest/user-data | head -n1 > $INST_DIR/engulf-opts

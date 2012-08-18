@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <title>engulf by andrewvc</title>
+    <title>Engulf - Dead Simple Open Source HTTP Load Tester</title>
 
     <link rel="stylesheet" href="stylesheets/styles.css">
     <link rel="stylesheet" href="stylesheets/pygment_trac.css">
@@ -25,10 +25,11 @@
           <li><a href="https://github.com/downloads/andrewvc/engulf/engulf-3.0.0-beta3-standalone.jar">Download <strong>JAR File</strong></a></li>
         </ul>
         
-        <h2>Documentation</h2>
+        <h3>Documentation</h3>
         <ul class="sections-toc">
           <li><a href="#">About Engulf</a></li>
           <li><a href="#usage">Usage</a></li>
+          <li><a href="#amazon-ami">Instant cluster with the AWS AMI</a></li>
           <li><a href="#http-api">REST/Streaming API</a></li>
           <li><a href="#todo">Todo</a></li>
           <li><a href="#thanks">Thanks</a></li>
@@ -37,19 +38,23 @@
       </header>
       <section>
 <h2 id="about">About</h2>
-<p class"intro">Engulf is a <em><strong>scalable, distributed HTTP benchmarker</strong></em>, designed to let you spin up and coordinate a cluster of workers with nothing more than a single JAR. Engulf's backend is written in clojure, the frontend in javascript. Features include:</p>
+<p class"intro">Engulf is a <em><strong>scalable and distributed HTTP benchmarker</strong></em>, designed to let you spin up and coordinate a cluster of workers with nothing more than a single JAR. Engulf's backend is written in clojure, the frontend in javascript. Engulf is fully open-source.</p>
+
+<p>Features Include:</p>
 
 <ul>
 <li>Realtime browser UI</li>
-<li>Markov request pattern generation</li>
-<li>Recording/annotation of all test runs</li>
-<li><a href="#http-api">RESTful/Streaming API</a>
+<li>Clustering</li>
+<li>Recording/Annotation of all test runs</li>
+<li>An <a href="#amazon-ami">AWS AMI</a> for instant provisioning</li>
+<li><a href="#http-api">REST and Streaming API</a>
+<li><a href="http://blog.andrewvc.com/markov-http-benchmarking">Markov request pattern generation</a></li>
 </li>
 <li>Minimalism and ease of use as a pervasive goal</li>
 </ul>
 
 <em>The Web UI in action</em>:
-</ul><p><img src="https://img.skitch.com/20120817-j2ybqsr77dbfdmissga1sksg6k.png" alt="Screenshot"></p>
+</ul><p><img src="https://img.skitch.com/20120818-fy47im15manihrsqk4w5efg6cq.png" alt="Screenshot"></p>
 
 <h2 id="usage">Usage</h2>
 
@@ -83,6 +88,57 @@ Client/server configuration of engulf is simple. One master node is started whic
  --connect-to       ["localhost" 4025]  When in worker mode, connect to this TCP host:port 
  --no-help, --help  false               Show help, then exit                               
 </pre>
+
+<h3>Backing up Saved Data</h3>
+
+<p>All data is saved to <code>$HOME/.engulf.sqlite3</code> on the master node. If you wish to back this up be sure to stop any running instances and make a copy of this file.</p>
+
+<h2 id="amazon-ami">Using the Amazon AMI</h2>
+
+<h3>About the AMI</h3>
+
+<p>Perhaps the easiest way to start up engulf is with the Amazon AMI (<a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">ami-49299c20</a>), a pre-configured VM that you can instantly boot on AWS with full functionality. It can easily be used to create a tuned load-testing cluster within minutes.</p>
+
+<p>The pre-built engulf AMI is configured with all the correct dependencies, will always use the latest version of engulf and uses a tuned jvm configuration based on the instance's provisioned memory. Options for engulf can be passed through the user-data option when booting.</p>
+
+<h3>Launching a Single Instance</h3>
+
+<ol>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a></li>
+<li>In the AMI wizard fill in any values you please, but be sure to leave the user data portion of the wizard blank</li>
+<li>Point your browser toward: <code>http://ec2yourinstance.compute1.amazonaws.com:8080</code></li>
+</ol>
+
+<h3>Launching a Cluster</h3>
+
+In an engulf cluster you must provision a single master and multiple workers.
+
+<h4>Provisioning the Master</h4>
+
+<ol>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. When you get to the instance details section of the wizard, proceed to the next step.</li>
+<li>In the instance details section of the launch wizard, in the user data section enter: <pre>--mode master</pre></li>
+</ol>
+
+<h4>Provisioning the Workers</h4>
+
+<ol>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. You may select as many machines as you want if you desire multiple workers. When you get to the instance details section of the wizard with the user data field, proceed to the next step.</li>
+<li>Take note of the <strong>master's internal hostname</strong>, which should look something like:<br> <code>ip-0-0-0-0.ec2.internal</code>. You will need this for the next step.</li>
+<li>In the instance launch wizard, in the user data section of the instance details step enter: <pre>--mode worker --connect-to MASTER-INTERNAL-HOSTNAME:4025</pre> <strong>Don't forget to append ':4025'</strong> to the hostname!</li>
+</ol>
+
+<h4>Using the Cluster</h4>
+
+<p>Simply point your browser at the public hostname of your master box. You should see a number of nodes matching the number of workers you've started up. If the number of nodes is indicated as 0 something is off!</p>
+
+<h3>SSHing in and Backing up Saved Data</h3>
+
+<p>All data in the engulf VM is persisted to <code>/home/ubuntu/.engulf.sqlite3</code> on the master node. You can ssh into the node using your provisioned key as the 'ubuntu' user.</p>
+
+<p>Either make sure to keep the master's EBS Volume around, or make sure to backup this file yourself (you probably want to kill any active engulf processes if manually backing up before doing this).</p>
+
+<p>Engulf can be started/stopped by executing <code>sudo /etc/init.d/engulf stop</code>. It can be started again with <code>sudo /etc/init.d/engulf start</code></p>
 
 
 <h2 id="http-api">REST / Streaming API</h2>
@@ -251,7 +307,8 @@ curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type
 
 <h2 id="thanks">Thanks!</h2>
 
-<p>I'd like to thank <a href="http://trentstrong.com/">Trent Strong</a> for the idea of generating requests with Markov chains</p>
+<p>
+I'd like to thank <a href="http://ideolalia.com/">Zach Tellman</a>, who's work on the fantastic <a href="https://github.com/ztellman/aleph/">aleph</a> library made much of engulf possible. I'd also like to thank <a href="http://trentstrong.com/">Trent Strong</a> for the idea of generating requests with Markov chains.</p>
 
 <p>I'd like to thank YourKit for providing this project with their Java profiler (which works excellently with Clojure).
 It's great at spotting performance issues. More info below:</p>

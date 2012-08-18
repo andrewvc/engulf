@@ -22,7 +22,7 @@
 
 
         <ul class="downloads">
-          <li><a href="https://github.com/downloads/andrewvc/engulf/engulf-3.0.0-beta3-standalone.jar">Download <strong>JAR File</strong></a></li>
+          <li><a href="https://engulf-project.org/latest.jar">Download <strong>JAR File</strong></a></li>
         </ul>
         
         <h3>Documentation</h3>
@@ -195,7 +195,7 @@ In an engulf cluster you must provision a single master and multiple workers.
 <li>
 <strong>method:</strong> MAY be set. Either get/put/patch/post/delete. MUST be lower-case. Will default to 'get'.</li>
 <li>
-<strong>concurrency:</strong> MUST be set. The desired number of concurrent requests <em>per worker node</em>. So, if you have 2 workers, a setting of 5 means there will be 10 simultaneous requests at any given time.</li>
+<strong>concurrency:</strong> MUST be set. The desired number of concurrent requests <em>cluster-wide</em>. So, if you have 2 workers, a setting of 10 means there will be 10 simultaneous requests at any given time, with 5 on each worker.</li>
 <li>
 <strong>formula-name:</strong> MUST be set. Currently always "http-benchmark".</li>
 <li>

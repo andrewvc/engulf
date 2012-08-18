@@ -118,16 +118,16 @@ In an engulf cluster you must provision a single master and multiple workers.
 <h4>Provisioning the Master</h4>
 
 <ol>
-<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. When you get to the instance details section of the wizard, proceed to the next step.</li>
-<li>In the instance details section of the launch wizard, in the user data section enter: <pre>--mode master</pre></li>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. When you get to the user data section of the wizard, proceed to the next step.</li>
+<li>In the user data section of the wizard enter: <pre>--mode master</pre></li>
 </ol>
 
 <h4>Provisioning the Workers</h4>
 
 <ol>
-<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. You may select as many machines as you want if you desire multiple workers. When you get to the instance details section of the wizard with the user data field, proceed to the next step.</li>
+<li>Click <a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-49299c20">this link</a> to launch the AMI</a>. You may select as many machines as you want if you desire multiple workers. When you get to the user data field in the wizard proceed to the next step.</li>
 <li>Take note of the <strong>master's internal hostname</strong>, which should look something like:<br> <code>ip-0-0-0-0.ec2.internal</code>. You will need this for the next step.</li>
-<li>In the instance launch wizard, in the user data section of the instance details step enter: <pre>--mode worker --connect-to MASTER-INTERNAL-HOSTNAME:4025</pre> <strong>Don't forget to append ':4025'</strong> to the hostname!</li>
+<li>In the instance launch wizard, in the user data section enter: <pre>--mode worker --connect-to MASTER-INTERNAL-HOSTNAME:4025</pre> <strong>Don't forget to append ':4025'</strong> to the hostname!</li>
 </ol>
 
 <h4>Using the Cluster</h4>

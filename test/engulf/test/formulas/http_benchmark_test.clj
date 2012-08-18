@@ -10,7 +10,7 @@
 (defn init-benchmark
   []
   (htb/init-benchmark helpers/test-http-job-params
-                      {:params helpers/test-http-job-params}))
+                      {:params helpers/test-http-job-params :node-count 1}))
 
 (facts
  "about initializing a benchmark"

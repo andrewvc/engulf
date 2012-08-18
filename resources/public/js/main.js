@@ -28,6 +28,11 @@ function formatMillis (millis) {
         "." + millis;
 }
 
+function setIndicatedJob (uuid) {
+  $('.cur-job-related').removeClass('cur-job-related');
+  $("[data-uuid=" + uuid + "]").addClass('cur-job-related');          
+}
+
 Job = Backbone.Model.extend({
   urlRoot: "/jobs",
   idAttribute: "uuid"
@@ -183,8 +188,12 @@ Benchmarker = Backbone.Model.extend({
     });
 
     stream.bind('name-job-stop', function (data) {
-      self.trigger("new-stop");
+      var j = self.get('currentJob');
+      self.trigger("new-stop", j);
       self.set({currentJob: null});
+      if (j) {
+        setIndicatedJob(j.uuid);
+      }
     });
   },
   timeSeriesFor: function (field) {
@@ -316,7 +325,6 @@ ControlsView = Backbone.View.extend({
 
     if (curJob) {
       var params = curJob.params;
-        console.log("P", params);
       this.$urlInput.val(params.url);
       this.$concInput.val(params.concurrency);
       this.$limitInput.val(params.limit);
@@ -667,7 +675,7 @@ Jobs = Backbone.Collection.extend({
   model: Job,
   url: function () { return "/jobs?page=" + this.page; },
   page: 1,
-  fetchPage: function(pnum,opts) {
+  fetchPage: function(pnum,opts,cb) {
     this.page = pnum;
     return this.fetch(opts);
   }
@@ -727,17 +735,24 @@ JobBrowser = Backbone.View.extend({
     this.benchmarker.on("change", function () {
       var cj = self.benchmarker.get('currentJob');
       if (cj) {
-          $('.cur-job-related').removeClass('cur-job-related');
-          $("[data-uuid=" + cj.uuid + "]").addClass('cur-job-related');          
+          setIndicatedJob(cj.uuid);
       }
     });
    
-    var reloadIfFirst = function () {
+    var reloadIfFirst = function (curOrLastJob) {
       if (self.jobs.page === 1) {
-        self.jobs.fetchPage(1, self.fetchOpts);
+        var origSuccCb = self.fetchOpts.success;
+        var fOpts = _.extend(self.fetchOpts, {
+                   success: function (data) {
+                       origSuccCb(data);
+                       if (curOrLastJob) setIndicatedJob(curOrLastJob.uuid);
+                   }  
+                 });
+        self.jobs.fetchPage(1, fOpts);
       }
     };
     this.benchmarker.on('new-start', reloadIfFirst);
+    this.benchmarker.on('new-stop', reloadIfFirst);
 
     this.jobs.on("reset", function () { self.render.call(self); });
 

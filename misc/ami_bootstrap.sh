@@ -10,6 +10,6 @@ MEMTOT=`free -m | grep '^Mem: ' | awk '{print $2}'`
 MEMUNIT=m
 MEMMIN=`expr $MEMTOT - 400`$MEMUNIT
 MEMMAX=`expr $MEMTOT - 200`$MEMUNIT
-CMD="java -Xms$MEMMIN -Xmx$MEMMAX -jar $INST_DIR/engulf.jar --http-port 8080 $ENGULF_OPTS"
+CMD="java -server -Xms$MEMMIN -Xmx$MEMMAX -jar $INST_DIR/engulf.jar --http-port 8080 $ENGULF_OPTS"
 echo Will run: $CMD
 $CMD

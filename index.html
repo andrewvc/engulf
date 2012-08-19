@@ -94,6 +94,10 @@ Client/server configuration of engulf is simple. One master node is started whic
 
 <p>All data is saved to <code>$HOME/.engulf.sqlite3</code> on the master node. If you wish to back this up be sure to stop any running instances and make a copy of this file.</p>
 
+<h3>Tuning OS Settings</h3>
+
+Engulf opens a lot of ports very quickly, most OSes have default limits that conflict with that, especially when keep-alive is disabled. To combat this, consider upping your system's max open files via ulimit, and increasing its ephemeral port range.
+
 <h2 id="amazon-ami">Using the Amazon AMI</h2>
 
 <h3>About the AMI</h3>

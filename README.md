@@ -26,4 +26,4 @@ Java and .NET applications. Take a look at YourKit's leading software products:
 
 Copyright (C) 2011 and 2012 Andrew Cholakian
 
-Distributed under the MIT Licensee, see LICENSE for details
+Distributed under the Eclipse Public License, see LICENSE for details

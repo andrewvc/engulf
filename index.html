@@ -30,7 +30,7 @@
         <ul class="sections-toc">
           <li><a href="#">About Engulf</a></li>
           <li><a href="#usage">Usage</a></li>
-          <li><a href="#amazon-ami">Instant cluster with the AWS AMI</a></li>
+          <li><a href="#amazon-ami">Instant AWS Cluster</a></li>
           <li><a href="#http-api">REST/Streaming API</a></li>
           <li><a href="#todo">Todo</a></li>
           <li><a href="#thanks">Thanks</a></li>
@@ -75,7 +75,7 @@
 <h3>Client / Server Configuration</h3>
 
 <p>
-Client/server configuration of engulf is simple. One master node is started which will listen on port 4025. Then, any number of worker nodes maybe started that point to the master. See the example below:</p>
+Client/server configuration of Engulf is simple. One master node is started which will listen on port 4025. Then, any number of worker nodes maybe started that point to the master. See the example below:</p>
 
 <p>Starting the master<br><code>java -server -jar engulf.jar --mode master</code></p>
 
@@ -90,21 +90,44 @@ Client/server configuration of engulf is simple. One master node is started whic
  --no-help, --help  false               Show help, then exit                               
 </pre>
 
-<h3>Backing up Saved Data</h3>
+<h3 id="#backup">Backing up Saved Data</h3>
 
 <p>All data is saved to <code>$HOME/.engulf.sqlite3</code> on the master node. If you wish to back this up be sure to stop any running instances and make a copy of this file.</p>
 
 <h3>Tuning OS Settings</h3>
 
-Engulf opens a lot of ports very quickly, most OSes have default limits that conflict with that, especially when keep-alive is disabled. To combat this, consider upping your system's max open files via ulimit, and increasing its ephemeral port range.
+<p>Engulf opens a lot of ports very quickly, most OSes have default limits that conflict with that, especially when keep-alive is disabled. To combat this, consider upping your system's max open files via ulimit, and increasing its ephemeral port range.</p>
 
-<h2 id="amazon-ami">Using the Amazon AMI</h2>
+<h3>Warming Up Engulf</h3>
 
-<h3>About the AMI</h3>
+<p>Engulf is fastest after a few short test runs. You will notice gets faster after a boot given a few test cases. This is due to the fact that Engulf is written in <a href="http://clojure.org/">Clojure</a> which runs on the Java Virtual Machine. The HotSpot JIT recompiles code as it runs, making code progressively faster leading to this phenomenon.</p>
 
-<p>Perhaps the easiest way to start up engulf is with the Amazon AMI (<a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-5f2a9f36">ami-5f2a9f36</a>), a pre-configured VM that you can instantly boot on AWS with full functionality. It can easily be used to create a tuned load-testing cluster within minutes.</p>
+<h2 id="amazon-ami">Instant AWS Cluster</h2>
 
-<p>The pre-built engulf AMI is configured with all the correct dependencies, will always use the latest version of engulf, uses tuned kernel settings, and uses tuned JVM settings for optimal performance. Options for engulf can be passed through the user-data option when booting.</p>
+<h3>About Cloud Load Testing with AWS</h3>
+
+<p>Perhaps the easiest way to start up Engulf is with Amazon Cloudformation. The CloudFormation templates will setup either a single instance, or cluster of instances with just a few clicks, along with any security and scaling groups as required. These instances are based on a custom AMI with tuned operating system and JVM settings for optimal performance.</p>
+
+<h3>Launching a Single Instance</h3>
+
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn~EngulfSolo|turl~http://engulf-project.s3.amazonaws.com/engulf-solo.template.json" target="_blank">Click here</a> to launch a single instance of Engulf. Click 'continue' on the first screen (do not change the name from EngulfSolo), then simply fill in the size of instance when prompted. Be sure to use the API name for a given instance type <a href="http://aws.amazon.com/ec2/instance-types/">from this list</a>.</p>
+
+<p>When the CloudFormation template is done running, check its output pane on the Amazon Console. There should be a field labeled "URL", with a corresponding URL to its right. Open the URL in your browser to use the web interface.</p>
+
+<p>Please note, all data is saved on the EBS node of your EC2 instance. If you wish to save that data for later make sure to never terminate the instance, but rather to only stop and start it. For other options Read the section on <a href="#backups">backups</a>.</p>
+
+
+<h3>Launching a Cluster</h3>
+
+<p><a href="https://console.aws.amazon.com/cloudformation/home?region=us-east-1#cstack=sn~EngulfCluster|turl~http://engulf-project.s3.amazonaws.com/engulf-cluster.template.json" target="_blank">Click here</a> to launch an Engulf cluster using CloudFormation. Click continue on the first screen (do not change the name from EngulfCluster). The number of desired workers can be specified up-front, as can the instance sizes of the workers and masters. Please use an instance type from <a href="http://aws.amazon.com/ec2/instance-types/">this list</a>. Workers can be scaled up and down by re-running the CloudFormation template (just click the link above a second time and alter the number of nodes).</p>
+
+<p>You may not want to keep the full cluster running at all times. If you do not mind losing data simply delete the CloudFormation stack. If you would like to keep your data around the best strategy is to, in the EC2 console, 'stop' the master node and 'terminate' the workers. This leaves your data intact on the master, and discards the workers which have no data. To start it back up again, start the master and wait for it to fully boot. Then, re-run the cloudformation template above by clicking the link at the start of the cluster tutorial. The Worker auto-scaling group will notice the missing workers and start up new, properly configured ones.</p>
+
+<h4>About the AMI</h4>
+
+<p>If you would like to build your own custom cluster on AWS feel free to make use of the custom AMI (<a href="https://console.aws.amazon.com/ec2/home?region=us-east-1#launchAmi=ami-5f2a9f36">ami-5f2a9f36</a>) used by the CloudFormation recipes.</p>
+
+<p>The pre-built Engulf AMI is configured with all the correct dependencies, will always use the latest version of Engulf, uses tuned kernel settings, and uses tuned JVM settings for optimal performance. Options for Engulf can be passed through the user-data option when booting.</p>
 
 <h3>Launching a Single Instance</h3>
 
@@ -117,7 +140,7 @@ Engulf opens a lot of ports very quickly, most OSes have default limits that con
 <h3>Launching a Cluster</h3>
 
 <p>
-In an engulf cluster you must provision a single master and multiple workers.
+In an Engulf cluster you must provision a single master and multiple workers.
 </p>
 
 <h4>Provisioning the Master</h4>
@@ -143,9 +166,9 @@ In an engulf cluster you must provision a single master and multiple workers.
 
 <h3>SSHing in and Backing up Saved Data</h3>
 
-<p>All data in the engulf VM is persisted to <code>/home/ubuntu/.engulf.sqlite3</code> on the master node. You can ssh into the node using your provisioned key as the 'ubuntu' user.</p>
+<p>All data in the Engulf VM is persisted to <code>/home/ubuntu/.engulf.sqlite3</code> on the master node. You can ssh into the node using your provisioned key as the 'ubuntu' user.</p>
 
-<p>Either make sure to keep the master's EBS Volume around, or make sure to backup this file yourself (you probably want to kill any active engulf processes if manually backing up before doing this).</p>
+<p>Either make sure to keep the master's EBS Volume around, or make sure to backup this file yourself (you probably want to kill any active Engulf processes if manually backing up before doing this).</p>
 
 <p>Engulf can be started/stopped by executing <code>sudo /etc/init.d/engulf stop</code>. It can be started again with <code>sudo /etc/init.d/engulf start</code></p>
 
@@ -196,7 +219,7 @@ In an engulf cluster you must provision a single master and multiple workers.
 <li>
 <strong>markov-corpus:</strong> MAY be set. If you'd like to test a list of URLs use this option.<br>The list is analyzed and traversed as a <a href="http://www.beetleinabox.com/markov.html">markov-chain</a> for a good mix between randomness and similarity to a given source. Taking a snippet out of a webserver log is a good way to use this.<br> The should must passed in as a JSON array of either strings (simple get requests) or hashes of the form {"url": "http://...", "method": "post"}.</li>
 <li>
-<strong>limit:</strong> MUST be set. The job will stop at this point. Note, due to performance optimizations there is no guarantee engulf will stop at this exact mark. It will merely attempt to stop at it, but will usually over-run it by a small amount.</li>
+<strong>limit:</strong> MUST be set. The job will stop at this point. Note, due to performance optimizations there is no guarantee Engulf will stop at this exact mark. It will merely attempt to stop at it, but will usually over-run it by a small amount.</li>
 <li>
 <strong>timeout:</strong> MUST be set. Specifies the max time to wait for a response to return in milliseconds.</li>
 <li>
@@ -275,7 +298,7 @@ curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type
 
 <p><code>GET /river</code> <em>supports websockets</em></p>
 
-<p>The river API consists of a single endpoint <code>/river</code> that understands both plain GET and WebSocket requests. Either way, it returns a stream of JSON messages representing state-changes and results within engulf.</p>
+<p>The river API consists of a single endpoint <code>/river</code> that understands both plain GET and WebSocket requests. Either way, it returns a stream of JSON messages representing state-changes and results within Engulf.</p>
 
 <p>Most messages sent through the River API utilize the <a href="http://en.wikipedia.org/wiki/Entity%E2%80%93attribute%E2%80%93value_model">EAV Pattern</a>, and have a format that consists a map of the format: {"entity", "msg-entity" "name": "msg-name", "body", "msg-body"}. </p>
 
@@ -317,7 +340,7 @@ curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type
 <h2 id="thanks">Thanks!</h2>
 
 <p>
-I'd like to thank <a href="http://ideolalia.com/">Zach Tellman</a>, who's work on the fantastic <a href="https://github.com/ztellman/aleph/">aleph</a> library made much of engulf possible. I'd also like to thank <a href="http://trentstrong.com/">Trent Strong</a> for the idea of generating requests with Markov chains.</p>
+I'd like to thank <a href="http://ideolalia.com/">Zach Tellman</a>, who's work on the fantastic <a href="https://github.com/ztellman/aleph/">aleph</a> library made much of Engulf possible. I'd also like to thank <a href="http://trentstrong.com/">Trent Strong</a> for the idea of generating requests with Markov chains.</p>
 
 <p>I'd like to thank YourKit for providing this project with their Java profiler (which works excellently with Clojure).
 It's great at spotting performance issues. More info below:</p>

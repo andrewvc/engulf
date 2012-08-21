@@ -264,11 +264,12 @@ ControlsView = Backbone.View.extend({
     var params = {};
     var self = this;
 
+
     params.concurrency = parseInt(this.$concInput.val(), 10);
     params.limit = parseInt(this.$limitInput.val(), 10);
     params.timeout = $('#timeout').val();
     params['_title'] = this.$titleInput.val();
-    params['keep-alive'] = 'true';
+    params['keep-alive'] = this.$keepAliveInput.is(":checked") + "";
     params['formula-name'] = 'http-benchmark';
     params['_stream'] = 'false';
     

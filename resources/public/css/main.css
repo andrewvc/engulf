@@ -191,7 +191,7 @@ td, th {
   text-align: center;
 }
 
-td {
+td, th {
   border: 1px dotted #666;
   border-left: 0px;
   border-top: 0px;
@@ -296,7 +296,9 @@ table.jobs {
 }
 
 #job-browser th {
-  background-color: #fefefe;
+  background-color: #fff;
+  border-bottom: 1px solid black;
+  padding: 5px;
 }
 
 td.timestamp {
@@ -325,12 +327,6 @@ table.jobs tbody tr:hover td {
 
 table.jobs tbody tr.cur-job-related td {
   background-color: #dedede;
-}
-
-
-table.jobs th {
-  border-bottom: 1px solid black;
-  padding: 5px;
 }
 
 #job-browser td.timestamp {

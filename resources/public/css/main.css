@@ -69,7 +69,7 @@ h1 div.status.live {
 }
 
 h1 div.status.playback {
-  background: rgba(255,255,195,0.9);
+  background: rgba(255,165,255,0.9);
 }
 
 ul { list-style-type: diamond;}
@@ -319,12 +319,12 @@ table.jobs tbody tr {
 }
 
 table.jobs tbody tr:hover td {
-  background-color: #eaeaea;
+  background-color: #f0f0f0;
 }
 
 
 table.jobs tbody tr.cur-job-related td {
-  background: rgba(255,255,195,0.9);
+  background-color: #dedede;
 }
 
 

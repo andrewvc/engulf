@@ -69,7 +69,7 @@ h1 div.status.live {
 }
 
 h1 div.status.playback {
-  background: rgba(165,165,255,0.9);
+  background: rgba(196,221,255,0.9);
 }
 
 ul { list-style-type: diamond;}
@@ -295,17 +295,39 @@ table.jobs {
   width: 100%;
 }
 
+#job-browser th {
+  background-color: #fefefe;
+}
+
+td.timestamp {
+  background-color: #fefefe;
+  color: #000;
+}
+
+td.stat {
+  background-color: #fefefe;
+  color: #000;
+}
+
+td.title {
+  font-weight: bold;
+}
+
+
 table.jobs tbody tr {
   cursor: pointer;
 }
 
-table.jobs tbody tr:hover {
+table.jobs tbody tr:hover td {
   background-color: #eaeaea;
 }
 
-table.jobs tbody tr.cur-job-related {
-  background-color: #CFE0FF;
+
+table.jobs tbody tr.cur-job-related td
+ {
+   background-color: #C4DDFF;
 }
+
 
 table.jobs th {
   border-bottom: 1px solid black;

@@ -92,10 +92,9 @@
 (defn init-benchmark
   [params job]
   ;; TODO: Clean this up, we should only pass in job, not job and params
-  (let [cleaned-params (clean-params (:params job))
-        cleaned-job (assoc job :params cleaned-params)]
+  (let [cleaned-job (clean-job job)]
     (HttpBenchmark. (atom :initialized)
-                    cleaned-params
+                    (:params cleaned-job)
                     cleaned-job
                   (lc/channel)
                   (atom :unknown))))

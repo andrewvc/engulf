@@ -47,22 +47,27 @@
      (into {} (filter (fn [[k v]] (req-pkeys k)) refined)))))
 
 ;; TODO Clean this all up, it's a bit of a hairbal
-(defn clean-params [str-params]
+(defn clean-job [{str-params :params node-count :node-count :as job}]
   (let [params (keywordize-keys str-params)]
+    
     ;; Ensure required keys
     (let [diff (cset/difference #{:concurrency :timeout :limit} params)]
       (when (not (empty? diff))
         (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
 
-    (-> params
-          (update-in [:concurrency] int-val)
-          (update-in [:timeout] int-val)
-          (update-in [:limit] int-val)          
-          (assoc :keep-alive? #(not= "false" (:keep-alive params)))
-          (assoc :req-seq
-            (if (:markov-corpus params)
-              (markov-req-seq params)
-              (simple-req-seq params))))))
+    (when (> node-count (:concurrency params))
+      (throw (Exception. "Concurrency cannot be < node-count! Use a higher concurrency setting!")))
+
+    (assoc job :params
+           (-> params
+               (update-in [:concurrency] int-val)
+               (update-in [:timeout] int-val)
+               (update-in [:limit] int-val)          
+               (assoc :keep-alive? #(not= "false" (:keep-alive params)))
+               (assoc :req-seq
+                 (if (:markov-corpus params)
+                   (markov-req-seq params)
+                   (simple-req-seq params)))))))
 
 (defn run-real-request
   [client req-params callback]

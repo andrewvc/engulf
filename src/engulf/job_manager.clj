@@ -83,7 +83,7 @@
   (log/info (str "Starting job with params: " params))
   
   ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
-  (formula/init-job-formula {:formula-name formula-name :params params})
+  (formula/init-job-formula (job formula-name title notes params))
   
   (let [job (register-job formula-name title notes params)
         results-ch (record-results job (:results-ch (ctrl/start-job job)))

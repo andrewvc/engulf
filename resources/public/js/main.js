@@ -130,10 +130,16 @@ Benchmarker = Backbone.Model.extend({
         if (on_success) on_success(parsed);
         self.set({currentJob: parsed});
       }).
-      error(function (error) {
+      error(function (errorRaw) {
+        var error = JSON.parse(errorRaw.responseText);
         console.log("Error", error);
         if (on_error) on_error(error);
-        alert("Error processing request: " + JSON.stringify(error));
+        console.log(error);
+        if (error.message) {
+          alert("Error processing request: " + error.message);
+        } else {
+          alert("Error processing request: " + JSON.stringify(error));            
+        }
       });
   },
   stop: function () {

@@ -57,7 +57,7 @@
         (na/async-push conn (json-resp 200 job))))
     (catch Exception e
       (log/warn e "Error starting job!")
-      (na/async-push conn (json-resp 500 {:message (str e)})))))
+      (na/async-push conn (json-resp 400 {:message (str e)})))))
 
 (defpage [:delete "/jobs/current"] {}
   (if-let [stopped (jmgr/stop-job)]

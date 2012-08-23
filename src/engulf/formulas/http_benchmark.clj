@@ -72,9 +72,10 @@
         (throw (Exception. "Attempted to double-change formula mode!")))
       (let [http-res-ch (lc/channel)
             worker-concurrency (int (/ (:concurrency params) (:node-count job)))
+            actual-concurrency (if (> worker-concurrency 1) worker-concurrency 1)
             runner (if (:mock params) run-mock-request run-real-request)]
         ;; Kick off the async workers
-        (dotimes [t worker-concurrency]
+        (dotimes [t actual-concurrency]
           (run-repeatedly this http-res-ch runner))
         ;; Output is time-constrained for efficient messaging
         (lc/siphon 

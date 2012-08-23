@@ -55,7 +55,7 @@
       (when (not (empty? diff))
         (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
 
-    (when (> node-count (:concurrency params))
+    (when (> node-count (int-val (:concurrency params)))
       (throw (Exception. "Concurrency cannot be < node-count! Use a higher concurrency setting!")))
 
     (assoc job :params

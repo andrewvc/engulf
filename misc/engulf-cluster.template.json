@@ -17,35 +17,33 @@
       "ConstraintDescription" : "must be a valid EC2 instance type."
     },
     "WorkerInstanceCount" : {
-        "Description" : "Number of worker instances to start",
-        "Type" : "String",
-        "Default" : "1"
+      "Description" : "Number of worker instances to start",
+      "Type" : "String",
+      "Default" : "1"
     }
   },
   "Resources": {
     "engulfMaster": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
-        "AvailabilityZone": "us-east-1e",
         "DisableApiTermination": "FALSE",
         "ImageId": "ami-5f2a9f36",
         "InstanceType": {"Ref": "MasterInstanceType"},
         "KernelId": "aki-825ea7eb",
         "Monitoring": "false",
         "UserData": {"Fn::Base64": "--mode master"},
-        "SecurityGroups": [{"Ref": "sgdefault"}],
-        "Tags": [{"Key": "Name","Value": "Engulf-Master"}]
+        "SecurityGroups": [{"Ref": "sgdefault"}]
       }
     },
     "WorkerGroup" : {
-        "Type" : "AWS::AutoScaling::AutoScalingGroup",
-        "Properties" : {
+      "Type" : "AWS::AutoScaling::AutoScalingGroup",
+      "Properties" : {
         "AvailabilityZones" : {"Fn::GetAZs" : ""},
         "LaunchConfigurationName" : { "Ref" : "WorkerLaunchConfiguration" },
         "MinSize" : { "Ref" : "WorkerInstanceCount" },
         "MaxSize" : { "Ref" : "WorkerInstanceCount" },
         "DesiredCapacity" : { "Ref" : "WorkerInstanceCount" }
-        }
+      }
     },
     "WorkerLaunchConfiguration": {
       "Type" : "AWS::AutoScaling::LaunchConfiguration",
@@ -54,7 +52,6 @@
         "InstanceType": {"Ref": "WorkerInstanceType"},
         "SecurityGroups": [{"Ref": "sgdefault"}],
         "KernelId": "aki-825ea7eb",
-        "Tags": [{"Key": "Name","Value": "Engulf-Worker"}],
         "UserData": {"Fn::Base64":
                      {"Fn::Join":
                       ["",

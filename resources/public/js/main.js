@@ -711,6 +711,9 @@ Jobs = Backbone.Collection.extend({
   fetchPage: function(pnum,opts,cb) {
     this.page = pnum;
     return this.fetch(opts);
+  },
+  reload: function () {
+    this.fetchPage(this.page);
   }
 });
 
@@ -720,7 +723,8 @@ JobBrowser = Backbone.View.extend({
     'click .tab-grip': 'toggle',
     'click .next': 'next',
     'click .prev': 'prev',
-    'click tbody tr': 'select'
+    'click tbody tr': 'select',
+    'click .delete': 'delete'
   },
   jobsListTmpl: _.template("<table class='jobs'>"
                            + "<thead>"
@@ -732,6 +736,7 @@ JobBrowser = Backbone.View.extend({
                            + "<th class='conc stat'>Conc.</th>"
                            + "<th class='reqs stat'>reqs/sec</th>"
                            + "<th class='med-resp stat'>med resp.</th>"
+                           + "<th class='delete'>&middot;</th>"
                            + "</thead><tbody>"
                 + "<% _.each(jobs, function (job) { %>"
                 + "<tr data-uuid='<%= job.uuid %>'>"
@@ -746,6 +751,7 @@ JobBrowser = Backbone.View.extend({
                 + "<td class='reqs stat'><%= job['last-result'] ? sprintf('%d', job['last-result']['total-runs-per-second']) : 'N/A'  %></td>"
                 + "<td class='med-resp stat'>"
                 + "<%= job['last-result'] && job['last-result']['percentiles'] && job['last-result']['percentiles'][49] && job['last-result']['percentiles'][49].median %>"
+                + "<td class='delete'>X</td>"
                 + "</td>"
                 + "</tr>"
                 + "<% });  %></tbody><table>"),
@@ -832,6 +838,20 @@ JobBrowser = Backbone.View.extend({
   select: function (e) {
     var uuid = $(e.currentTarget).data('uuid');
     window.engRouter.navigate("#jobs/" + uuid, {trigger: true});
+  },
+  delete: function (e) {
+    e.stopPropagation();
+    var ct = $(e.currentTarget);
+    var uuid = ct.parent().data("uuid");
+    var job = this.jobs.get(uuid);
+    var self = this;
+    console.log(job);
+    var disp = job.get("title") != "" ? job.get("title") : "Untitled";
+    if (confirm("Are you sure you want to delete: " + disp)) {
+        job.destroy({success: function () {
+                         self.jobs.reload.call(self.jobs);
+                     }});        
+    }
   }
 });
 

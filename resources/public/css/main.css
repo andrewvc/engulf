@@ -340,7 +340,7 @@ table.jobs tbody tr.cur-job-related td {
 #job-browser td.url div {
   text-align: left;
   float:left;
-  width: 110px;
+  width: 95px;
   height: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -349,10 +349,19 @@ table.jobs tbody tr.cur-job-related td {
 #job-browser td.title div {
   text-align: left;
   float:left;
-  width: 240px;
+  width: 230px;
   height: 14px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+#job-browser td.delete {
+  font-weight: bold;
+}
+
+#job-browser td.delete:hover {
+  background-color: #000;
+  color: white;
 }
 
 #job-browser.visible {

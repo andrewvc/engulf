@@ -121,4 +121,11 @@
       [:div {:id "throughput-time-series"}]]]
 
     ]
+   [:div {:class "modal" :style "display: none;"}
+    [:div {:class "modal-inner"}
+     [:div {:class "modal-title"} "¡ Error !"]
+     [:div {:class "modal-body"} "Ohai"]
+     [:div {:class "modal-close"} "X"]
+     ]]
+
    ))

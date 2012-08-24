@@ -70,7 +70,7 @@ BenchmarkStream = function (addr) {
     console.log("Using MozWebSocket")
     self.socket = new MozWebSocket(this.addr);
   } else {
-    alert("Your browser does not support web sockets. No stats for you!");
+    popModal("Error!", "Your browser does not support web sockets. No stats for you!");
   }
   
   self.socket.onopen = function (e) {
@@ -90,6 +90,32 @@ BenchmarkStream = function (addr) {
   };
 };
 
+Modal = Backbone.View.extend({
+  events: {
+    'click .modal-close': 'hide',
+    'click': 'hide',
+    'click .modal-inner': 'stop'
+  },
+  pop: function(title, msg) {
+    $('.modal-title', this.el).text(title);
+    $('.modal-body', this.el).text(msg);
+    $(this.el).show();
+  },
+  hide: function () {
+    $(this.el).hide();
+  },
+  stop: function (e) {
+    e.stopPropagation();
+  }
+});
+
+$(function () {
+  ModalSingleton = new Modal({el: $('.modal')});
+});
+
+function popModal(title, msg) {
+  ModalSingleton.pop(title, msg);  
+}
 
 ConsoleView = Backbone.View.extend({
   initialize: function () {
@@ -136,9 +162,9 @@ Benchmarker = Backbone.Model.extend({
         if (on_error) on_error(error);
         console.log(error);
         if (error.message) {
-          alert("Error processing request: " + error.message);
+          popModal("Error!", error.message);
         } else {
-          alert("Error processing request: " + JSON.stringify(error));            
+          popModal("Error!", JSON.stringify(error));
         }
       });
   },
@@ -280,11 +306,11 @@ ControlsView = Backbone.View.extend({
     params['_stream'] = 'false';
     
     if (!params.concurrency || params.concurrency < 1) {
-      alert("Concurrency must be a positive integer!");
+      popModal("Error!", "Concurrency must be a positive integer!");
       return;
     }
     if (!params.limit || params.limit < 1) {
-      alert("Limit must be a positive integer!");
+      popModal("Error!", "Limit must be a positive integer!");
       return;
     }
 
@@ -293,7 +319,7 @@ ControlsView = Backbone.View.extend({
       params.method = $('#method').val();
 
       if (!params.url || params.url.length < 3) {
-        alert("Could not start benchmark, no URL specified!");
+        popModal("Error!", "Could not start benchmark, no URL specified!");
         return;
       }
     } else {

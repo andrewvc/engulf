@@ -396,3 +396,56 @@ table.jobs tbody tr.cur-job-related td {
   font-weight: bold;
   padding: 0 3px;
 }
+
+.modal {
+  opacity: 1;
+  font-family: monospace;
+  position: fixed;
+  top:0;
+  left:0;
+background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAkAAAAICAYAAAArzdW1AAAAE0lEQVQYV2P8z8Awk4EAYBxVBAA2nAzJq6R+mwAAAABJRU5ErkJggg==);
+
+  width: 100%;
+  height: 100%;
+  z-index: 10;
+  cursor: pointer;
+}
+
+.modal-inner {
+  cursor: auto;
+  position: fixed;
+  width: 400px;
+  height:200px;
+  background: rgba(255,255,255,1);
+  top: 50%;
+  left: 50%;
+  margin-left: -200px;
+  margin-top: -130px;
+  border: 1px solid black;
+}
+
+.modal-title {
+  border-bottom:4px solid rgba(0,0,0,0.9);
+  background-color: black;
+  color: white;
+  text-align: center;
+  padding:10px;
+  margin-bottom:20px;
+  font-weight: bold;
+  font-size:20px;
+}
+
+.modal-body {
+   text-align: center; 
+   padding:20px;
+}
+
+.modal-close {
+  position: absolute;
+  top: 0px;
+  right: 5px;
+  color: white;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}

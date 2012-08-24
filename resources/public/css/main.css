@@ -277,7 +277,7 @@ td, th {
   border: 1px solid silver;
   border-top: none;
   border-bottom: none;
-  background-color: #f8f8f8;
+  background-color: #fbfbfb;
   height: 325px;
   margin-top: -294px;
   transition: margin 0.5s;
@@ -296,8 +296,8 @@ table.jobs {
 }
 
 #job-browser th {
-  background-color: #fff;
   border-bottom: 1px solid black;
+  background-color: #f1f1f1;
   padding: 5px;
 }
 
@@ -313,6 +313,10 @@ td.stat {
 
 td.title {
   font-weight: bold;
+}
+
+table.jobs {
+  background-color: #F8F8F8;
 }
 
 

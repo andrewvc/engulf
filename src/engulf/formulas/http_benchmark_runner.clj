@@ -58,16 +58,16 @@
     (when (> node-count (int-val (:concurrency params)))
       (throw (Exception. "Concurrency cannot be < node-count! Use a higher concurrency setting!")))
 
-    (assoc job :params
-           (-> params
-               (update-in [:concurrency] int-val)
-               (update-in [:timeout] int-val)
-               (update-in [:limit] int-val)          
-               (assoc :keep-alive? #(not= "false" (:keep-alive params)))
-               (assoc :req-seq
-                 (if (:markov-corpus params)
-                   (markov-req-seq params)
-                   (simple-req-seq params)))))))
+    (let [cast-params (-> params
+                          (update-in [:concurrency] int-val)
+                          (update-in [:timeout] int-val)
+                          (update-in [:limit] int-val)          
+                          (assoc :keep-alive? (not= "false" (:keep-alive params))))
+          seqd-params (assoc cast-params :req-seq
+                             (if (:markov-corpus cast-params)
+                               (markov-req-seq cast-params)
+                               (simple-req-seq cast-params)))]
+          (assoc job :params seqd-params))))
 
 (defn run-real-request
   [client req-params callback]

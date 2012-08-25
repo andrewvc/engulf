@@ -21,18 +21,18 @@
 (load "http_benchmark_runner")
 
 (defprotocol IHttpBenchmark
-  (run-repeatedly [this ch runner] [this ch runner client req-params]))
+  (run-repeatedly [this ch runner] [this ch runner client req-params]))  
 
 (defrecord HttpBenchmark [state params job res-ch mode]
   IHttpBenchmark
   (run-repeatedly
     [this ch runner]
     (let [reqs (:req-seq params)
-          ;; Note, retry does not retry requests, but retries if
-          ;; the server connection is severed in between reqs
-          client (http-client {:url (:url (first reqs))
-                               :retry? true
-                               :keep-alive? (:keep-alive? (first reqs))})]
+          keep-alive? (:keep-alive? (first reqs))
+          client-props {:url (:url (first reqs))
+                       :retry? true
+                       :keep-alive? (:keep-alive? (first reqs))}
+          client (if keep-alive? (http-client client-props)  http-request)]
       (run-repeatedly this ch runner client reqs)))
   (run-repeatedly
     [this ch runner client reqs]

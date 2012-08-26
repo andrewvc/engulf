@@ -13,7 +13,8 @@
            fastPercentiles.Percentile
            java.net.URL
            java.util.concurrent.Executors
-           java.util.concurrent.ExecutorService))
+           java.util.concurrent.ExecutorService
+           java.nio.channels.ClosedChannelException))
 
 (def callbacks-pool (Executors/newSingleThreadExecutor))
 
@@ -41,7 +42,9 @@
             (fn req-resp [res]
               (if (= @state :started)
                 (do
-                  (lc/enqueue ch res)
+                  ;; Suspended seems to mean that the connection is being reset
+                  ;; (perhaps the server terminated a keep-alive connection)
+                  (when (not= res :lamina/suspended) (lc/enqueue ch res))
                   (run-repeatedly this ch runner client (rest reqs)))
                 (lamina.connections/close-connection client) ))))
   Formula

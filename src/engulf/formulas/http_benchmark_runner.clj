@@ -35,7 +35,7 @@
 
 (defn simple-req-seq
   [params]
-  (let [req-pkeys #{:url :method :timeout :keep-alive?}
+  (let [req-pkeys #{:url :method :keep-alive? :retry?}
         refined (assoc params
                   :method (keyword (lower-case (or (:method params) "get"))))]
     ;; Throw on bad URLs.
@@ -61,7 +61,8 @@
     (let [cast-params (-> params
                           (update-in [:concurrency] int-val)
                           (update-in [:timeout] int-val)
-                          (update-in [:limit] int-val)          
+                          (update-in [:limit] int-val)
+                          (assoc :retry? true)
                           (assoc :keep-alive? (not= "false" (:keep-alive params))))
           seqd-params (assoc cast-params :req-seq
                              (if (:markov-corpus cast-params)
@@ -74,16 +75,20 @@
   (let [started-at (now)]
     (letfn
         [(succ-cb [response]
-           (callback (success-result started-at (now) (or (:status response) "err"))))
+           (if (= :lamina/suspended response)
+             (callback :lamina/suspended)
+             (callback (success-result started-at (now) (or (:status response) "err")))))
          (enqueue-succ-cb [response]
            (.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb response)))
          (error-cb [throwable]
            (log/warn throwable (str "Error executing HTTP Request: " req-params))
            (callback (error-result started-at (now) throwable)))
          (enqueue-error-cb [throwable]
-           (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb throwable)))]
+           (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb throwable)))
+         (exec-request []
+           (lc/on-realized (client req-params) enqueue-succ-cb enqueue-error-cb))]
       (try
-        (lc/on-realized (client req-params) enqueue-succ-cb enqueue-error-cb)
+        (exec-request)
         (catch Exception e
           (.submit ^ExecutorService callbacks-pool ^Runnable (partial error-cb e)))))))
 

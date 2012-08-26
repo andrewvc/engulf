@@ -67,9 +67,10 @@
    [:div {:id "output"}
     [:div {:id "scalars"}
      [:h1
-      [:div {:class "engulf"} "Engulf"]
+      [:div {:class "engulf"} "Engulf / "
+       [:span {:class "version"} (System/getProperty "engulf.version")]]
       [:div {:class "status live"} "LIVE"]
-      [:div {:class "status playback" :style "display: none"}
+      [:div {:class "status playback"}
        [:a {:href "#"} "PLAYBACK"]]]
      [:div {:id "nodes"}
       [:h2 "System"]
@@ -100,7 +101,7 @@
         [:tr
          [:td {:class "k"} "Failed"]
          [:td {:class "v" :id "runs-failed"} "&#8734;"]]]]
-      [:h2 "Status Codes"]
+      [:h2 "Responses"]
       [:table {:id "response-code-stats"}
        [:tbody
         [:tr

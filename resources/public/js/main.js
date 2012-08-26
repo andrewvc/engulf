@@ -96,9 +96,18 @@ Modal = Backbone.View.extend({
     'click': 'hide',
     'click .modal-inner': 'stop'
   },
+  initialize: function () {
+    var self = this;
+    $(document).keyup(function(e) {
+      if (e.keyCode == 27) { self.hide(); }   // esc
+    });
+  },
   pop: function(title, msg) {
     $('.modal-title', this.el).text(title);
-    $('.modal-body', this.el).text(msg);
+    var msgText = "<strong>0x" + (new Date()).getTime().toString(16) + "</strong>: " + msg;
+
+    msgText += "<p>3nGu1f " + $('.version').text() + "</p>";
+    $('.modal-body', this.el).html(msgText);
     $(this.el).show();
   },
   hide: function () {
@@ -890,8 +899,8 @@ EngulfRouter = Backbone.Router.extend({
     this.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
   },
   river: function () {
-    $('.status.live').show();      
-    $('.status.playback').hide();
+    $('.status.live').addClass('active');      
+    $('.status.playback').removeClass('active');
     $('.cur-job-related').removeClass('cur-job-related');
     this.benchmarker.set({currentJob: null});
     this.benchmarker.bindToStream(this.benchmarkStream);
@@ -899,8 +908,8 @@ EngulfRouter = Backbone.Router.extend({
     this.consoleView.logEvents(this.benchmarkStream, 'jsonData');
   },
   job: function(uuid) {
-    $('.status.live').hide();      
-    $('.status.playback').show();
+    $('.status.live').removeClass('active');      
+    $('.status.playback').addClass('active');
     var self = this;
     if (this.benchmarkStream) {
       this.benchmarkStream.unbind();        

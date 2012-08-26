@@ -462,7 +462,6 @@ table.jobs tbody tr.cur-job-related td {
 }
 
 .modal {
-  font-family: monospace;
   opacity: 1;
   position: fixed;
   top:0;
@@ -472,6 +471,7 @@ table.jobs tbody tr.cur-job-related td {
   z-index: 10;
   cursor: pointer;
   background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAXklEQVQYV5WQ0QkAMQhDdT6HapdyvrtGyBGsP1cogn2JsW5mz7l1MnOjRkRV7TlAAgppD/0R7NA/8KgX83D0FMUBavhpKQgroz7SnWK6X8soqBFqdHeZ/vUD+6gufgGQzlBaXlQvpwAAAABJRU5ErkJggg==);
+  background: rgba(140,140,140,0.5);
 }
 
 .modal-inner {
@@ -484,22 +484,17 @@ table.jobs tbody tr.cur-job-related td {
   margin-left: -200px;
   margin-top: -130px;
   padding-bottom: 15px;
-  border: 1px solid black;
-  box-shadow: 3px 3px #b8b8b8;
 }
 
 .modal-title {
-  border-bottom:4px solid rgba(0,0,0,0.9);
-  background: #000;
+  background: #777;
+  border-bottom: 2px solid #8E312B;
   color: #fff;
   text-align: center;
-  padding:10px;
+  padding:7px;
   margin-bottom:20px;
   font-weight: bold;
   font-size:20px;
-background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAWUlEQVQYV5WQUQoAIAhD9cyewzOXCpNh/hREMN90piJy4tYxs3rdHVJrmiAAhlhLfQUn9AeGuzNi9BZFE+Tw21JprIxcxLowo/uzDIMcoUbPLtu/NjhHTfMF35c9cGyzam0AAAAASUVORK5CYII=);
-  text-shadow: 0.1em 0.1em #f00;
-  box-shadow: 1px 1px 0px 0px #f00;
 }
 
 .modal-body {
@@ -509,15 +504,6 @@ background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+
 
 .modal-body strong {
   color: blue;
-  text-shadow: 0.1em 0.1em #f00;
-}
-
-.modal-body p {
-  padding-top: 40px;
-  color: #000;
-  text-shadow: 0.1em 0.1em #00f;
-  font-weight: bold;
-  text-align: right;
 }
 
 .modal-close {
@@ -525,8 +511,12 @@ background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+
   top: 0px;
   right: 5px;
   color: white;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: bold;
   cursor: pointer;
-  text-shadow: 0.1em 0.1em #f00;
+  text-shadow: 0.1em 0.1em #000;
+}
+
+.modal-close:hover {
+  color: #000;
 }

@@ -104,10 +104,7 @@ Modal = Backbone.View.extend({
   },
   pop: function(title, msg) {
     $('.modal-title', this.el).text(title);
-    var msgText = "<strong>0x" + (new Date()).getTime().toString(16) + "</strong>: " + msg;
-
-    msgText += "<p>Engulf " + $('.version').text() + "</p>";
-    $('.modal-body', this.el).html(msgText);
+    $('.modal-body', this.el).html(msg);
     $(this.el).show();
   },
   hide: function () {

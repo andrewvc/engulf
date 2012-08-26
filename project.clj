@@ -9,6 +9,7 @@
                  [korma "0.3.0-beta9"]
                  [ragtime "0.2.1"]
                  [ragtime/ragtime.sql "0.2.1"]
+                 [org.clojure/tools.nrepl "0.2.0-beta9"]
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
              {

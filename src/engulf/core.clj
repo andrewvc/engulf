@@ -5,6 +5,7 @@
             [engulf.migrations :as migrations]
             [engulf.control :as ctrl]
             [engulf.worker-client :as w-client]
+            [clojure.tools.nrepl.server :as nrepl-srv]
             [engulf.relay :as relay]
             [engulf.web-server :as w-server]
             [clojure.tools.logging :as log])
@@ -38,6 +39,9 @@
       (System/exit 1)))
 
   (when (#{:combined :master} (:mode settings/all))
+    (log/info "Starting nrepl server on port 7888")
+    (nrepl-srv/start-server :port 7888)
+    
     (log/info "Connecting to DB")
     (database/connect)
     

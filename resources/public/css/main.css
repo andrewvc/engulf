@@ -471,15 +471,7 @@ table.jobs tbody tr.cur-job-related td {
   height: 100%;
   z-index: 10;
   cursor: pointer;
-  background-color: rgba(142,40,34,0.7);
-
-background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAX0lEQVQYV2P8zyD1n4EIwIis8Mf3uwycnJyMIH3oBsAVghShAw5OZbgQWCFIEUgQWTGMD1OMohCkHaYJnQ1XiMs/KCbCdINoZCdguBFZIbLJOBUiewDZrSDNKMGDTyEAcD9M+++Z3aAAAAAASUVORK5CYII=);
-
-background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAXElEQVQYV5WQUQrAMAhD4+UGO3Ghl1tViATrzwqlEF801gB8fvNsrHwfvJRKswAJKKRa6CPYoX+guysjR09RLEANPy0VxsyoRa5LM7tfyyioEXJ07zL9a4F9VDcftwUwGBFCVT0AAAAASUVORK5CYII=);
-background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAX0lEQVQYV5WQUQrAIAxD29P5M0/rl6fbTCEjZP2ZIEL7kqZmRNzn1tmxJ94RY3ktARJQSGuot6BD/8CjvpiHo7soCVDDd0tBWBm1SXeK6f5ZRkGNUKPdpfvXF/RRLn4AcCg8OqawEDsAAAAASUVORK5CYII=);
-background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAYUlEQVQYV2NkYGD4D8RgsJthewOIdmXwBNPIYowghTAFyIqQxUDiWBWiKyJNIVB3Pcw9MKuxOYURpBDZ8dg8BdIIdiOyJMx0mGaY6RieQVaI7ASw1eimYAtXuEJ0q9A1AwDc5T2fd0sc8AAAAABJRU5ErkJggg==);
-background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAXklEQVQYV5WQ0QkAMQhDdT6HapdyvrtGyBGsP1cogn2JsW5mz7l1MnOjRkRV7TlAAgppD/0R7NA/8KgX83D0FMUBavhpKQgroz7SnWK6X8soqBFqdHeZ/vUD+6gufgGQzlBaXlQvpwAAAABJRU5ErkJggg==);
-
+  background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAXklEQVQYV5WQ0QkAMQhDdT6HapdyvrtGyBGsP1cogn2JsW5mz7l1MnOjRkRV7TlAAgppD/0R7NA/8KgX83D0FMUBavhpKQgroz7SnWK6X8soqBFqdHeZ/vUD+6gufgGQzlBaXlQvpwAAAABJRU5ErkJggg==);
 }
 
 .modal-inner {
@@ -525,6 +517,7 @@ background:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+
   color: #000;
   text-shadow: 0.1em 0.1em #00f;
   font-weight: bold;
+  text-align: right;
 }
 
 .modal-close {

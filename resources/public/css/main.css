@@ -58,7 +58,7 @@ h1 div.engulf, #scalars h2 {
   text-align: left;
   display: inline-block;
   width: 100%;
-  padding: 4px 10px 4px 10px;
+  padding: 4px 5px 4px 5px;
   height: 100%;
   margin: 0 auto 0 0;
   background-color: #8E2822;
@@ -72,9 +72,9 @@ h1 div.engulf, #scalars h2 {
   background: rgba(108, 166, 217, 0.8);
   font-variant: normal;
   color: #fff;
-  width: 88px;
+  width: 117px;
   height: 15px;
-  padding: 4px 7px;
+  padding: 4px;
 }
 
 h1 div.status {
@@ -250,7 +250,7 @@ td, th {
 .k {
   text-align: left;
   color: #444;
-  width: 67px;
+  width: 105px;
 }
 
 .v {

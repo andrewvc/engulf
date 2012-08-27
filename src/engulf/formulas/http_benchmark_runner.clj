@@ -7,7 +7,7 @@
 (defn error-result
   [started-at ended-at throwable]
   (assoc (result started-at ended-at)
-    :status "thrown"
+    :status (last (.split ^String (str (class throwable)) " "))
     :throwable throwable))
 
 (defn success-result
@@ -77,7 +77,9 @@
         [(succ-cb [response]
            (if (= :lamina/suspended response)
              (callback :lamina/suspended)
-             (callback (success-result started-at (now) (or (:status response) "err")))))
+             (callback (success-result started-at
+                                       (now)
+                                       (or (:status response) "err")))))
          (enqueue-succ-cb [response]
            (.submit ^ExecutorService callbacks-pool ^Runnable (partial succ-cb response)))
          (error-cb [throwable]

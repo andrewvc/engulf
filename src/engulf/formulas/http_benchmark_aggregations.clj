@@ -22,7 +22,7 @@
 
 (defn successes
   [results]
-  (filter #(not= "thrown" (get %1 :status))
+  (filter #(= java.lang.Integer (type (get %1 :status)))
           results))
 
 (defn edge-agg-totals

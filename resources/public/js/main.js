@@ -496,7 +496,14 @@ AggregateStatsView = Backbone.View.extend({
     
     for (code in codeCounts) {
       var count = codeCounts[code];
-      tbody.append(self.tmpl({code: code, count: count}));
+      var fmtCode = "";
+      if (typeof(code) == "number") {
+        fmtCode = code;
+      } else {
+        fmtCode = code.split(/\./).reverse()[0];
+      }
+
+      tbody.append(self.tmpl({code: fmtCode, count: count}));
     }
   }
 });

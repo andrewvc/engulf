@@ -1,5 +1,6 @@
 (ns engulf.web-views.index
-  (:require [engulf.web-views.common :as common])
+  (:require [engulf.web-views.common :as common]
+            [engulf.utils :as utils])
   (:use [noir.core :only [defpage]]
         [hiccup.core :only [html]]
         [hiccup.element :only [link-to]]))
@@ -68,7 +69,7 @@
     [:div {:id "scalars"}
      [:h1
       [:div {:class "engulf"} "Engulf / "
-       [:span {:class "version"} "3.0.0-beta6"]]
+       [:span {:class "version"} (utils/version)]]
       [:div {:class "status live"} "LIVE"]
       [:div {:class "status playback"}
        [:a {:href "#"} "PLAYBACK"]]]

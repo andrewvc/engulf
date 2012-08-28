@@ -1,6 +1,7 @@
 (ns engulf.core
   (:require [engulf.settings :as settings]
             [engulf.database :as database]
+            [engulf.utils :as utils]
             [engulf.job-manager :as jmgr]
             [engulf.migrations :as migrations]
             [engulf.control :as ctrl]
@@ -31,7 +32,7 @@
     (when (:help opts) (println banner) (System/exit 0))
     ;; These really will only change *once*
     (alter-var-root (var settings/all) (fn [s] (merge s opts))))
-  (log/info "Initializing in" (:mode settings/all) " mode")
+  (log/info (str "Initializing Engulf " (utils/version) " in " (:mode settings/all) " mode"))
 
   (when (not (#{:combined :master :worker} (:mode settings/all)))
     (binding [*out* *err*]
@@ -60,7 +61,7 @@
   (when (#{:combined :worker} (:mode settings/all))
     (log/info "Connecting worker to" (join ":"  (:connect-to settings/all)))
     (apply w-client/start (:connect-to settings/all)))
-  
+
   (log/info "Done initializing!")
 
   (when (#{:combined :master} (:mode settings/all))

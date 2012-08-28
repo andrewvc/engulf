@@ -68,7 +68,7 @@
     [:div {:id "scalars"}
      [:h1
       [:div {:class "engulf"} "Engulf / "
-       [:span {:class "version"} (System/getProperty "engulf.version")]]
+       [:span {:class "version"} "3.0.0-beta6"]]
       [:div {:class "status live"} "LIVE"]
       [:div {:class "status playback"}
        [:a {:href "#"} "PLAYBACK"]]]

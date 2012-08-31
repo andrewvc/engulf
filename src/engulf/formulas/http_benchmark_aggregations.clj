@@ -22,8 +22,7 @@
 
 (defn successes
   [results]
-  (filter #(= java.lang.Integer (type (get %1 :status)))
-          results))
+  (filter #(number? (:status %1)) results))
 
 (defn edge-agg-totals
   [{:strs [runs-total runs-failed runs-succeeded] :as stats} results]

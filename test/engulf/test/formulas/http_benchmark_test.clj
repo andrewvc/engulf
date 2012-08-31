@@ -97,10 +97,10 @@
    (fact
     "it should merge time slices"
     (vec (vals (into (sorted-map) (agg "time-slices")))) =>
-    [{200 4, 404 2 "total" 6}, {"total" 4 "thrown" 2 404 2}])
+    [{200 4, 404 2 "total" 6}, {"total" 4 "java.lang.Exception" 2 404 2}])
    (fact
     "it should sum aggregated statuses"
-    (agg "status-codes") => {"thrown" 2, 404 4, 200 4})))
+    (agg "status-codes") => {"java.lang.Exception" 2, 404 4, 200 4})))
 
 (facts
  "about edge aggregation"
@@ -121,12 +121,12 @@
     "it should properly aggregate the status codes"
     (agg "status-codes") => {200 2
                             404 2
-                            "thrown" 1})
+                            "java.lang.Exception" 1})
    (fact
     "it should record as many samples as given"
     (count (agg "all-runtimes")) => 5)
    (fact
     "it should aggregate response codes by time-slice"
     (vec (vals (into (sorted-map) (agg "time-slices")))) =>
-    [{404 1, 200 2 "total" 3} {"thrown" 1, 404 1, "total" 2}] )))
+    [{404 1, 200 2 "total" 3} {"java.lang.Exception" 1, 404 1, "total" 2}] )))
 

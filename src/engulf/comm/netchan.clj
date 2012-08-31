@@ -8,6 +8,7 @@
    lamina.core
    gloss.core
    gloss.io
+   [aleph.formats :only [bytes->byte-array]]
    [clojure.walk :only [keywordize-keys]])
   (:import java.util.Arrays
            java.util.zip.ZipException))
@@ -28,13 +29,7 @@
 (defn decode-frame
   "Returns only the decoded frame payload, stripping off its length prefix"
   [frame]
-  (let [frame-arr (.array (contiguous frame))]
-    (try
-      (decode-msg (Arrays/copyOfRange frame-arr 4 (alength frame-arr)))
-      (catch java.util.zip.ZipException e
-        ;; This is a hack, once we find out how I'm abusing aleph hopefully this will go away
-        (log/warn "Weird bug decoding stuff. Recovering.")
-        (decode-msg frame-arr)))))
+  (decode-msg (bytes->byte-array (contiguous frame))))
 
 (defn encode-frame
   "Encodes a msg into a buffer-seq suitable for gloss framing"

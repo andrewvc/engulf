@@ -20,6 +20,16 @@
      [:h2 {:id "past-jobs-title"} "Job History ⇣⇡"]]
     ]
    [:div {:id "benchmarker"}
+    [:div {:id "info-bar"}
+     [:span {:class "mode"}
+      [:span {:class "k"} "Mode:"]
+      [:span {:class "v"} "&#8734;"]]
+     [:span {:class "socket-state" :data-tooltip "WebSocket State"}
+      [:span {:class "k"}
+       "WebSocket:"]
+      [:span {:class "v"}
+       "&#8734;"]]
+     ]
     [:div {:id "controls"}
      [:form
       [:div {:id "controls-top"}

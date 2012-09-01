@@ -120,7 +120,12 @@ a {
   text-decoration: underline;
 }
 
-#controls {
+#benchmarker {
+  float: right;
+  width: 500px;
+}
+
+#controls, #info-bar {
   float: right;
   width: 500px;
   margin-top: 10px;
@@ -128,6 +133,27 @@ a {
   background: #fff;
   padding-bottom: 10px;
   border-bottom: 2px solid #ccc;
+}
+
+#info-bar {
+  margin-top: 22px;
+  height: 18px;
+  font-weight: bold;
+}
+
+#info-bar > span {
+  margin-right: 15px;
+  display: block;
+  float: left;
+}
+
+#info-bar .k {
+  font-weight: normal;
+  margin-right: 5px;
+}
+
+#info-bar .v {
+  text-transform: capitalize;
 }
 
 #controls #title {
@@ -242,18 +268,18 @@ td, th {
   padding: 5px;
 }
 
-.k, .v {
+#output .k, #output .v {
   border-right: 0px;
   border-color: #ddd;
 }
 
-.k {
+#output .k {
   text-align: left;
   color: #444;
   width: 105px;
 }
 
-.v {
+#output .v {
   width: 80px;
   padding-left: 20px;
   text-align: left;
@@ -519,4 +545,10 @@ table.jobs tbody tr.cur-job-related td {
 
 .modal-close:hover {
   color: #000;
+}
+
+.mintip {
+  background-color: white;
+  border: 1px solid #b8b8b8;
+  padding: 4px;
 }

@@ -1,3 +1,88 @@
+/*jslint vars: true, unparam: true, browser: true, white: true */
+/*global jQuery */
+
+(function($) {
+
+var onEnter, onLeave, startTimer, stopTimer, remove, getPos;
+
+var defaults = {
+	delay: 0,
+	content: null,
+	allowHTML: false  // XXX: rename
+};
+
+$.fn.mintip = function(options) {
+	options = $.extend({}, defaults, options);
+	var tips = this.map(function(i, node) {
+		var origin = $(node);
+		var tip = $('<div class="mintip" />');
+		var content = options.content || origin.data("tooltip"); // XXX: precedence?
+		var method = options.allowHTML ? "html" : "text";
+		tip[method](content);
+		tip.data("delay", options.delay);
+		origin.data("mintip", tip);
+		return tip[0];
+	});
+	this.live("mouseenter", onEnter).live("mouseleave", onLeave); // XXX: `live` appropriate?
+	$(tips).mouseenter(stopTimer).mouseleave(onLeave); // XXX: regular bind inefficient?
+};
+
+onEnter = function(ev) {
+	var origin = $(this);
+	var tip = origin.data("mintip");
+	stopTimer(tip);
+	var pos = $.extend({ position: "absolute" }, getPos(origin));
+	tip.removeAttr("style").css(pos).appendTo(document.body);
+	var rightEdge = tip.offset().left + tip.outerWidth(true);
+	if(rightEdge >= $(document).width()) {
+		delete pos.left;
+		pos.right = 0;
+		tip.removeAttr("style").css(pos);
+	}
+};
+
+// NB: magically handles both origins' and tooltips' event
+onLeave = function(ev) {
+	var node = $(this);
+	var tip = node.data("mintip") || node;
+	startTimer(tip);
+};
+
+startTimer = function(el) {
+	var delay = el.data("delay");
+	var timer = setTimeout(remove(el), delay);
+	el.data("timer", timer);
+};
+
+// NB: can also be used as event handler
+stopTimer = function(el) {
+	el = el.originalEvent ? $(this) : el; // event handler overloading
+	var timer = el.data("timer");
+	clearTimeout(timer);
+	el.removeData("timer");
+};
+
+// proxy for deferred removal
+remove = function(el) {
+	return function(timeoutID) { // NB: timeoutID must not be passed on
+		el.detach(); // needs to retain attached delay data
+	};
+};
+
+// determine tooltip position based on origin
+getPos = function(el) {
+	var pos = el.offset();
+	pos.top += el.height();
+	pos.left += el.width() / 2;
+	return pos;
+};
+
+}(jQuery));
+
+function applyTooltips () {
+    $('[data-tooltip]').mintip();
+}
+
 $(function () {
   if ($.browser.mozilla) {
     $('#firefox-warning').fadeIn(1500);
@@ -57,38 +142,56 @@ function toFixed(value, precision) {
     return precision ? integral + '.' +  padding + fraction : integral;
 }
 
-BenchmarkStream = function (addr) {
-  console.log("Connecting to addr", addr);
-  this.addr = addr;
-  _.extend(this, Backbone.Events);
-  var self = this;
-  
-  if (typeof(WebSocket) !== 'undefined') {
-    console.log("Using a standard websocket");
-    self.socket = new WebSocket(this.addr);
-  } else if (typeof(MozWebSocket) !== 'undefined') {
-    console.log("Using MozWebSocket")
-    self.socket = new MozWebSocket(this.addr);
-  } else {
-    popModal("Error!", "Your browser does not support web sockets. No stats for you!");
-  }
-  
-  self.socket.onopen = function (e) {
-    self.trigger('open', e);
-  };
-  self.socket.onmessage = function (e) {
+BenchmarkStream = Backbone.Model.extend({
+  initialize: function (opts) {
+    this.addr = opts.addr;
+    this.connect();
+  },
+  connect: function () {
+    var self = this;
+    var reconnect = function () {
+        if (!self.reconnecting) {
+          self.reconnecting = true;
+          setTimeout(function () {
+                         self.reconnecting = false;
+                         self.connect.apply(self);
+                     }, 1000);
+        }
+    };
+
+    console.log("Connecting to addr", self.addr);
+    if (typeof(WebSocket || MozWebSocket) !== 'undefined') {
+      console.log("Using a standard websocket");
+      try {
+       self.socket = new WebSocket(self.addr);           
+      } catch(e) {
+        return reconnect();
+      }
+    } else {
+      popModal("Error!", "Your browser does not support web sockets. No stats for you  !");
+    }
     
-    var parsed = JSON.parse(e.data);
+    self.socket.onopen = function (e) {
+      self.set({state: 'connected'});
+      self.trigger('open');
+    };
+    self.socket.onmessage = function (e) {
+      var parsed = JSON.parse(e.data);
       self.trigger('jsonData', parsed);
-    self.trigger('name-' + parsed.name, parsed.body);
-  };
-  self.socket.onclose = function (e) {
-    self.trigger('close', e);
-  };
-  self.socket.onerror = function (e) {
-      self.trigger('error', e);
-  };
-};
+      self.trigger('msg', parsed.name, parsed.body);
+    };
+    self.socket.onclose = function (e) {
+      self.set({state: 'closed'});
+      reconnect();
+    };
+    self.socket.onerror = function (e) {
+      self.set({state: 'error'});
+      reconnect();
+    };
+    
+    return null;
+  }
+});
 
 Modal = Backbone.View.extend({
   events: {
@@ -146,7 +249,8 @@ ConsoleView = Backbone.View.extend({
 
 Benchmarker = Backbone.Model.extend({
   url: "/jobs/current",
-  initialize: function () {
+  initialize: function (opts) {
+    this.stream = opts.stream;
   },
   start: function (params, on_success, on_error) {
     var self = this;
@@ -186,56 +290,54 @@ Benchmarker = Backbone.Model.extend({
   },
   bindToStream: function (stream) {
     var self = this;
-    
-    stream.bind("all", function(name, body) {
-      //console.log(name, body);
-    });
+    stream = this.stream;
 
-    stream.bind("name-current-nodes", function (d) {
-      if (self.get('nodes')) {
-        self.get('nodes').reset(d);
-      } else {
-        var nodes = new Nodes(d);
-        self.set({'nodes': nodes});
+    stream.on('msg', function (name, d) {
+      switch(name) {
+        case 'current-nodes':
+          if (self.get('nodes')) {
+              self.get('nodes').reset(d);
+          } else {
+              var nodes = new Nodes(d);
+              self.set({'nodes': nodes});
+          }
+          break;
+        case 'node-connect': 
+          self.get('nodes').add(d);
+          self.trigger('change');
+          break;
+        case 'node-disconnect':
+          var nodes = self.get('nodes');
+          var n = nodes.get(d.uuid);
+          self.get('nodes').remove(n);
+          self.trigger('change');
+          break;
+        case 'result':
+          self.set({stats: d.value});
+          break;
+        case 'current-job':
+          self.set({currentJob: d});
+          break;
+        case 'job-start':
+          self.trigger("new-start");
+          self.set({currentJob: d});
+          break;
+        case 'job-stop':
+          var j = self.get('currentJob');
+          self.trigger("new-stop", j);
+          self.set({currentJob: null});
+          if (j) {
+              setIndicatedJob(j.uuid);
+          }
+          break;          
       }
-    });
-
-    stream.bind("name-node-connect", function (d) {
-      self.get('nodes').add(d);
-      self.trigger('change');
-    });
-
-    stream.bind("name-node-disconnect", function (d) {
-      var nodes = self.get('nodes');
-      var n = nodes.get(d.uuid);
-      self.get('nodes').remove(n);
-      self.trigger('change');
-    });
-
-    stream.bind("name-result", function (d) {
-      self.set({stats: d.value});
-    });
-
-    stream.bind('name-current-job', function (data) {
-      self.set({currentJob: data});
-    });
-
-    stream.bind('name-job-start', function (data) {
-      self.trigger("new-start");
-      self.set({currentJob: data});
-    });
-
-    stream.bind('name-job-stop', function (data) {
-      var j = self.get('currentJob');
-      self.trigger("new-stop", j);
-      self.set({currentJob: null});
-      if (j) {
-        setIndicatedJob(j.uuid);
-      }
-    });
+     });
+  },
+  unbindStream: function () {
+      if (this.stream) this.stream.off();
   },
   timeSeriesFor: function (field) {
-    if (! this.get("stats")) return;
+    if (! this.get("stats")) return null;
     var raw = this.get('stats')['time-slices'];
     var data = [];
     for (time in raw) {
@@ -269,6 +371,22 @@ Benchmarker = Backbone.Model.extend({
       }
     });
     return deciles;
+  },
+  goLive: function () {
+    this.set({mode: 'live', currentJob: null});
+    this.bindToStream(this.benchmarkStream);      
+  },
+  loadJob: function (uuid) {
+    var self = this;
+    self.unbindStream();
+
+    $.getJSON("/jobs/" + uuid, 
+              function (job) {
+                self.set({mode: 'historical',
+                          currentJob: job,
+                          stats: job["last-result"]
+                         });
+              });
   }
 });
 
@@ -505,6 +623,24 @@ AggregateStatsView = Backbone.View.extend({
 
       tbody.append(self.tmpl({code: fmtCode, count: count}));
     }
+  }
+});
+
+InfoBarView = Backbone.View.extend({
+  initialize: function () {
+    var self = this;
+    this.model.on('change', function () {
+                    self.render();  
+                  });
+   console.log("S", this.model.stream);
+   this.model.stream.on('change', function () {
+                            self.render();
+                        });
+    this.render();
+  },
+  render: function () {
+    $('.mode .v', this.el).text(this.model.get('mode'));
+    $('.socket-state .v', this.el).text(this.model.stream.get('state'));
   }
 });
 
@@ -817,6 +953,7 @@ JobBrowser = Backbone.View.extend({
       self.jobsListTmpl({jobs: self.jobs.toJSON()})
     );
     self.checkPagination();
+    applyTooltips();
   },
   toggle: function (e) {
     if (this.visible) {
@@ -875,7 +1012,8 @@ EngulfRouter = Backbone.Router.extend({
     "jobs/:uuid": "job"
   },
   initialize: function () {
-    this.benchmarker = new Benchmarker();
+    this.benchmarkStream = new BenchmarkStream({addr: 'ws://' + location.host + '/river'});
+    this.benchmarker = new Benchmarker({stream: this.benchmarkStream});
     
     this.jobBrowser = new JobBrowser({el: $('#job-browser')[0], benchmarker: this.benchmarker});
 
@@ -898,32 +1036,25 @@ EngulfRouter = Backbone.Router.extend({
       el: $('#throughput-time-series')[0],
       model: this.benchmarker,
       field: "total"
-    });          
-
-    this.benchmarkStream = new BenchmarkStream('ws://' + location.host + '/river');
+    });
+   
+    this.infoBarView = new InfoBarView({
+      el: $('#info-bar')[0],
+      model: this.benchmarker
+    });
   },
   river: function () {
     $('.status.live').addClass('active');      
     $('.status.playback').removeClass('active');
     $('.cur-job-related').removeClass('cur-job-related');
-    this.benchmarker.set({currentJob: null});
-    this.benchmarker.bindToStream(this.benchmarkStream);
+    this.benchmarker.goLive();
     this.consoleView  = new ConsoleView({el: $('#console')});
     this.consoleView.logEvents(this.benchmarkStream, 'jsonData');
   },
   job: function(uuid) {
     $('.status.live').removeClass('active');      
     $('.status.playback').addClass('active');
-    var self = this;
-    if (this.benchmarkStream) {
-      this.benchmarkStream.unbind();        
-    }
-
-    $.getJSON("/jobs/" + uuid, 
-              function (job) {
-                self.benchmarker.set({currentJob: job});
-                self.benchmarker.set({stats: job["last-result"]});
-              });
+    this.benchmarker.loadJob(uuid);
   }
 });
 

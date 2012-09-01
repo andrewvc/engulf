@@ -641,6 +641,11 @@ InfoBarView = Backbone.View.extend({
   render: function () {
     $('.mode .v', this.el).text(this.model.get('mode'));
     $('.socket-state .v', this.el).text(this.model.stream.get('state'));
+    if (this.model.get('mode') !== 'live') {
+      $('.go-live', this.el).show();
+    } else {
+      $('.go-live', this.el).hide();      
+    }
   }
 });
 

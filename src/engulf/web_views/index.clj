@@ -24,6 +24,8 @@
      [:span {:class "mode"}
       [:span {:class "k"} "Mode:"]
       [:span {:class "v"} "&#8734;"]]
+     [:span {:class "go-live"}
+      [:a {:class "v" :href "#"} "[Go Live]"]]
      [:span {:class "socket-state" :data-tooltip "WebSocket State"}
       [:span {:class "k"}
        "WebSocket:"]

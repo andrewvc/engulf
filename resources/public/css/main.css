@@ -120,6 +120,10 @@ a {
   text-decoration: underline;
 }
 
+a:visited {
+  color: black;
+}
+
 #benchmarker {
   float: right;
   width: 500px;

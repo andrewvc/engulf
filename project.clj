@@ -2,7 +2,7 @@
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.cli "0.2.1"]
                  [noir-async "1.1.0-beta9"]
-                 [cheshire "4.0.0"]
+                 [cheshire "4.0.2"]
                  [org.slf4j/slf4j-simple "1.6.6"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [korma "0.3.0-beta9"]

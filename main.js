@@ -17,9 +17,9 @@ $(document).ready(function(){
  });
 
 
- // adjust side menu
- $(window).scroll(function(){
-  var winTop = $(window).scrollTop(),
+                      
+ function adjustMenu () {
+    var winTop = $(window).scrollTop(),
       bodyHt = $(document).height(),
       vpHt = $(window).height() + edgeMargin;  // viewport height + margin
   $.each( contentTop, function(i,loc){
@@ -29,6 +29,15 @@ $(document).ready(function(){
      .eq(i).addClass('selected');
    }
   });
- });
+
+ }
+
+$('#sidemenu a').click(function (e) {
+                           $('#sidemenu a').removeClass('selected');
+                           $(e.currentTarget).addClass('selected');
+                     });
+
+ // adjust side menu
+ $(window).scroll(adjustMenu);
   
 });

@@ -136,33 +136,27 @@ header {
 header ul.downloads {
   list-style:none;
   height:40px;
-  
   padding:0;
-  
-  background: #eee;
-  background: -moz-linear-gradient(top, #f8f8f8 0%, #dddddd 100%);
-  background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#f8f8f8), color-stop(100%,#dddddd));
-  background: -webkit-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  background: -o-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  background: -ms-linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  background: linear-gradient(top, #f8f8f8 0%,#dddddd 100%);
-  
-  border-radius:5px;
+  background: #b8b8b8;
   border:1px solid #d2d2d2;
-  box-shadow:inset #fff 0 1px 0, inset rgba(0,0,0,0.03) 0 -1px 0;
-  width:183px;
+  width:255px;
 }
 
 header .downloads li {
-  width:89px;
+  width:49.5%;
+  text-align: center;
   float:left;
   height:40px;
+}
+
+header .downloads li:hover {
+  background: #cacaca;
 }
 
 header ul.downloads a {
   line-height:1;
   font-size:11px;
-  color:#999;
+  color:#fff;
   display:block;
   text-align:center;
   padding-top:6px;
@@ -171,23 +165,18 @@ header ul.downloads a {
 
 strong {
   color:#222;
+  padding-top: 2px;
   font-weight:700;
 }
 
 header ul.downloads li + li {
-  width:88px;
   border-left:1px solid #fff;
-}
-
-header ul.downloads li + li + li {
-  border-right:none;
-  width:89px;
 }
 
 header ul.downloads a strong {
   font-size:14px;
   display:block;
-  color:#222;
+  color:#fff;
 }
 
 section {
@@ -270,10 +259,6 @@ footer {
 @media print, screen and (max-width: 480px) {
   body {
     padding:15px;
-  }
-  
-  header ul.downloads {
-    display:none;
   }
 }
 

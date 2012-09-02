@@ -4,7 +4,7 @@
                  [noir-async "1.1.0-beta9"]
                  [cheshire "4.0.0"]
                  [org.slf4j/slf4j-simple "1.6.6"]
-                 [org.xerial/sqlite-jdbc "3.6.16"]
+                 [org.xerial/sqlite-jdbc "3.7.2"]
                  [korma "0.3.0-beta9"]
                  [ragtime "0.2.1"]
                  [ragtime/ragtime.sql "0.2.1"]

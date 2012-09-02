@@ -603,7 +603,7 @@ AggregateStatsView = Backbone.View.extend({
         res.runsSec.text(parseInt(runsSec) + ' / sec');
       }
 
-      this.renderResponseCodes(stats['status-codes']);        
+      this.renderResponseCodes(stats['status-codes']);
     }
   },
   renderResponseCodes: function (codeCounts) {
@@ -611,23 +611,26 @@ AggregateStatsView = Backbone.View.extend({
     var tbody = self.renderElements.responseCodes;
     tbody.html('');
 
+    var codes = _.keys(codeCounts).map(function (k) {return [k, codeCounts[k]];});
+    codes.sort(function(a,b) {return b[1] - a[1]; });
+
     if (!codeCounts) { return };
 
     if (!self.tmpl) {
       self.tmpl = _.template("<tr><td class='code k'><%= code %></td><td class='count v'><%= count %></tr>");
     }
     
-    for (code in codeCounts) {
-      var count = codeCounts[code];
+    _.each(codes, function(c) {
+      var code = c[0];
+      var count = c[1];
       var fmtCode = "";
       if (typeof(code) == "number") {
         fmtCode = code;
       } else {
         fmtCode = code.split(/\./).reverse()[0];
       }
-
       tbody.append(self.tmpl({code: fmtCode, count: count}));
-    }
+    });
   }
 });
 

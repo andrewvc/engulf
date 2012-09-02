@@ -7,7 +7,9 @@
 (defn error-result
   [started-at ended-at throwable]
   (assoc (result started-at ended-at)
-    :status (last (.split ^String (str (class throwable)) " "))
+    :status (if (keyword? throwable)
+                          throwable
+                          (last (.split ^String (str (class throwable)) " ")))
     :throwable throwable))
 
 (defn success-result

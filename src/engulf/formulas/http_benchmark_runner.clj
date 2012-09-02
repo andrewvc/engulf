@@ -26,20 +26,22 @@
   (lazy-seq (cons req (req-seq req))))
 
 (defn markov-req-seq
-  [{{corpus :corpus} :target}]
+  [{{:keys [corpus keep-alive?]} :target}]
   
   ;; TODO: Maybe consider having this just work...
   (when (> 2 (count corpus))
     (throw (Exception. (str "Markov corpus must contain at least 2 URLs. "
                             "Got: " (count corpus)))))
-  (markov/corpus-chain corpus))
+
+  (map #(assoc % :keep-alive? keep-alive?)
+       (markov/corpus-chain corpus) ))
 
 (defn simple-req-seq
   [{target :target}]
   (let [req-pkeys #{:url :method :keep-alive? :retry? :timeout}
         refined (assoc target
                   :method (keyword (lower-case (or (:method target) "get")))
-                  :timeout (or (:timeout target) 30000))]
+                  :timeout (or (:timeout target) 1000))]
     ;; Throw on bad URLs.
     (URL. (:url target))
     (when (not ((:method refined) valid-methods))

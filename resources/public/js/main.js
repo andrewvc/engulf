@@ -416,7 +416,6 @@ ControlsView = Backbone.View.extend({
     this.render();  
   },
   start: function (e) {
-    engRouter.navigate("", {trigger: true});
     var params = {};
     var self = this;
 
@@ -470,6 +469,8 @@ ControlsView = Backbone.View.extend({
     this.model.start(params, null, function (e) {
                        self.renderStartable();
                      });
+
+    engRouter.navigate("", {trigger: true});
   },
   stop: function (e) {
     this.model.stop();

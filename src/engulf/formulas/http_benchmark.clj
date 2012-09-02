@@ -32,7 +32,7 @@
           keep-alive? (:keep-alive? (first reqs))
           client-props {:url (:url (first reqs))
                        :retry? true
-                       :keep-alive? (:keep-alive? (first reqs))}
+                       :keep-alive? (:keep-alive? (:target params))}
           client (if keep-alive? (http-client client-props)  http-request)]
       (run-repeatedly this ch runner client reqs)))
   (run-repeatedly

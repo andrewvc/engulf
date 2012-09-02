@@ -218,37 +218,87 @@ In an Engulf cluster you must provision a single master and multiple workers.
 <li>
 <strong>limit:</strong> MUST be set. The job will stop at this point. Note, due to performance optimizations there is no guarantee Engulf will stop at this exact mark. It will merely attempt to stop at it, but will usually over-run it by a small amount.</li>
 <li>
-<strong>timeout:</strong> MUST be set. Specifies the max time to wait for a response to return in milliseconds.</li>
-<li>
-<strong>method:</strong> MAY be set. Either get/put/patch/post/delete. MUST be lower-case. Will default to 'get'.</li>
-<li>
 <strong>concurrency:</strong> MUST be set. The desired number of concurrent requests <em>cluster-wide</em>. So, if you have 2 workers, a setting of 10 means there will be 10 simultaneous requests at any given time, with 5 on each worker.</li>
 <li>
 <strong>formula-name:</strong> MUST be set. Currently always "http-benchmark".</li>
 <li>
-<strong>keep-alive:</strong> MAY be set. Defaults to true. When <code>false</code> will be disabled.</li>
 <li>
 <strong>_title:</strong> MAY be set. Stored as job metadata. Maxlen 255</li>
 <li>
 <strong>_notes:</strong> MAY be set. Stores as job metadata. Size unbounded</li>
 <li>
 <strong>_stream:</strong> MAY be set. If set to <code>true</code> the HTTP connection will stay open while the benchmark is running, and stream results back in chunks. If set to <code>false</code> it will return the job metadata immediately.</li>
+<li>
+  <strong>Target:</strong> MUST be set. Is a dictionary describing the URL or URLs to hit with the following values.
+  <hr>
+  <p><strong>Single URL Targets</strong>
+  <pre>{
+  "type": "url",
+  "url": "http://example.net",
+  "method": "get",     // Can be get/post/put/patch/delete
+  "timeout": 1000,     // Optional, defaults to 30000ms
+  "keep-alive": "true" // required, either "true" or "false" as strings
+}</pre>
+
+  <p><strong>Markov URL Targets</strong>
+    See <a href="http://blog.andrewvc.com/markov-http-benchmarking">this blog post</a> for more information on markov HTTP testing in general. Each dictionary in the corpus takes the same arguments as a single URL does. Per client opts (like keep-alive) are derived from the first URL in the list. It also supports an abbreviated syntax, where only the URL is used in lieu of a dictionary. A GET request is assumed in this case.
+  <pre>{
+  "type": "markov",
+  "corpus": [{"url": "http://example.net/a", "method": "get", "keep-alive": "true"}
+             {"url": "http://example.net/b", "method": "get"},
+             "http://example.net/simple"]
+}</pre>
+  </p>
+</li>
+
+
+ 
 </ul><p><strong>Examples:</strong></p>
 
 <div class="highlight"><pre><span class="c"># Testing a single URL</span>
 curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d <span class="s1">'{</span>
-<span class="s1">"formula-name":"http-benchmark", "concurrency":5, "method":"get", "timeout":50, "limit":50000,</span>
-<span class="s1">"url":"http://localhost:8081", "_stream":"true", "keep-alive":"true"}'</span>
+<span class="s1">"formula-name":"http-benchmark", "concurrency":5, "limit":50000,</span>
+<span class="s1">"target": {"type": "url", "url": "http://localhost:8081", "keep-alive":"true", "timeout":50, "method":"get", }, "_stream":"true"}'</span>
 </pre></div>
 
 <div class="highlight"><pre><span class="c"># An example of testing using a markov-chain</span>
-curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d <span class="s1">'</span>
-<span class="s1">{"formula-name":"http-benchmark", "concurrency":5,  "timeout":50, "limit":5000, </span>
-<span class="s1">"keep-alive":"true", "_stream": "true",</span>
-<span class="s1">"markov-corpus":["http://localhost/foo","http://localhost/bar", "http://localhost/bar",</span>
-<span class="s1">"http://localhost/baz",{"method": "POST", "url": "http://localhost/fancy"}, "http://localhost/foo",</span>
-<span class="s1">"http://localhost/foo", {"method": "POST", "url": "http://localhost/fancy"}]}'</span>
-</pre></div>
+curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d @markov.json</pre>
+
+In markov.json:
+<pre>{
+    "formula-name": "http-benchmark",
+    "concurrency": 5,
+    "timeout": 50,
+    "limit": 5000,
+    "keep-alive": "true",
+    "_stream": "true",
+    "target": {
+        "type": "markov",
+        "corpus": [
+            "http://localhost:8081/foo",
+            "http://localhost:8081/bar",
+            "http://localhost:8081/bar",
+            "http://localhost:8081/baz",
+            {
+                "method": "POST",
+                "url": "http://localhost:8081/fancy"
+            },
+            "http://localhost:8081/foo",
+            "http://localhost:8081/baz",
+            {
+                "method": "POST",
+                "url": "http://localhost:8081/fancy"
+            },
+            "http://localhost:8081/foo",
+            "http://localhost:8081/foo",
+            {
+                "method": "POST",
+                "url": "http://localhost:8081/fancy"
+            }
+        ]
+    }
+}</pre>
+</div>
 
 <h3 id="wiki-job-stop">Stopping the Current Job</h3>
 

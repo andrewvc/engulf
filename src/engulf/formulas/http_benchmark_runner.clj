@@ -30,7 +30,6 @@
   (when (> 2 (count corpus))
     (throw (Exception. (str "Markov corpus must contain at least 2 URLs. "
                             "Got: " (count corpus)))))
-  
   (markov/corpus-chain corpus))
 
 (defn simple-req-seq
@@ -61,7 +60,7 @@
 
     (let [cast-params (-> params
                           (update-in [:concurrency] int-val)
-                          (update-in [:target :timeout] int-val)
+                          (update-in [:target :timeout] #(when % (int-val %)))
                           (update-in [:limit] int-val)
                           (assoc :retry? true)
                           (assoc :keep-alive? (not= "false" (:keep-alive params))))

@@ -116,10 +116,11 @@
 (defn parse
   [corpus]
   (->> corpus
-       ;; Ensure URLs are parsabl
-       (map #(do (.toString (URL. (:url %))) %))
        (map #(if (map? %) % {:url %}))
+       ;; Ensure URLs are parsable
+       (map #(do (.toString (URL. (:url %))) %))
        (map keywordize-keys)
+       (map #(assoc % :timeout (if-let [t (:timeout %)] t 30000)))
        (map #(assoc % :method (if-let [m (:method %)]
                                 (keyword (lower-case m))
                                 :get)))))

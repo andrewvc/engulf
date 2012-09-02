@@ -272,10 +272,6 @@ footer {
 }
 
 @media print, screen and (max-width: 480px) {
-  #sidemenu {
-    max-height: 100px;
-    overflow: scroll;
-  }
   body {
     padding:15px;
   }

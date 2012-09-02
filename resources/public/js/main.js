@@ -113,9 +113,12 @@ function formatMillis (millis) {
         "." + millis;
 }
 
-function setIndicatedJob (uuid) {
-  $('.cur-job-related').removeClass('cur-job-related');
-  $("[data-uuid=" + uuid + "]").addClass('cur-job-related');          
+function setIndicatedJob () {
+  var j = engRouter.benchmarker.get('currentJob') || engRouter.benchmarker.get('lastJob');
+  if (j) {
+    $('.cur-job-related').removeClass('cur-job-related');
+    $("[data-uuid=" + j.uuid + "]").addClass('cur-job-related');
+  }
 }
 
 Job = Backbone.Model.extend({
@@ -283,7 +286,7 @@ Benchmarker = Backbone.Model.extend({
     $.ajax("/jobs/current", {
                type: "DELETE",
                success: function (data) {
-                   self.set({currentJob: null});
+                   self.endCurrent.apply(self);
                }
            });
           
@@ -323,18 +326,21 @@ Benchmarker = Backbone.Model.extend({
           self.set({currentJob: d});
           break;
         case 'job-stop':
-          var j = self.get('currentJob');
-          self.trigger("new-stop", j);
-          self.set({currentJob: null});
-          if (j) {
-              setIndicatedJob(j.uuid);
-          }
+          self.set({currentJob: d});
+          self.trigger("new-stop", d);
+          self.endCurrent.apply(self);
+          setIndicatedJob();
           break;          
       }
      });
   },
   unbindStream: function () {
       if (this.stream) this.stream.off();
+  },
+  endCurrent: function () {
+    if (!this.get('currentJob')) return;
+    var cj = this.get('currentJob');
+    this.set({currentJob: null, lastJob: cj});
   },
   timeSeriesFor: function (field) {
     if (! this.get("stats")) return null;
@@ -412,7 +418,11 @@ ControlsView = Backbone.View.extend({
   },
   formChange: function(e) {
     engRouter.navigate('', {trigger: true});
-    engRouter.benchmarker.set({currentJob: null});
+    if (engRouter.benchmarker.get('currentJob')) {
+      var job = _.extend({}, engRouter.benchmarker.get('currentJob'));
+      job.uuid = null;
+      engRouter.benchmarker.set({currentJob: job});        
+    }
     this.render();  
   },
   start: function (e) {
@@ -476,7 +486,7 @@ ControlsView = Backbone.View.extend({
     this.model.stop();
   },
   render: function () {
-    var curJob = this.model.get('currentJob');
+    var curJob = this.model.get('currentJob') || this.model.get('lastJob');
     if (!curJob || (curJob && curJob["ended-at"] != null)) {
       this.renderStartable();
       if (this.$urlInput.val() === '') {
@@ -485,9 +495,10 @@ ControlsView = Backbone.View.extend({
     } else {
       this.renderStoppable();
     }
-
+      
+    var params;
     if (curJob) {
-      var params = curJob.params;
+      params = curJob.params;
       this.$urlInput.val(params.target.url);
       this.$concInput.val(params.concurrency);
       this.$limitInput.val(params.limit);
@@ -522,6 +533,7 @@ ControlsView = Backbone.View.extend({
       $('#url', this.el).hide();
       $('#method', this.el).hide();
       $('#markov-corpus', this.el).show();
+      
       if (params && params.target.type === 'markov') {
         $('#markov-corpus', this.el).text(_.map(params.target.corpus, function (r) { return r.method + " " + r.url;}).join("\n"));          
       } else {
@@ -933,20 +945,15 @@ JobBrowser = Backbone.View.extend({
     };
 
     /* Highlight the current job in the list */
-    this.benchmarker.on("change", function () {
-      var cj = self.benchmarker.get('currentJob');
-      if (cj) {
-          setIndicatedJob(cj.uuid);
-      }
-    });
+    this.benchmarker.on("change", setIndicatedJob);
    
-    var reloadIfFirst = function (curOrLastJob) {
+    var reloadIfFirst = function () {
       if (self.jobs.page === 1) {
         var origSuccCb = self.fetchOpts.success;
         var fOpts = _.extend(self.fetchOpts, {
                    success: function (data) {
                        origSuccCb(data);
-                       if (curOrLastJob) setIndicatedJob(curOrLastJob.uuid);
+                       setIndicatedJob();
                    }  
                  });
         self.jobs.fetchPage(1, fOpts);
@@ -1008,7 +1015,6 @@ JobBrowser = Backbone.View.extend({
     var uuid = ct.parent().data("uuid");
     var job = this.jobs.get(uuid);
     var self = this;
-    console.log(job);
     var disp = job.get("title") != "" ? job.get("title") : "Untitled";
     if (confirm("Are you sure you want to delete: " + disp)) {
         job.destroy({success: function () {

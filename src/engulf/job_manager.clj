@@ -37,6 +37,7 @@
                         :job-uuid (:uuid job)
                         :value result
                         :created-at (utils/now)}]
+    (swap! current-job #(assoc % :last-result result))
     (update database/jobs
             (set-fields {:last-result result})
             (where {:uuid (:uuid job)}))
@@ -62,20 +63,23 @@
 
 (defn stop-job
   "Marks the currently running job as stopped"
-  []
-  (ctrl/stop-job)
-  (when-let [job (dosync
-                  (when-let [job @current-job]
+  ([]
+     (if-let [job (when-let [job @current-job]
                     (reset! current-job nil)
-                    job))]
-    (update database/jobs
-            (set-fields {:ended-at (System/currentTimeMillis)})
-            (where {:uuid (:uuid job)}))))
+                    job)]
+       (stop-job job)
+       (ctrl/stop-job nil)))
+  ([job]
+     (let [stop-time (System/currentTimeMillis)]
+       (ctrl/stop-job (assoc job :ended-at stop-time))
+       (update database/jobs
+               (set-fields {:ended-at stop-time})
+               (where {:uuid (:uuid job)})))))
 
 (defn start-job
   "Starts the job, returns a stream of results"
   [title notes {formula-name :formula-name :as params}]
-  (ctrl/stop-job)
+  (ctrl/stop-job @current-job)
 
   (when (not formula-name)
     (throw (Exception. "Missing formula name!")))

@@ -9,8 +9,8 @@
 (def ^:dynamic emitter (lc/channel* :grounded? true :permanent? true))
 
 (defn stop-job
-  []
-  (let [stop-msg {"entity" "system" "name" "job-stop"}]
+  [job]
+  (let [stop-msg {"entity" "system" "name" "job-stop" "body" job}]
     (lc/enqueue nmgr/receiver stop-msg)
     (lc/enqueue emitter stop-msg))
   (relay/stop-job))
@@ -22,7 +22,7 @@
         start-msg {"name" "job-start" "body" job}]
     (lc/enqueue nmgr/receiver start-msg)
     (lc/enqueue emitter start-msg)
-    (lc/on-closed (:results-ch start-res) #(stop-job))
+    (lc/on-closed (:results-ch start-res) #(stop-job nil))
     start-res))
 
 (defn get-job

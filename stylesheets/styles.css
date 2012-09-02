@@ -41,6 +41,10 @@ h2 {
   font-weight: bold;
 }
 
+p.view a {
+  font-weight: bold;
+}
+
 section h3 {
   padding-bottom: 5px;
   border-bottom: 1px solid #ccc;
@@ -62,14 +66,14 @@ h3, h4, h5, h6 {
 }
 
 a {
-  color:#39c;
+  color: steelblue;
   font-weight:400;
   text-decoration:none;
 }
 
 a small {
   font-size:11px;
-  color:#777;
+  color: steelblue;
   margin-top:-0.6em;
   display:block;
 }
@@ -137,7 +141,7 @@ header ul.downloads {
   list-style:none;
   height:40px;
   padding:0;
-  background: #b8b8b8;
+  background: #A69D85;
   border:1px solid #d2d2d2;
   width:255px;
 }
@@ -150,7 +154,7 @@ header .downloads li {
 }
 
 header .downloads li:hover {
-  background: #cacaca;
+  background: #999;
 }
 
 header ul.downloads a {
@@ -204,6 +208,17 @@ footer {
 }
 
 @media print, screen and (max-width: 960px) {
+
+  #sidemenu {
+    display: block;
+    position: fixed;
+    border-top: 7px solid #b8b8b8;
+    border-bottom: 20px solid #b8b8b8;
+    bottom: -15px;
+    right: 0px;
+    width: 100%;
+    background-color: #eee;
+  }
   
   div.wrapper {
     width:auto;
@@ -257,6 +272,10 @@ footer {
 }
 
 @media print, screen and (max-width: 480px) {
+  #sidemenu {
+    max-height: 100px;
+    overflow: scroll;
+  }
   body {
     padding:15px;
   }
@@ -271,5 +290,30 @@ footer {
 }
 
 .sections-toc {
-  padding-left: 20px;
+  padding-left: 0;
+  list-style: none;
+}
+
+.sections-toc a {
+  font-weight: bold;
+  font-size: 13px;
+  display: inline-block;
+  color: #000;
+  width: 100%;
+}
+
+.sections-toc a:hover {
+  background-color: #ccc;
+}
+
+.sections-toc a:before {
+  content: '⇘ ';
+}
+
+.sections-toc li {
+  border-bottom: 2px solid #b8b8b8;
+}
+
+.sections-toc li.selected a, .sections-toc li.selected a:hover {
+  background-color: rgba(242, 192, 99, 0.8);
 }

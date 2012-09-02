@@ -24,7 +24,7 @@
   (lazy-seq (cons req (req-seq req))))
 
 (defn markov-req-seq
-  [{corpus :markov-corpus}]
+  [{{corpus :corpus} :target}]
   
   ;; TODO: Maybe consider having this just work...
   (when (> 2 (count corpus))
@@ -34,14 +34,15 @@
   (markov/corpus-chain corpus))
 
 (defn simple-req-seq
-  [params]
-  (let [req-pkeys #{:url :method :keep-alive? :retry?}
-        refined (assoc params
-                  :method (keyword (lower-case (or (:method params) "get"))))]
+  [{target :target}]
+  (let [req-pkeys #{:url :method :keep-alive? :retry? :timeout}
+        refined (assoc target
+                  :method (keyword (lower-case (or (:method target) "get")))
+                  :timeout (or (:timeout target) 30000))]
     ;; Throw on bad URLs.
-    (URL. (:url params))
+    (URL. (:url target))
     (when (not ((:method refined) valid-methods))
-        (throw (Exception. (str "Invalid method: " (:method params) " "
+        (throw (Exception. (str "Invalid method: " (:method target) " "
                                 "expected one of " valid-methods))))
     (req-seq
      (into {} (filter (fn [[k v]] (req-pkeys k)) refined)))))
@@ -51,7 +52,7 @@
   (let [params (keywordize-keys str-params)]
     
     ;; Ensure required keys
-    (let [diff (cset/difference #{:concurrency :timeout :limit} params)]
+    (let [diff (cset/difference #{:concurrency :limit} params)]
       (when (not (empty? diff))
         (throw (Exception. (str "Invalid parameters! Missing keys: " diff ". Got: " str-params)))))
 
@@ -60,12 +61,12 @@
 
     (let [cast-params (-> params
                           (update-in [:concurrency] int-val)
-                          (update-in [:timeout] int-val)
+                          (update-in [:target :timeout] int-val)
                           (update-in [:limit] int-val)
                           (assoc :retry? true)
                           (assoc :keep-alive? (not= "false" (:keep-alive params))))
           seqd-params (assoc cast-params :req-seq
-                             (if (:markov-corpus cast-params)
+                             (if (= (:type (:target cast-params)) "markov")
                                (markov-req-seq cast-params)
                                (simple-req-seq cast-params)))]
           (assoc job :params seqd-params))))

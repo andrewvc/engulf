@@ -420,15 +420,18 @@ ControlsView = Backbone.View.extend({
     var params = {};
     var self = this;
 
+    params = {
+      concurrency: parseInt(this.$concInput.val(), 10),
+      limit: parseInt(this.$limitInput.val(), 10),
+     '_title': this.$titleInput.val(),
+     '_stream': 'false',
+     'formula-name': 'http-benchmark',
+      target: {
+        timeout:   $('#timeout').val(),
+        "keep-alive": this.$keepAliveInput.is(":checked") + ""
+      }
+    };
 
-    params.concurrency = parseInt(this.$concInput.val(), 10);
-    params.limit = parseInt(this.$limitInput.val(), 10);
-    params.timeout = $('#timeout').val();
-    params['_title'] = this.$titleInput.val();
-    params['keep-alive'] = this.$keepAliveInput.is(":checked") + "";
-    params['formula-name'] = 'http-benchmark';
-    params['_stream'] = 'false';
-    
     if (!params.concurrency || params.concurrency < 1) {
       popModal("Error!", "Concurrency must be a positive integer!");
       return;
@@ -438,27 +441,29 @@ ControlsView = Backbone.View.extend({
       return;
     }
 
-    if (this.type() == "url") {
-      params.url = $.trim(this.$el.find('#url').val());      
-      params.method = $('#method').val();
+    if (this.type() === "url") {
+      params.target.type = "url";
+      params.target.url = $.trim(this.$el.find('#url').val());      
+      params.target.method = $('#method').val();
 
-      if (!params.url || params.url.length < 3) {
+      if (!params.target.url || params.target.url.length < 3) {
         popModal("Error!", "Could not start benchmark, no URL specified!");
         return;
       }
     } else {
+      params.target.type = "markov";
       var c = $('#markov-corpus', this.el).val();
       var lines = _.map(c.split(/\n/), function (l) {return $.trim(l);});
       var filtered = _.filter(lines, function (l) { return !(l == "" || l == "\n");});
-      params['markov-corpus'] = _.map(filtered,
-                                      function (s) {
-                                          var a = $.trim(s).split(/[ \t]+/);
-                                          if (a.length == 1) {
-                                            return {method: "get", url: a[0]};
-                                          } else {
-                                            return {method: a[0], url: a[1]};
-                                          }
-                                      });
+      params.target.corpus = _.map(filtered,
+                                   function (s) {
+                                       var a = $.trim(s).split(/[ \t]+/);
+                                       if (a.length == 1) {
+                                           return {method: "get", url: a[0]};
+                                       } else {
+                                           return {method: a[0], url: a[1]};
+                                       }
+                                   });
     }
     
     this.disableInputs();
@@ -482,13 +487,13 @@ ControlsView = Backbone.View.extend({
 
     if (curJob) {
       var params = curJob.params;
-      this.$urlInput.val(params.url);
+      this.$urlInput.val(params.target.url);
       this.$concInput.val(params.concurrency);
       this.$limitInput.val(params.limit);
-      this.$timeoutInput.val(params.timeout);
+      this.$timeoutInput.val(params.target.timeout);
       this.$titleInput.val(curJob["title"]);
       
-      if (params["keep-alive"] === "true") {
+      if (params.target["keep-alive"] === "true") {
         this.$keepAliveInput.prop("checked", true);
       } else {
         this.$keepAliveInput.prop("checked", false);
@@ -503,10 +508,10 @@ ControlsView = Backbone.View.extend({
       $('#method option[value=get]').attr('selected',true);        
     }
     
-    if (params ? !params['markov-corpus'] : this.type() === 'url') {
+    if (params ? params.target.type === 'url' : this.type() === 'url') {
       $('option#type-url', this.el).attr('selected',true);
       $('#url', this.el).show();
-      if (params)  $('#url', this.el).val(params.url);
+      if (params)  $('#url', this.el).val(params.target.url);
       $('#method', this.el).show();
       $('#markov-corpus', this.el).hide();
       $('#markov-corpus', this.el).text('');
@@ -516,8 +521,8 @@ ControlsView = Backbone.View.extend({
       $('#url', this.el).hide();
       $('#method', this.el).hide();
       $('#markov-corpus', this.el).show();
-      if (params && params['markov-corpus']) {
-        $('#markov-corpus', this.el).text(_.map(params['markov-corpus'], function (u) { return u.method + " " + u.url;}).join("\n"));          
+      if (params && params.type === 'markov') {
+        $('#markov-corpus', this.el).text(_.map(params.target.corpus, function (u) { return u.method + " " + u.url;}).join("\n"));          
       } else {
         $('#markov-corpus', this.el).text('');          
       }
@@ -898,10 +903,10 @@ JobBrowser = Backbone.View.extend({
                 + "<td class='title'><div>"
                 + "<%= job.title || \"Untitled\" %>"
                 + "</div></td>"
-                + "<td class='url'><div><%= job.params['markov-corpus'] ? 'Markov URL List' : job.params.url %></div></td>"
+                + "<td class='url'><div><%= job.params.target.corpus ? 'Markov URL List' : job.params.target.url %></div></td>"
                 + "<td class='limit stat'><%= job.params.limit %></td>"
                 + "<td class='nodes stat'><%= job['node-count'] %></td>"
-                + "<td class='conc stat'><%= job.params.concurrency %></td>"
+                + "<td class='conc stat'><%= job.params.target.concurrency %></td>"
                 + "<td class='reqs stat'><%= job['last-result'] ? sprintf('%d', job['last-result']['total-runs-per-second']) : 'N/A'  %></td>"
                 + "<td class='med-resp stat'>"
                 + "<%= job['last-result'] && job['last-result']['percentiles'] && job['last-result']['percentiles'][49] && job['last-result']['percentiles'][49].median %>"

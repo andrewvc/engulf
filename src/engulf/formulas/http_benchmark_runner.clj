@@ -63,7 +63,7 @@
                           (update-in [:target :timeout] #(when % (int-val %)))
                           (update-in [:limit] int-val)
                           (assoc :retry? true)
-                          (assoc :keep-alive? (not= "false" (:keep-alive params))))
+                          (assoc :keep-alive? (not= "false" (:keep-alive (:target params)))))
           seqd-params (assoc cast-params :req-seq
                              (if (= (:type (:target cast-params)) "markov")
                                (markov-req-seq cast-params)

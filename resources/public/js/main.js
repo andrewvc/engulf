@@ -906,7 +906,7 @@ JobBrowser = Backbone.View.extend({
                 + "<td class='url'><div><%= job.params.target.corpus ? 'Markov URL List' : job.params.target.url %></div></td>"
                 + "<td class='limit stat'><%= job.params.limit %></td>"
                 + "<td class='nodes stat'><%= job['node-count'] %></td>"
-                + "<td class='conc stat'><%= job.params.target.concurrency %></td>"
+                + "<td class='conc stat'><%= job.params.concurrency %></td>"
                 + "<td class='reqs stat'><%= job['last-result'] ? sprintf('%d', job['last-result']['total-runs-per-second']) : 'N/A'  %></td>"
                 + "<td class='med-resp stat'>"
                 + "<%= job['last-result'] && job['last-result']['percentiles'] && job['last-result']['percentiles'][49] && job['last-result']['percentiles'][49].median %>"

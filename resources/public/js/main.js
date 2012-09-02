@@ -427,7 +427,7 @@ ControlsView = Backbone.View.extend({
      '_stream': 'false',
      'formula-name': 'http-benchmark',
       target: {
-        timeout:   $('#timeout').val(),
+        timeout:   parseInt($('#timeout').val(),10),
         "keep-alive": this.$keepAliveInput.is(":checked") + ""
       }
     };
@@ -521,8 +521,8 @@ ControlsView = Backbone.View.extend({
       $('#url', this.el).hide();
       $('#method', this.el).hide();
       $('#markov-corpus', this.el).show();
-      if (params && params.type === 'markov') {
-        $('#markov-corpus', this.el).text(_.map(params.target.corpus, function (u) { return u.method + " " + u.url;}).join("\n"));          
+      if (params && params.target.type === 'markov') {
+        $('#markov-corpus', this.el).text(_.map(params.target.corpus, function (r) { return r.method + " " + r.url;}).join("\n"));          
       } else {
         $('#markov-corpus', this.el).text('');          
       }
@@ -640,7 +640,6 @@ InfoBarView = Backbone.View.extend({
     this.model.on('change', function () {
                     self.render();  
                   });
-   console.log("S", this.model.stream);
    this.model.stream.on('change', function () {
                             self.render();
                         });

@@ -1,4 +1,4 @@
-(defproject engulf/engulf "3.0.0-beta7"
+(defproject engulf/engulf "3.0.0-beta8"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.cli "0.2.1"]
                  [noir-async "1.1.0-beta9"]

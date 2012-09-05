@@ -31,8 +31,8 @@
     (let [reqs (:req-seq params)
           keep-alive? (:keep-alive? (first reqs))
           client-props {:url (:url (first reqs))
-                       :retry? true
-                       :keep-alive? (:keep-alive? (:target params))}
+                        :retry? true
+                        :keep-alive? (:keep-alive? (:target params))}
           client (if keep-alive? (http-client client-props)  http-request)]
       (run-repeatedly this ch runner client reqs)))
   (run-repeatedly
@@ -99,7 +99,7 @@
     (HttpBenchmark. (atom :initialized)
                     (:params cleaned-job)
                     cleaned-job
-                  (lc/channel)
-                  (atom :unknown))))
+                    (lc/channel)
+                    (atom :unknown))))
 
 (register :http-benchmark init-benchmark)

@@ -421,6 +421,7 @@ ControlsView = Backbone.View.extend({
     if (engRouter.benchmarker.get('currentJob')) {
       var job = _.extend({}, engRouter.benchmarker.get('currentJob'));
       job.uuid = null;
+      job['last-result'] = {};
       engRouter.benchmarker.set({currentJob: job});        
     }
     this.render();  

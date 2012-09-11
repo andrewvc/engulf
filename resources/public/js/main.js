@@ -255,7 +255,7 @@ Benchmarker = Backbone.Model.extend({
   initialize: function (opts) {
     this.stream = opts.stream;
   },
-  start: function (params, on_success, on_error) {
+  start: function (job, on_success, on_error) {
     var self = this;
     $.ajax(
       "/jobs/current",
@@ -263,7 +263,7 @@ Benchmarker = Backbone.Model.extend({
         contentType: "application/json",
         type: "POST",
         dataType: "json",
-        data: JSON.stringify(params)
+        data: JSON.stringify(job)
       }
     ).success(function (parsed) {
         if (on_success) on_success(parsed);
@@ -398,25 +398,60 @@ Benchmarker = Backbone.Model.extend({
 
 ControlsView = Backbone.View.extend({
   initialize: function () {
+    this.tmpl = _.template($('#controls-tmpl').html());
+
     this.$el = $(this.el);
      
     _.bindAll(this, "render");
     this.model.bind('change', this.render);
-
-    this.$urlInput = $('#url');
-    this.$keepAliveInput = $('#keep-alive');
-    this.$concInput = $('#concurrency');
-    this.$timeoutInput = $('#timeout');
-    this.$reqsInput = $('#requests');
-    this.$titleInput = $('#title');
-    this.$limitInput = $('#limit');
   },
   events: {
     "click #start-ctl": "start",
     "click #stop-ctl":  "stop",
     "change": "formChange"
   },
+  readFormValues: function () {
+    var el = this.el;
+    var job = {
+        title: $('#title', el).val(),
+        notes: null,
+        params: {
+            "formula-name": "http-benchmark",
+            concurrency: parseInt($('#concurrency', el).val(), 10),
+            limit: parseInt($('#limit', el).val(), 10),
+            target: {
+                url: '',
+                type: $('#type', el).val(),
+                timeout: parseInt($('#timeout', el).val(), 10),
+                "keep-alive": $('#keep-alive', el).is(":checked") + ""
+            }
+        }
+    };
+    
+    if (job.params.target.type === "url") {
+      job.params.target.url = $.trim($('#url', el).val());
+      job.params.target.method = $('#method',el).val();
+    } else {
+      var c = $('#markov-corpus', el).val() || "";
+      var lines = _.map(c.split(/\n/), function (l) {return $.trim(l);});
+      var filtered = _.filter(lines, function (l) { return !(l == "" || l == "\n");});
+      job.params.target.corpus = _.map(filtered,
+                                   function (s) {
+                                       var a = $.trim(s).split(/[ \t]+/);
+                                       if (a.length == 1) {
+                                           return {method: "get", url: a[0]};
+                                       } else {
+                                           return {method: a[0], url: a[1]};
+                                       }
+                                   });
+    }
+
+    this.model.set({currentJob: job});
+  },
   formChange: function(e) {
+    this.readFormValues();
+    this.render();
+    return; 
     engRouter.navigate('', {trigger: true});
     if (engRouter.benchmarker.get('currentJob')) {
       var job = _.extend({}, engRouter.benchmarker.get('currentJob'));
@@ -427,57 +462,27 @@ ControlsView = Backbone.View.extend({
     this.render();  
   },
   start: function (e) {
-    var params = {};
     var self = this;
+    this.readFormValues();
+    var job = this.model.get('currentJob');
 
-    params = {
-      concurrency: parseInt(this.$concInput.val(), 10),
-      limit: parseInt(this.$limitInput.val(), 10),
-     '_title': this.$titleInput.val(),
-     '_stream': 'false',
-     'formula-name': 'http-benchmark',
-      target: {
-        timeout:   parseInt($('#timeout').val(),10),
-        "keep-alive": this.$keepAliveInput.is(":checked") + ""
-      }
-    };
+    if (!job.params.target.url || job.params.target.url.length < 3) {
+      popModal("Error!", "Could not start benchmark, no URL specified!");
+      return;
+    }
 
-    if (!params.concurrency || params.concurrency < 1) {
+    if (!job.params.concurrency || job.params.concurrency < 1) {
       popModal("Error!", "Concurrency must be a positive integer!");
       return;
     }
-    if (!params.limit || params.limit < 1) {
+    
+    if (!job.params.limit || job.params.limit < 1) {
       popModal("Error!", "Limit must be a positive integer!");
       return;
     }
-
-    if (this.type() === "url") {
-      params.target.type = "url";
-      params.target.url = $.trim(this.$el.find('#url').val());      
-      params.target.method = $('#method').val();
-
-      if (!params.target.url || params.target.url.length < 3) {
-        popModal("Error!", "Could not start benchmark, no URL specified!");
-        return;
-      }
-    } else {
-      params.target.type = "markov";
-      var c = $('#markov-corpus', this.el).val();
-      var lines = _.map(c.split(/\n/), function (l) {return $.trim(l);});
-      var filtered = _.filter(lines, function (l) { return !(l == "" || l == "\n");});
-      params.target.corpus = _.map(filtered,
-                                   function (s) {
-                                       var a = $.trim(s).split(/[ \t]+/);
-                                       if (a.length == 1) {
-                                           return {method: "get", url: a[0]};
-                                       } else {
-                                           return {method: a[0], url: a[1]};
-                                       }
-                                   });
-    }
     
     this.disableInputs();
-    this.model.start(params, null, function (e) {
+    this.model.start(job, null, function (e) {
                        self.renderStartable();
                      });
 
@@ -486,84 +491,42 @@ ControlsView = Backbone.View.extend({
   stop: function (e) {
     this.model.stop();
   },
-  render: function () {
-    var curJob = this.model.get('currentJob') || this.model.get('lastJob');
-    if (!curJob || (curJob && curJob["ended-at"] != null)) {
-      this.renderStartable();
-      if (this.$urlInput.val() === '') {
-        this.$urlInput.val('http://' + location.host + '/test-responses/delay/15');
-      }
-    } else {
-      this.renderStoppable();
-    }
-      
-    var params;
-    if (curJob) {
-      params = curJob.params;
-      this.$urlInput.val(params.target.url);
-      this.$concInput.val(params.concurrency);
-      this.$limitInput.val(params.limit);
-      this.$timeoutInput.val(params.target.timeout);
-      this.$titleInput.val(curJob["title"]);
-      
-      if (params.target["keep-alive"] === "true") {
-        this.$keepAliveInput.prop("checked", true);
-      } else {
-        this.$keepAliveInput.prop("checked", false);
-      }
-
-      this.$reqsInput.val(params.limit);
-    }
-
-    if (params) {
-      $('#method option[value=' + params.method + ']').attr('selected',true);
-    } else {
-      $('#method option[value=get]').attr('selected',true);        
-    }
-    
-    if (params ? params.target.type === 'url' : this.type() === 'url') {
-      $('option#type-url', this.el).attr('selected',true);
-      $('#url', this.el).show();
-      if (params)  $('#url', this.el).val(params.target.url);
-      $('#method', this.el).show();
-      $('#markov-corpus', this.el).hide();
-      $('#markov-corpus', this.el).text('');
-      $('#markov-help', this.el).hide();
-    } else {
-      $('option#type-markov', this.el).attr('selected',true);
-      $('#url', this.el).hide();
-      $('#method', this.el).hide();
-      $('#markov-corpus', this.el).show();
-      
-      if (params && params.target.type === 'markov') {
-        $('#markov-corpus', this.el).text(_.map(params.target.corpus, function (r) { return r.method + " " + r.url;}).join("\n"));          
-      } else {
-        $('#markov-corpus', this.el).text('');          
-      }
-
-      $('#markov-help', this.el).show();
-    }
+  displayedJob: function () {
+   return  this.model.get('currentJob') || this.model.get('lastJob') || {
+        title: '',
+        notes: '',
+        "started-at": null,
+        "ended-at": null,
+        params: {
+            "formula-name": "http-benchmark",
+            concurrency: 10,
+            limit: 300,
+            target: {
+                'keep-alive': 'true',
+                timeout: 2000,
+                type: "url",
+                url: window.location
+            }
+        }
+    };  
   },
-  type: function () {
-    return $('#type', this.el).val();
+  render: function () {
+    var curJob = this.displayedJob();
+    console.log("j", curJob);
+
+    this.$el.html(this.tmpl({job: curJob}));
   },
   renderStartable: function () {
     this.enableInputs();
     
     var startCtl = this.$el.find('#start-ctl');
     startCtl.removeAttr('disabled');
-    startCtl.show();
-     
-    this.$el.find('#stop-ctl').hide();
   },
   renderStoppable: function () {
     this.disableInputs();
     
     var stopCtl = this.$el.find('#stop-ctl');
     stopCtl.removeAttr('disabled');
-    stopCtl.show();
-     
-    this.$el.find('#start-ctl').hide();
   },
   disableInputs: function () {
     this.$el.find('input').attr('disabled', true);

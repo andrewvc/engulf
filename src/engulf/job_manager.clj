@@ -72,9 +72,10 @@
   ([job]
      (let [stop-time (System/currentTimeMillis)]
        (ctrl/stop-job (assoc job :ended-at stop-time))
-       (update database/jobs
-               (set-fields {:ended-at stop-time})
-               (where {:uuid (:uuid job)})))))
+       (lc/success-result
+        (update database/jobs
+                (set-fields {:ended-at stop-time})
+                (where {:uuid (:uuid job)}))))))
 
 (defn start-job
   "Starts the job, returns a stream of results"

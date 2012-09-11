@@ -49,9 +49,10 @@
 
 (na/defpage-async [:post "/jobs/current"] {} conn
   (try
-    (let [params (walk/keywordize-keys (json/parse-string (na/request-body-str conn)))
-          {title :_title notes :_notes} params
-          {:keys [results-ch job]} (jmgr/start-job title notes params)]
+    (let [{:keys [title notes params]}
+          (walk/keywordize-keys (json/parse-string (na/request-body-str conn)))
+          {:keys [results-ch job]}
+          (jmgr/start-job title notes params)]
       (if (= (:_stream params) "true")
         (async-stream conn results-ch)
         (na/async-push conn (json-resp 200 job))))
@@ -61,5 +62,7 @@
 
 (defpage [:delete "/jobs/current"] {}
   (if-let [stopped (jmgr/stop-job)]
-    (json-resp 200 {:job stopped})
+    (on-realized stopped
+                 #(json-resp 200 %)
+                 #(json-resp 500 %))
     (json-resp 404 {})))

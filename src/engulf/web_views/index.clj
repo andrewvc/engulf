@@ -33,49 +33,7 @@
        "&#8734;"]]
      ]
     [:div {:id "controls"}
-     [:form
-      [:div {:id "controls-top"}
-       [:label {:for "_title"} "Title:"]
-       [:input {:id "title" :name "_title" :type "text" :placeholder "Untitled"}]
-       [:select {:id "type"}
-        [:option {:id "type-url" :value "url"} "Single URL"]
-        [:option {:id "type-markov" :value "markov-corpus"} "URL List"]]
-       [:select {:id "method" :class "short-num" :name "method"}
-        [:option {:value "get"} "GET"]
-        [:option {:value "post"} "POST"]
-        [:option {:value "put"} "PUT"]
-        [:option {:value "delete"} "DELETE"]
-        [:option {:value "patch"} "PATCH"]
-        ]
-       [:input {:id "url" :name "url" :type "url"}]
-       
-       [:span {:id "markov-help"}
-        "Newline Separate URLs as: "
-        [:strong "GET http://localhost/foo"]
-        ". Constructs a "
-        [:a {:href "https://github.com/andrewvc/engulf/wiki/HTTP-API"}
-         "Markov chain."]
-        ]
-       [:textarea {:id "markov-corpus" :name "markov-corpus"}]
-       ]
-      
-      [:table
-       [:thead
-        [:th [:label {:for "timeout"} "Timeout "]]
-        [:th [:label {:for "concurrency"} "Concurrency "]]
-        [:th [:label {:for "limit"} "Limit "]]
-        [:th [:label {:for "keep-alive"} "KeepAlive"]]
-        [:th [:label {:for "start-stop"} "&middot;"]]
-        ]
-       [:tbody
-        [:tr
-         [:td [:input {:id "timeout" :class "short-num" :name "timeout" :type "number" :min 1 :max 200000 :value 5000 }]]
-         [:td [:input {:id "concurrency" :class "short-num" :name "concurrency" :type "number" :min 1 :value 4 }]]
-         [:td [:input {:id "limit" :class "short-num" :name "requests" :type "number" :min 1 :value 200 }]]
-         [:td [:input {:id "keep-alive" :name "method" :type "checkbox" :checked "true"}]]
-         [:td
-          [:input {:id "start-ctl" :type "button" :value "▷ Start"}]
-          [:input {:id "stop-ctl"  :type "button" :value "▢ Stop"}]]]]]]]]
+     ]]
    
    [:div {:id "output"}
     [:div {:id "scalars"}
@@ -142,4 +100,63 @@
      [:div {:class "modal-close"} "X"]
      ]]
 
+   [:script {:type "x-underscore-tmpl" :id "controls-tmpl"}
+    [:form
+     [:div {:id "controls-top"}
+      [:label {:for "_title"} "Title:"]
+      "<input id='title' name='_title' type='text'
+              placeholder='Untitled' value='<%= job.title %>'></input>"
+      [:select {:id "type"}
+       "<option id='type-url' value='url' <%= job.params.target.type === 'url' ? 'selected=\\'true\\'' : '' %>>Single URL</option>"
+       "<option id='type-markov' value='markov-corpus' <%= job.params.target.type === 'markov-corpus' ? 'selected=\\'true\\'' : '' %>>URL List</option>"
+        "Single URL"]
+      "<% if (job.params.target.type === 'url') { %>"
+      [:select {:id "method" :class "short-num" :name "method"}
+       [:option {:value "get"} "GET"]
+       [:option {:value "post"} "POST"]
+       [:option {:value "put"} "PUT"]
+       [:option {:value "delete"} "DELETE"]
+       [:option {:value "patch"} "PATCH"]
+       ]
+      "<input id='url' type='url' name='url' value='<%= job.params.target.url %>'>"
+      "<% } else  { %>"
+      [:span {:id "markov-help"}
+       "Newline Separate URLs as: "
+       [:strong "GET http://localhost/foo"]
+       ". Constructs a "
+       [:a {:href "https://github.com/andrewvc/engulf/wiki/HTTP-API"}
+        "Markov chain."]
+       ]
+      [:textarea {:id "markov-corpus" :name "markov-corpus"}
+       "<%= _.map(job.params.target.corpus, function (r) { return r.method + ' ' + r.url;}).join('\\n') %>"
+       ]
+      "<% } %>"
+      ]
+     
+     [:table
+      [:thead
+       [:th [:label {:for "timeout"} "Timeout "]]
+       [:th [:label {:for "concurrency"} "Concurrency "]]
+       [:th [:label {:for "limit"} "Limit "]]
+       [:th [:label {:for "keep-alive"} "KeepAlive"]]
+       [:th [:label {:for "start-stop"} "&middot;"]]
+       ]
+      [:tbody
+       [:tr
+        [:td
+         "<input id='timeout' class='short-num' name='timeout' type='number' min='1' max='200000' value='<%= job.params.target.timeout %>'>"]
+        [:td
+         "<input id='concurrency' class='short-num' name='concurrency' type='number' min='1' value='<%= job.params.concurrency %>'>"]
+        [:td
+         "<input id='limit' class='short-num' name='limit' type='number' min='1' value='<%= job.params.limit %>'>"]
+        [:td
+         "<input id='keep-alive' name='keep-alive' type='checkbox' checked='<%= job.params.target['keep-alive'] == 'true' ? 'true' : '' %>'>"]
+         [:td
+          "<% if (job['started-at'] && !job['ended-at']) { %>"
+          [:input {:id "stop-ctl"  :type "button" :value "▢ Stop"}]
+          "<% } else { %>"
+          [:input {:id "start-ctl" :type "button" :value "▷ Start"}]
+
+          "<% } %>"
+          ]]]]]]
    ))

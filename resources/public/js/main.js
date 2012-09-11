@@ -420,7 +420,6 @@ ControlsView = Backbone.View.extend({
             concurrency: parseInt($('#concurrency', el).val(), 10),
             limit: parseInt($('#limit', el).val(), 10),
             target: {
-                url: '',
                 type: $('#type', el).val(),
                 timeout: parseInt($('#timeout', el).val(), 10),
                 "keep-alive": $('#keep-alive', el).is(":checked") + ""
@@ -451,7 +450,6 @@ ControlsView = Backbone.View.extend({
   formChange: function(e) {
     this.readFormValues();
     this.render();
-    return; 
     engRouter.navigate('', {trigger: true});
     if (engRouter.benchmarker.get('currentJob')) {
       var job = _.extend({}, engRouter.benchmarker.get('currentJob'));
@@ -462,11 +460,12 @@ ControlsView = Backbone.View.extend({
     this.render();  
   },
   start: function (e) {
+    console.log("pressit");
     var self = this;
     this.readFormValues();
     var job = this.model.get('currentJob');
 
-    if (!job.params.target.url || job.params.target.url.length < 3) {
+    if (job.params.target.type === 'url' && (!job.params.target.url || job.params.target.url.length < 3)) {
       popModal("Error!", "Could not start benchmark, no URL specified!");
       return;
     }
@@ -481,7 +480,6 @@ ControlsView = Backbone.View.extend({
       return;
     }
     
-    this.disableInputs();
     this.model.start(job, null, function (e) {
                        self.renderStartable();
                      });
@@ -512,7 +510,6 @@ ControlsView = Backbone.View.extend({
   },
   render: function () {
     var curJob = this.displayedJob();
-    console.log("j", curJob);
 
     this.$el.html(this.tmpl({job: curJob}));
   },

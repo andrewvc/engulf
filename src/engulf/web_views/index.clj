@@ -108,7 +108,7 @@
               placeholder='Untitled' value='<%= job.title %>'></input>"
       [:select {:id "type"}
        "<option id='type-url' value='url' <%= job.params.target.type === 'url' ? 'selected=\\'true\\'' : '' %>>Single URL</option>"
-       "<option id='type-markov' value='markov-corpus' <%= job.params.target.type === 'markov-corpus' ? 'selected=\\'true\\'' : '' %>>URL List</option>"
+       "<option id='type-markov' value='markov' <%= job.params.target.type === 'markov' ? 'selected=\\'true\\'' : '' %>>URL List</option>"
         "Single URL"]
       "<% if (job.params.target.type === 'url') { %>"
       [:select {:id "method" :class "short-num" :name "method"}

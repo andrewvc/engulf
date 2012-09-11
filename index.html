@@ -21,7 +21,7 @@
         <p><strong>High Performance HTTP Load Testing</strong></p>
 
         <ul class="downloads">
-          <li><a href="http://engulf-project.org/latest.jar">Download <strong>JAR File</strong></a></li>
+          <li><a href="http://engulf-project.org/latest.jar">Download <strong>3.0.0-beta10 JAR</strong></a></li>
           <li><a href="#amazon-ami">Launch <strong>AWS AMI</strong></a></li>
         </ul>
         
@@ -211,25 +211,19 @@ In an Engulf cluster you must provision a single master and multiple workers.
 <p><strong>Parameters:</strong></p>
 
 <ul>
+<li><strong>title:</strong> MAY be set. Stored as job metadata. Maxlen 255</li>
+<li><strong>notes:</strong> MAY be set. Stores as job metadata. Size unbounded</li>
 <li>
-<strong>url:</strong> MAY be set. The full URL to test, e.g., http://localhost/bar. It must <em>ALWAYS</em> include the host and protocol. If this is not set, markov-corpus must be set.</li>
+  <strong>_stream:</strong> MAY be set. If set to <code>true</code> the HTTP connection will stay open while the benchmark is running, and stream results back in chunks. If set to <code>false</code> it will return the job metadata immediately.
+</li>
+<li><strong>params.url:</strong> MAY be set. The full URL to test, e.g., http://localhost/bar. It must <em>ALWAYS</em> include the host and protocol. If this is not set, markov-corpus must be set.</li>
+<li><strong>params.markov-corpus:</strong> MAY be set. If you'd like to test a list of URLs use this option.<br>The list is analyzed and traversed as a <a href="http://www.beetleinabox.com/markov.html">markov-chain</a> for a good mix between randomness and similarity to a given source. Taking a snippet out of a webserver log is a good way to use this.<br> The should must passed in as a JSON array of either strings (simple get requests) or hashes of the form {"url": "http://...", "method": "post"}.</li>
+<li><strong>params.limit:</strong> MUST be set. The job will stop at this point. Note, due to performance optimizations there is no guarantee Engulf will stop at this exact mark. It will merely attempt to stop at it, but will usually over-run it by a small amount.</li>
+<li><strong>params.concurrency:</strong> MUST be set. The desired number of concurrent requests <em>cluster-wide</em>. So, if you have 2 workers, a setting of 10 means there will be 10 simultaneous requests at any given time, with 5 on each worker.</li>
+<li><strong>params.formula-name:</strong> MUST be set. Currently always "http-benchmark".</li>
+
 <li>
-<strong>markov-corpus:</strong> MAY be set. If you'd like to test a list of URLs use this option.<br>The list is analyzed and traversed as a <a href="http://www.beetleinabox.com/markov.html">markov-chain</a> for a good mix between randomness and similarity to a given source. Taking a snippet out of a webserver log is a good way to use this.<br> The should must passed in as a JSON array of either strings (simple get requests) or hashes of the form {"url": "http://...", "method": "post"}.</li>
-<li>
-<strong>limit:</strong> MUST be set. The job will stop at this point. Note, due to performance optimizations there is no guarantee Engulf will stop at this exact mark. It will merely attempt to stop at it, but will usually over-run it by a small amount.</li>
-<li>
-<strong>concurrency:</strong> MUST be set. The desired number of concurrent requests <em>cluster-wide</em>. So, if you have 2 workers, a setting of 10 means there will be 10 simultaneous requests at any given time, with 5 on each worker.</li>
-<li>
-<strong>formula-name:</strong> MUST be set. Currently always "http-benchmark".</li>
-<li>
-<li>
-<strong>_title:</strong> MAY be set. Stored as job metadata. Maxlen 255</li>
-<li>
-<strong>_notes:</strong> MAY be set. Stores as job metadata. Size unbounded</li>
-<li>
-<strong>_stream:</strong> MAY be set. If set to <code>true</code> the HTTP connection will stay open while the benchmark is running, and stream results back in chunks. If set to <code>false</code> it will return the job metadata immediately.</li>
-<li>
-  <strong>Target:</strong> MUST be set. Is a dictionary describing the URL or URLs to hit with the following values.
+  <strong>params.arget:</strong> MUST be set. Is a dictionary describing the URL or URLs to hit with the following values.
   <hr>
   <p><strong>Single URL Targets</strong>
   <pre>{
@@ -256,23 +250,26 @@ In an Engulf cluster you must provision a single master and multiple workers.
 </ul><p><strong>Examples:</strong></p>
 
 <div class="highlight"><pre><span class="c"># Testing a single URL</span>
-curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d <span class="s1">'{</span>
-<span class="s1">"formula-name":"http-benchmark", "concurrency":5, "limit":50000,</span>
-<span class="s1">"target": {"type": "url", "url": "http://localhost:8081", "keep-alive":"true", "timeout":50, "method":"get", }, "_stream":"true"}'</span>
+curl -XPOST http://localhost:4000/jobs/current -H 'Content-Type: application/json' -d '{
+"title": "A Simple Test", "_stream":"true",
+"params": {"formula-name":"http-benchmark", "concurrency":5, "limit":50000,
+    "target": {"type": "url", "url": "http://localhost:8081", "keep-alive":"true", "timeout":50, "method":"get"}}}'
 </pre></div>
 
 <div class="highlight"><pre><span class="c"># An example of testing using a markov-chain</span>
-curl -XPOST http://localhost:4000/jobs/current -H <span class="s1">'Content-Type: application/json'</span> -d @markov.json</pre>
+curl -XPOST http://localhost:4000/jobs/current -H 'Content-Type: application/json' -d @markov.json</pre>
 
 In markov.json:
 <pre>{
-    "formula-name": "http-benchmark",
-    "concurrency": 5,
-    "timeout": 50,
-    "limit": 5000,
-    "keep-alive": "true",
+    "title": "a test",
     "_stream": "true",
-    "target": {
+    "params": {
+      "formula-name": "http-benchmark",
+      "concurrency": 5,
+      "timeout": 50,
+      "limit": 50000,
+      "keep-alive": "true",
+      "target": {
         "type": "markov",
         "corpus": [
             "http://localhost:8081/foo",
@@ -297,6 +294,7 @@ In markov.json:
             }
         ]
     }
+  }
 }</pre>
 </div>
 

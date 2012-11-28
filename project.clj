@@ -1,14 +1,14 @@
 (defproject engulf/engulf "3.0.0-beta10"
   :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.cli "0.2.2"]
-                 [noir-async "1.1.0-beta10"]
+                 [noir-async "1.1.0-beta11"]
                  [cheshire "4.0.2"]
                  [org.slf4j/slf4j-simple "1.6.6"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [korma "0.3.0-beta9"]
                  [ragtime "0.2.1"]
                  [ragtime/ragtime.sql "0.2.1"]
-                 [org.clojure/tools.nrepl "0.2.0-beta9"]
+                 [org.clojure/tools.nrepl "0.2.0-beta10"]
                  [org.clojure/tools.logging "0.2.3"]]
   :profiles {:dev
              {

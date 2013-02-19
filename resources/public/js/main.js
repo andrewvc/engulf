@@ -448,6 +448,9 @@ ControlsView = Backbone.View.extend({
     this.model.set({currentJob: job});
   },
   formChange: function(e) {
+    // Intended to handle the case of someone editing an already run
+    // job in order to re-run it
+    return;  // Temporarily disabled, this causes bugginess in double-clicking the submit button that must be resolved, but is not high-priority
     this.readFormValues();
     this.render();
     engRouter.navigate('', {trigger: true});
@@ -460,7 +463,6 @@ ControlsView = Backbone.View.extend({
     this.render();  
   },
   start: function (e) {
-    console.log("pressit");
     var self = this;
     this.readFormValues();
     var job = this.model.get('currentJob');

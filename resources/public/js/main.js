@@ -512,6 +512,10 @@ ControlsView = Backbone.View.extend({
     var curJob = this.displayedJob();
 
     this.$el.html(this.tmpl({job: curJob}));
+
+    if (curJob['started-at'] && !curJob['ended-at']) {
+      $('input', this.el).not('#stop-ctl').attr('disabled', 'disabled');        
+    }
   },
   renderStartable: function () {
     this.enableInputs();

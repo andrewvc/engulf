@@ -403,7 +403,7 @@ ControlsView = Backbone.View.extend({
     this.$el = $(this.el);
      
     _.bindAll(this, "render");
-    this.model.bind('change', this.render);
+    this.model.bind('change:currentJob', this.render);
   },
   events: {
     "click #start-ctl": "start",

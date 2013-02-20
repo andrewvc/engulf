@@ -21,10 +21,6 @@
 
 (defn int-val [i] (Integer/valueOf i))
 
-(defn req-seq
-  [req]
-  (lazy-seq (cons req (req-seq req))))
-
 (defn markov-req-seq
   [{{:keys [corpus keep-alive?]} :target}]
   
@@ -38,17 +34,20 @@
 
 (defn simple-req-seq
   [{target :target}]
-  (let [req-pkeys #{:url :method :keep-alive? :retry? :timeout}
-        refined (assoc target
-                  :method (keyword (lower-case (or (:method target) "get")))
-                  :timeout (or (:timeout target) 1000))]
-    ;; Throw on bad URLs.
-    (URL. (:url target))
-    (when (not ((:method refined) valid-methods))
-        (throw (Exception. (str "Invalid method: " (:method target) " "
-                                "expected one of " valid-methods))))
-    (req-seq
-     (into {} (filter (fn [[k v]] (req-pkeys k)) refined)))))
+  (letfn [(validate [refined]
+            ;; Throw on bad URLs.
+            (URL. (:url target))
+            (when (not ((:method refined) valid-methods))
+              (throw (Exception. (str "Invalid method: " (:method target) " "
+                                      "expected one of " valid-methods))))
+            refined)
+          (refine [target]
+            (validate
+             (assoc target
+              :method (keyword (lower-case (or (:method target) "get")))
+              :timeout (or (:timeout target) 1000))))
+          (lazify [req] (lazy-seq (cons req (lazify req))))]
+    (lazify (refine target))))
 
 ;; TODO Clean this all up, it's a bit of a hairbal
 (defn clean-job [{str-params :params node-count :node-count :as job}]

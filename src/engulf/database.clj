@@ -17,9 +17,14 @@
                        :keyword #(.replace ^String % "-" "_") })))
 
 (defn- dash-keys
-  "Convert underscores in a map's keys into dashes"
-  [m]
-  (into {} (map (fn [[k v]] [(keyword (.replaceAll (name k) "_" "-")) v]) m)))
+  "Convert underscores in a record map's keys into dashes"
+  [records]
+   (letfn [(kdasherize [s] (keyword (.replaceAll (name s) "_" "-")))
+           (fmt-kv [[k v]] [(kdasherize k) v])
+           (remap [m] (into {} (map fmt-kv m)))]
+     (if (map? records)
+       (remap records)
+       (map remap records)) ))
 
 (defn- serialize-record-params
   [{:keys [params last-result] :as record}]
@@ -33,10 +38,14 @@
    record))
 
 (defn- deserialize-record-params
-  [record]
-  (-> record
-      (update-in [:params] (comp walk/keywordize-keys json/parse-string))
-      (update-in [:last-result] json/parse-string)))
+  [records]
+  (letfn [(deserialize [record]
+            (-> record
+                (update-in [:params] (comp walk/keywordize-keys json/parse-string))
+                (update-in [:last-result] json/parse-string)))]
+    (if (map? records)
+      (deserialize records)
+      (map deserialize records) )))
 
 (defn- serialize-record-value
   [record]

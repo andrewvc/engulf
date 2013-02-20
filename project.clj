@@ -9,7 +9,7 @@
                  [ragtime "0.2.1"]
                  [ragtime/ragtime.sql "0.2.1"]
                  [org.clojure/tools.trace "0.7.5"]
-                 [org.clojure/tools.nrepl "0.2.0-beta10"]
+                 [org.clojure/tools.nrepl "0.2.1"]
                  [org.clojure/tools.logging "0.2.6"]]
   :profiles {:dev
              {

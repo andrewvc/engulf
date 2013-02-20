@@ -32,6 +32,28 @@
   (map #(assoc % :keep-alive? keep-alive?)
        (markov/corpus-chain corpus) ))
 
+(defn fn-req-seq
+  [forms-str]
+  (letfn [(check-fn [val]
+            (when (not (ifn? val))
+              (throw (Exception.
+                      (str  "User script '" val
+                            "' did not return an fn!"))))
+            val)
+          (generator [forms]
+            (let [cur-ns *ns*
+                  script-ns (create-ns 'engulf.user-script-ns)]
+              (try
+                (in-ns (ns-name script-ns))
+                (eval  '(clojure.core/refer 'clojure.core))
+                (check-fn (eval forms))
+                (finally
+                 (in-ns (ns-name cur-ns))
+                 (remove-ns (ns-name script-ns))))))
+          (lazify [script-fn]
+            (lazy-seq (cons (script-fn) (lazify script-fn))))]
+    (lazify (generator (read-string forms-str)))))
+
 (defn simple-req-seq
   [{target :target}]
   (letfn [(validate [refined]

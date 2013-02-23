@@ -450,17 +450,16 @@ ControlsView = Backbone.View.extend({
   formChange: function(e) {
     // Intended to handle the case of someone editing an already run
     // job in order to re-run it
-    return;  // Temporarily disabled, this causes bugginess in double-clicking the submit button that must be resolved, but is not high-priority
-    this.readFormValues();
-    this.render();
-    engRouter.navigate('', {trigger: true});
-    if (engRouter.benchmarker.get('currentJob')) {
-      var job = _.extend({}, engRouter.benchmarker.get('currentJob'));
-      job.uuid = null;
-      job['last-result'] = {};
-      engRouter.benchmarker.set({currentJob: job});        
+
+    var routerJob = engRouter.benchmarker.get('currentJob');
+    console.log("RJ", routerJob);
+    if (routerJob && routerJob.uuid) {
+      engRouter.navigate('', {trigger: false});
+      alert("You changed the job, cloning to new job");
+      this.readFormValues();
+      this.render();
+
     }
-    this.render();  
   },
   start: function (e) {
     var self = this;

@@ -32,7 +32,7 @@
    propagating"
   [job conn]
   (utils/safe-send-off-with-result current res state
-    (log/info (str "Starting job on worker: " job))
+    (log/info (str "Starting job on worker"))
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     (let [res-ch (job-results-channel job conn)
           fla (formula/init-job-formula job)]

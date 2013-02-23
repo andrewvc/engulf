@@ -85,7 +85,7 @@
   (when (not formula-name)
     (throw (Exception. "Missing formula name!")))
 
-  (log/info (str "Starting job with params: " params))
+  (log/info (str "Starting job"))
   
   ;; Attempt to initialize the formula. This should throw any errors it gets related to invalid params
   (formula/init-job-formula (job formula-name title notes params))

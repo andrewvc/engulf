@@ -30,7 +30,7 @@
 (defn start-job
   [job]
   (utils/safe-send-off-with-result current res state
-    (log/info (str "Starting job on relay: " job))
+    (log/info (str "Starting job on relay"))
     
     (when-let [{old-fla :formula} state] (formula/stop old-fla))
     

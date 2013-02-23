@@ -117,8 +117,14 @@
   [corpus]
   (->> corpus
        (map #(if (map? %) % {:url %}))
+       (filter (comp not string/blank? :url))
        ;; Ensure URLs are parsable
-       (map #(do (.toString (URL. (:url %))) %))
+       (map (fn [req]
+              (try
+                (update-in req [:url] #(.toString (URL. %)))
+                (catch Exception e
+                  (throw (Exception. (str "Could not parse url in: " req)
+                                     ))))))
        (map keywordize-keys)
        (map #(assoc % :timeout (if-let [t (:timeout %)] t 30000)))
        (map #(assoc % :method (if-let [m (:method %)]

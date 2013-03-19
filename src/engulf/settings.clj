@@ -6,6 +6,7 @@
    :host "localhost"
    :mode :combined
    :reconnect true
+   :nrepl nil
    :connect-to ["localhost" 4025]
    :jdbc {:classname "org.sqlite.JDBC"
           :subprotocol "sqlite"

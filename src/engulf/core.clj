@@ -21,6 +21,9 @@
         :parse-fn #(Integer. %) :default (:http-port settings/all)]
        ["--manager-port" "TCP Port for manager to listen on"
         :parse-fn #(Integer. %) :default (:manager-port settings/all)]
+       ["--nrepl" "Enable nRepl on a given port"
+        :default (:nreprl-port settings/all)
+        :parse-fn #(Integer. %)]
        ["--mode" "{combined:master:worker}"
         :parse-fn keyword :default (:mode settings/all)]
        ["--connect-to" "When in worker mode, connect to this TCP host:port"
@@ -39,9 +42,11 @@
       (println "Aborting! Invalid mode option: " (:mode settings/all))
       (System/exit 1)))
 
+  (when (settings/all :nrepl)
+    (log/info (format "Starting nrepl server on port %d" (settings/all :nrepl)))
+    (nrepl-srv/start-server :port (settings/all :nrepl)))
+
   (when (#{:combined :master} (:mode settings/all))
-    (log/info "Starting nrepl server on port 7888")
-    (nrepl-srv/start-server :port 7888)
     
     (log/info "Connecting to DB")
     (database/connect)

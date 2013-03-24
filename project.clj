@@ -15,11 +15,8 @@
   :profiles {:dev
              {
               ;:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
-              :dependencies
-              [[org.clojure/tools.trace "0.7.5"]
-               [midje "1.4.0"]]
-              :plugins [[lein-midje "2.0.0-SNAPSHOT"]
-                        [lein-swank "1.4.4"]]}}
+              :dependencies [[org.clojure/tools.trace "0.7.5"]
+                             [midje "1.5.1"]]}}
   :java-source-paths ["java-src"]
   :main engulf.core
   :min-lein-version "2.0.0"

@@ -17,65 +17,9 @@
   (assoc (result started-at ended-at)
     :status status))
 
-(def valid-methods #{:get :post :put :delete :patch})
+;; Job cleaning related stuff
 
 (defn int-val [i] (Integer/valueOf i))
-
-(defn markov-req-seq
-  [{{:keys [corpus keep-alive?]} :target}]
-  
-  ;; TODO: Maybe consider having this just work...
-  (when (> 2 (count corpus))
-    (throw (Exception. (str "Markov corpus must contain at least 2 URLs. "
-                            "Got: " (count corpus)))))
-
-  (map #(assoc % :keep-alive? keep-alive?)
-       (markov/corpus-chain corpus) ))
-
-(defn fn-req-seq
-  [forms-str]
-  (letfn [(check-fn [val]
-            (when (not (ifn? val))
-              (throw (Exception.
-                      (str  "User script '" val
-                            "' did not return an fn!"))))
-            val)
-          (generator [forms]
-            (let [cur-ns *ns*
-                  script-ns (create-ns 'engulf.user-script-ns)]
-              (try
-                (in-ns (ns-name script-ns))
-                (eval  '(clojure.core/refer 'clojure.core))
-                (check-fn (eval forms))
-                (finally
-                 (in-ns (ns-name cur-ns))
-                 (remove-ns (ns-name script-ns))))))
-          (lazify [script-fn]
-            (lazy-seq (cons (script-fn) (lazify script-fn))))]
-    (lazify (generator (read-string forms-str)))))
-
-(defn simple-req-seq
-  [{target :target}]
-  (letfn [(validate [refined]
-            ;; Throw on bad URLs.
-            (try
-              (URL. (:url target))
-              (catch java.net.MalformedURLException e
-                (throw (Exception. (format "Could not parse url '%s' in %s" (:url target) target)))))
-            (when (not ((:method refined) valid-methods))
-              (throw (Exception. (str "Invalid method: " (:method target) " "
-                                      "expected one of " valid-methods))))
-            refined)
-          (refine [target]
-            (validate
-             (assoc target
-              :method (keyword (lower-case (or (:method target) "get")))
-              :timeout (or (:timeout target) 1000))))
-          (lazify [req] (lazy-seq (cons req (lazify req))))]
-    (lazify (refine target))))
-
-
-;; Job cleaning related stuff
 
 (defn ensure-required-keys
   [job]
@@ -106,9 +50,12 @@
   (assoc-in
    job
    [:params :req-seq]
-   (if (= t-type "markov")
-     (markov-req-seq params)
-     (simple-req-seq params))))
+   (if-let [builder (req-seqs/get-builder t-type)]
+     (builder params)
+     (throw
+      (Exception.
+       (format "No req-seq builder for '%s', try one of '%s'"
+               t-type (keys @req-seqs/registry)))))))
 
 (defn clean-job
   [job]

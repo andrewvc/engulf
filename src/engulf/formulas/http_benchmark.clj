@@ -1,5 +1,5 @@
 (ns engulf.formulas.http-benchmark
-  (:require [engulf.formulas.markov-requests :as markov]
+  (:require [engulf.formulas.http-benchmark.request-sequences :as req-seqs]
             [lamina.core :as lc]
             [lamina.connections]
             [clojure.tools.logging :as log]
@@ -7,7 +7,6 @@
   (:use [engulf.formula :only [Formula register stop]]
         [engulf.utils :only [set-timeout now merge-map-sums]]
         [aleph.http :only [http-client http-request]]
-        [clojure.string :only [lower-case]]
         [clojure.walk :only [keywordize-keys]])
   (:import fastPercentiles.PercentileRecorder
            fastPercentiles.Percentile

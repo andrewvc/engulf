@@ -449,17 +449,16 @@ ControlsView = Backbone.View.extend({
   },
   formChange: function(e) {
     // Intended to handle the case of someone editing an already run
-    // job in order to re-run it
-
+    // job in order to re-run 
+      
     var routerJob = engRouter.benchmarker.get('currentJob');
     console.log("RJ", routerJob);
     if (routerJob && routerJob.uuid) {
-      engRouter.navigate('', {trigger: false});
       alert("You changed the job, cloning to new job");
-      this.readFormValues();
-      this.render();
-
     }
+    engRouter.navigate('', {trigger: false});
+    this.readFormValues();
+    this.render();
   },
   start: function (e) {
     var self = this;

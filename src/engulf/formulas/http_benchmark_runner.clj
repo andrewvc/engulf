@@ -58,7 +58,10 @@
   [{target :target}]
   (letfn [(validate [refined]
             ;; Throw on bad URLs.
-            (URL. (:url target))
+            (try
+              (URL. (:url target))
+              (catch java.net.MalformedURLException e
+                (throw (Exception. (format "Could not parse url '%s' in %s" (:url target) target)))))
             (when (not ((:method refined) valid-methods))
               (throw (Exception. (str "Invalid method: " (:method target) " "
                                       "expected one of " valid-methods))))

@@ -26,7 +26,7 @@
 (defn better-url-check
   [url-str]
   (try
-    (URL. url-str)
+    (.toString (URL. url-str))
     (catch java.net.MalformedURLException e
       (throw (Exception. (format "Could not parse url '%s': %s" url-str (.getMessage e)))))))
 
@@ -85,8 +85,7 @@
   (->> (read-file-inf (:url target))
        (map string/trim)
        (filter (comp not string/blank?))
-       (filter (comp not nil?))
-       (map (fn [r] (println (format "Line: '%s'" r)) r))
+       (filter (comp not nil?))       
        (map parse-request-line)))
 
 (def-rseq :url

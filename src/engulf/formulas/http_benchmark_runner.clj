@@ -71,29 +71,50 @@
           (lazify [req] (lazy-seq (cons req (lazify req))))]
     (lazify (refine target))))
 
-;; TODO Clean this all up, it's a bit of a hairbal
-(defn clean-job [{str-params :params node-count :node-count :as job}]
-  (let [params (keywordize-keys str-params)]
-    
-    ;; Ensure required keys
-    (let [diff (cset/difference #{:concurrency :limit} params)]
-      (when (not (empty? diff))
-        (throw (Exception. (str "Invalid parameters! Missing keys: " diff ".")))))
 
-    (when (> node-count (int-val (:concurrency params)))
-      (throw (Exception. "Concurrency cannot be < node-count! Use a higher concurrency setting!")))
+;; Job cleaning related stuff
 
-    (let [cast-params (-> params
-                          (update-in [:concurrency] int-val)
-                          (update-in [:target :timeout] #(when % (int-val %)))
-                          (update-in [:limit] int-val)
-                          (assoc :retry? true)
-                          (assoc-in [:target :keep-alive?] (not= "false" (:keep-alive (:target params)))))
-          seqd-params (assoc cast-params :req-seq
-                             (if (= (:type (:target cast-params)) "markov")
-                               (markov-req-seq cast-params)
-                               (simple-req-seq cast-params)))]
-          (assoc job :params seqd-params))))
+(defn ensure-required-keys
+  [job]
+  (let [diff (cset/difference #{:concurrency :limit} (:params job))]
+    (when (not (empty? diff))
+      (throw (Exception. (str "Invalid parameters! Missing keys: " diff ".")))))
+  job)
+
+(defn validate-concurrency
+  [job]
+  (when (> (:node-count job) (int-val (:concurrency (:params job))))
+    (throw
+     (Exception. "Concurrency cannot be < node-count! Use a higher concurrency setting!")))
+  job)
+
+(defn cast-params
+  [{params :params :as job}]
+  (assoc job :params
+         (-> (:params job)
+             (update-in [:concurrency] int-val)
+             (update-in [:target :timeout] #(when % (int-val %)))
+             (update-in [:limit] int-val)
+             (assoc :retry? true)
+             (assoc-in [:target :keep-alive?] (not= "false" (:keep-alive (:target params)))))))
+
+(defn instantiate-req-seq
+  [{{{t-type :type} :target :as params} :params :as job}]
+  (assoc-in
+   job
+   [:params :req-seq]
+   (if (= t-type "markov")
+     (markov-req-seq params)
+     (simple-req-seq params))))
+
+(defn clean-job
+  [job]
+  (-> job
+      (update-in [:params] keywordize-keys)
+      validate-concurrency
+      ensure-required-keys
+      cast-params
+      instantiate-req-seq))
 
 (defn run-real-request
   [client req-params callback]

@@ -16,7 +16,7 @@
              {
               ;:jvm-opts ["-agentlib:jdwp=transport=dt_socket,server=y,suspend=n"]
               :dependencies
-              [[org.clojure/tools.trace "0.7.3"]
+              [[org.clojure/tools.trace "0.7.5"]
                [midje "1.4.0"]]
               :plugins [[lein-midje "2.0.0-SNAPSHOT"]
                         [lein-swank "1.4.4"]]}}

@@ -1,5 +1,5 @@
-(defproject engulf/engulf "3.0.0-beta11"
-  :dependencies [[org.clojure/clojure "1.5.0"]
+(defproject engulf/engulf "3.0.0-beta12"
+  :dependencies [[org.clojure/clojure "1.4.0"]
                  [org.clojure/tools.cli "0.2.2"]
                  [noir-async "1.1.0-beta11"]
                  [cheshire "5.0.2"]
